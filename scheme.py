@@ -26,6 +26,14 @@ def string_exec(strings):
     2
     >>> string_exec(["1"])
     1
+    >>> string_exec(["(begin (if #f (define x 1) (define x 2)) x)"])
+    2
+    >>> string_exec(["(define x 5)", "x", "'x", "(quote x)", "(eval 'x)"])
+    x
+    5
+    x
+    x
+    5
     """
     buff = TokenBuffer(strings)
     global_frame = build_global_frame()

@@ -14,6 +14,7 @@
       <option name="ignoredIdentifiers">
         <list>
           <option value="scheme.Expression.value" />
+          <option value="datamodel.Expression.value" />
         </list>
       </option>
     </inspection_tool>
