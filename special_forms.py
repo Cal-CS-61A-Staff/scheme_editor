@@ -1,9 +1,9 @@
 from typing import List
 
-from datamodel import Expression, Symbol, Pair, Integer
-from helper import pair_to_list
+from datamodel import Expression, Symbol, Pair, Integer, SingletonTrue, SingletonFalse, Nil
+from helper import pair_to_list, assert_all_integers, verify_exact_callable_length, verify_min_callable_length
 from evaluate_apply import Frame, evaluate, Callable, evaluate_all
-from scheme_exceptions import CallableResolutionError, ArithmeticError
+from scheme_exceptions import CallableResolutionError, ComparisonError
 
 
 class LambdaObject(Callable):
@@ -75,6 +75,17 @@ class Define(Callable):
             raise CallableResolutionError("Expected a Symbol or List (aka Pair) as first operand of define.")
 
 
+class If(Callable):
+    def execute(self, operands: List[Expression], frame: Frame):
+        verify_min_callable_length(self, 2, len(operands))
+        if len(operands) > 3:
+            verify_exact_callable_length(self, 3, len(operands))
+        if evaluate(operands[0], frame) is SingletonFalse:
+            return Nil if len(operands) == 2 else evaluate(operands[2], frame)
+        else:
+            return evaluate(operands[1], frame)
+
+
 class Begin(Callable):
     def execute(self, operands: List[Expression], frame: Frame):
         verify_min_callable_length(self, 0, len(operands))
@@ -84,20 +95,41 @@ class Begin(Callable):
         return out
 
 
-def assert_all_integers(operands):
-    for operand in operands:
-        if not isinstance(operand, Integer):
-            raise ArithmeticError(f"Unable to perform arithmetic, as {operand} is not an integer.")
+class IntegerEq(Callable):
+    def execute(self, operands: List[Expression], frame: Frame):
+        verify_exact_callable_length(self, 2, len(operands))
+        for operand in operands:
+            if not isinstance(operand, Integer):
+                raise ComparisonError(f"Unable to perform integer comparison with: {operand}.")
+        return operands[0].value == operands[1].value
+
+class IntegerLess(Callable):
+    def execute(self, operands: List[Expression], frame: Frame):
+        verify_exact_callable_length(self, 2, len(operands))
+        for operand in operands:
+            if not isinstance(operand, Integer):
+                raise ComparisonError(f"Unable to perform integer comparison with: {operand}.")
+        return operands[0].value < operands[1].value
+
+class IntegerGreater(Callable):
+    def execute(self, operands: List[Expression], frame: Frame):
+        verify_exact_callable_length(self, 2, len(operands))
+        for operand in operands:
+            if not isinstance(operand, Integer):
+                raise ComparisonError(f"Unable to perform integer comparison with: {operand}.")
+        return operands[0].value > operands[1].value
 
 
-def verify_exact_callable_length(operator: Expression, expected: int, actual: int):
-    if expected != actual:
-        raise CallableResolutionError(f"{operator} expected {expected} operands, received {actual}.")
+class Quote(Callable):
+    def execute(self, operands: List[Expression], frame: Frame):
+        verify_exact_callable_length(self, 1, len(operands))
+        return operands[0]
 
+class Eval(Callable):
+    def execute(self, operands: List[Expression], frame: Frame):
+        verify_exact_callable_length(self, 1, len(operands))
+        return evaluate(evaluate(operands[0], frame), frame)
 
-def verify_min_callable_length(operator: Expression, expected: int, actual: int):
-    if expected > actual:
-        raise CallableResolutionError(f"{operator} expected {expected} operands, received {actual}.")
 
 def build_global_frame():
     global_frame = Frame()
@@ -106,5 +138,13 @@ def build_global_frame():
     global_frame.assign(Symbol("define"), Define())
     global_frame.assign(Symbol("lambda"), Lambda())
     global_frame.assign(Symbol("begin"), Begin())
+    global_frame.assign(Symbol("if"), If())
+    global_frame.assign(Symbol("#t"), SingletonTrue)
+    global_frame.assign(Symbol("#f"), SingletonFalse)
+    global_frame.assign(Symbol("="), IntegerEq())
+    global_frame.assign(Symbol("<"), IntegerLess())
+    global_frame.assign(Symbol(">"), IntegerGreater())
+    global_frame.assign(Symbol("quote"), Quote())
+    global_frame.assign(Symbol("eval"), Eval())
 
     return global_frame

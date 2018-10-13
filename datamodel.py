@@ -41,4 +41,16 @@ class NilType(Expression):
         return "nil"
 
 
+class Boolean(Expression):
+    def __init__(self, val: bool):
+        self.val = val
+    def __repr__(self):
+        if self.val:
+            return "#t"
+        else:
+            return "#f"
+
+SingletonTrue = Boolean(True)
+SingletonFalse = Boolean(False)
+
 Nil = NilType()
