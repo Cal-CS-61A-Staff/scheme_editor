@@ -24,35 +24,40 @@ class Frame:
         return self.parent.lookup(varname)
 
 
-def evaluate(expr: Expression, frame: Frame, gui_holder: Holder = None):
+def evaluate(expr: Expression, frame: Frame, gui_holder: Holder):
     """
     >>> global_frame = __import__("special_forms").build_global_frame()
+    >>> gui_holder = __import__("gui").Holder(None)
+    >>> __import__("gui").Root.setroot(gui_holder)
+    >>> __import__("gui").silent = True
 
     >>> buff = __import__("lexer").TokenBuffer(["(+ 1 2)"])
     >>> expr = __import__("parser").get_expression(buff)
-    >>> result = evaluate(expr, global_frame)
+    >>> result = evaluate(expr, global_frame, gui_holder)
     >>> print(result)
     3
-    >>> evaluate(__import__("parser").get_expression(__import__("lexer").TokenBuffer(["(+ 3 4 5)"])), global_frame)
+    >>> evaluate(__import__("parser").get_expression(__import__("lexer").TokenBuffer(["(+ 3 4 5)"])), global_frame, gui_holder)
     12
-    >>> evaluate(__import__("parser").get_expression(__import__("lexer").TokenBuffer(["(* 3 4 5)"])), global_frame)
+    >>> evaluate(__import__("parser").get_expression(__import__("lexer").TokenBuffer(["(* 3 4 5)"])), global_frame, gui_holder)
     60
-    >>> evaluate(__import__("parser").get_expression(__import__("lexer").TokenBuffer(["(* (+ 1 2) 4 5)"])), global_frame)
+    >>> evaluate(__import__("parser").get_expression(__import__("lexer").TokenBuffer(["(* (+ 1 2) 4 5)"])), global_frame, gui_holder)
     60
+    >>> __import__("gui").silent = False
     """
     if gui_holder is None:
         gui_holder = Holder(expr)  # dummy holder
-    gui_holder.evaluate()
     visual_expression = VisualExpression(expr)  # magically copies the attributes of the expression and creates Holder objects
     gui_holder.link_visual(visual_expression)
     if isinstance(expr, Integer):
         return expr
     elif isinstance(expr, Symbol):
+        gui_holder.evaluate()
         out = frame.lookup(expr)
         visual_expression.value = out
         gui_holder.complete()
         return out
     elif isinstance(expr, Pair):
+        gui_holder.evaluate()
         operator = expr.first
         operator = evaluate(operator, frame, visual_expression.children[0])  # evaluating operator and storing it in visual_expression
         operands = pair_to_list(expr.rest)
