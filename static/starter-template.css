@@ -1,0 +1,18 @@
+body {
+  padding-top: 5rem;
+}
+.starter-template {
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+#editor {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+#editor-wrapper {
+    border: solid gray;
+}

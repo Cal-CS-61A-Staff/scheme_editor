@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Dict, List
 
 from datamodel import Symbol, Expression, Integer, Pair, Nil
-from gui import Holder, VisualExpression
+import gui
 from scheme_exceptions import NameError, CallableResolutionError
 from helper import pair_to_list
 
@@ -24,7 +24,7 @@ class Frame:
         return self.parent.lookup(varname)
 
 
-def evaluate(expr: Expression, frame: Frame, gui_holder: Holder):
+def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder):
     """
     >>> global_frame = __import__("special_forms").build_global_frame()
     >>> gui_holder = __import__("gui").Holder(None)
@@ -45,8 +45,8 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: Holder):
     >>> __import__("gui").silent = False
     """
     if gui_holder is None:
-        gui_holder = Holder(expr)  # dummy holder
-    visual_expression = VisualExpression(expr)  # magically copies the attributes of the expression and creates Holder objects
+        gui_holder = gui.Holder(expr)  # dummy holder
+    visual_expression = gui.VisualExpression(expr)  # magically copies the attributes of the expression and creates Holder objects
     gui_holder.link_visual(visual_expression)
     if isinstance(expr, Integer):
         return expr
@@ -71,7 +71,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: Holder):
         return Nil
 
 
-def apply(operator: Expression, operands: List[Expression], frame: Frame, gui_holder: Holder):
+def apply(operator: Expression, operands: List[Expression], frame: Frame, gui_holder: gui.Holder):
     if isinstance(operator, Callable):
         gui_holder.apply()
         return operator.execute(operands, frame, gui_holder)
@@ -80,9 +80,9 @@ def apply(operator: Expression, operands: List[Expression], frame: Frame, gui_ho
 
 
 class Callable(Expression):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: gui.Holder):
         raise NotImplementedError()
 
 
-def evaluate_all(operands: List[Expression], frame: Frame, operand_holders: List[Holder]) -> List[Expression]:
+def evaluate_all(operands: List[Expression], frame: Frame, operand_holders: List[gui.Holder]) -> List[Expression]:
     return [evaluate(operand, frame, holder) for operand, holder in zip(operands, operand_holders)]
