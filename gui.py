@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum, auto
-from typing import List
+from typing import List, Union
 
 from datamodel import Expression, ValueHolder, Pair
 import evaluate_apply
@@ -51,20 +51,18 @@ class Holder:
 
     def evaluate(self):
         self.state = HolderState.EVALUATING
-        announce("Evaluating", self.expression, Root.root)
+        announce("Evaluating", self, Root.root)
 
     def apply(self):
         self.state = HolderState.APPLYING
-        announce("Applying", self.expression, Root.root)
+        announce("Applying", self, Root.root)
 
     def complete(self):
         self.state = HolderState.EVALUATED
-        announce("Completed", self.expression, Root.root)
+        announce("Completed", self, Root.root)
 
     def __repr__(self):
         return repr(self.expression)
-
-silent = False
 
 class Root:
     root: Holder
@@ -72,6 +70,40 @@ class Root:
     def setroot(cls, root: Holder):
         cls.root = root
 
-def announce(message, local, root):
-    if not silent:
-        print(f"{message:10}: {repr(local):50} {repr(root):20}")
+def silence(*args): pass
+
+def print_announce(message, local, root):
+    print(f"{message:10}: {repr(local):50} {repr(root):20}")
+
+class Logger:
+    def __init__(self):
+        self.states = []
+
+    def log(self, message, local, root):
+        print_announce(message, local, root)
+        new_state = freeze_state(root)
+        print(new_state)
+        print("\n"*2)
+        self.states.append(new_state)
+
+
+print_delta = 0
+
+class StateTree:
+    def __init__(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
+        self.transition_type = transition_type
+        self.children = []
+        if not isinstance(expr, Expression) and expr.value is None:
+            for child in expr.children:
+                self.children.append(StateTree(child.expression, child.state))
+        self.str = repr(expr)
+
+    def __repr__(self):
+        return self.transition_type.name + " " + self.str + " " + repr(self.children)
+
+def freeze_state(state: Holder) -> StateTree:
+    return StateTree(state.expression, state.state)
+
+
+logger = Logger()
+announce = logger.log
