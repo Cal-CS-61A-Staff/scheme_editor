@@ -58,4 +58,6 @@ class Boolean(Expression):
 SingletonTrue = Boolean(True)
 SingletonFalse = Boolean(False)
 
+bools = [SingletonFalse, SingletonTrue]
+
 Nil = NilType()
