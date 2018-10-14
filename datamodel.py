@@ -4,13 +4,18 @@ from typing import Union
 
 
 class Expression:
+    def get_gui_expr(self):
+        raise NotImplementedError
     def __repr__(self):
-        return NotImplementedError()
+        raise NotImplementedError()
 
 
 class ValueHolder(Expression):
     def __init__(self, value):
         self.value = value
+
+    def get_gui_expr(self):
+        return
 
     def __repr__(self):
         return str(self.value)
