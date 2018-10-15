@@ -42,6 +42,8 @@ def string_exec(strings):
     60
     >>> string_exec(["(= (+ 1 3) (* 2 2))"])
     #t
+    >>> string_exec(["(begin (define (f b) (if (= b 0) 0 (+ 1 (f (- b 1))))) (f 3))"])
+    3
     """
     buff = TokenBuffer(strings)
     global_frame = build_global_frame()

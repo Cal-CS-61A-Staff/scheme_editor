@@ -72,6 +72,15 @@ class Add(Callable):
         return "#[+]"
 
 
+class Subtract(Callable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+        operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
+        assert_all_integers(operands)
+        return Integer(operands[0].value - sum(operand.value for operand in operands[1:]))
+    def __repr__(self):
+        return "#[-]"
+
+
 class Multiply(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
@@ -190,6 +199,7 @@ class Eval(Callable):
 def build_global_frame():
     global_frame = Frame()
     global_frame.assign(Symbol("+"), Add())
+    global_frame.assign(Symbol("-"), Subtract())
     global_frame.assign(Symbol("*"), Multiply())
     global_frame.assign(Symbol("define"), Define())
     global_frame.assign(Symbol("lambda"), Lambda())
