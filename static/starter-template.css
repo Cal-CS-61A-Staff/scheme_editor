@@ -4,16 +4,22 @@ body {
 .starter-template {
   padding: 3rem 1.5rem;
   text-align: center;
+    padding-bottom: 0;
 }
 
-#editor {
+.code-row {
+  padding: 0;
+  text-align: center;
+}
+
+.editor {
     top: 0;
     right: 0;
     bottom: 0;
     left: 0;
 }
 
-#editor-wrapper {
+.editor-wrapper {
     border: solid gray;
     padding: 5px;
 }

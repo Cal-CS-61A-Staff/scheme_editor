@@ -58,26 +58,16 @@
     <div class="starter-template">
         <h1>Scheme-o-matic</h1>
         <p class="lead">Enter a line of Scheme below:</p>
-        <form id="code-form" submit="/error" method="post">
-            <div class="form-row">
-                <div class="col">
-                    <div id="editor-wrapper">
-                        <div id="editor">(begin (define (f a b) (+ a b)) (f 2 3))</div>
-                    </div>
-                </div>
-                <div class="col-auto">
-                    <button class="form-control mb-2 btn btn-outline-success" type="submit">Execute</button>
-                </div>
-            </div>
-        </form>
-        <br>
-        <div class="btn-group" role="group" aria-label="Basic example">
+    </div>
+    <div id="editors">
+    </div>
+    <div class="code-row">
+        <div class="prevnexts btn-group" role="group" aria-label="Basic example">
           <button id="prev" type="button" class="btn btn-secondary">Prev</button>
           <button id="next" type="button" class="btn btn-secondary">Next</button>
         </div>
         <br>
         <div id="drawarea"></div>
-        </canvas>
     </div>
 
 </main><!-- /.container -->

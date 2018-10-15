@@ -1,38 +1,43 @@
-var editor = ace.edit("editor");
-
-ace.config.set("packaged", true);
-ace.config.set("basePath", "/ace");
-
-// editor.setTheme("ace/theme/clouds");
-editor.session.setMode("ace/mode/scheme");
-editor.setOption("minLines", 1);
-editor.setOption("maxLines", 1);
-editor.setOption("fontSize", 24);
-editor.setOption("showLineNumbers", false);
-editor.setOption("showGutter", false);
-
-editor.container.style.background = "white";
-
-editor.focus();
-
-let container = initializeSVG();
 let i = 0;
 let data = [];
 let starts = [0];
 
-$("#editor").keydown(function (e) {
+let editors = [];
+let container = initializeSVG();
+
+$(".editor").keydown(function (e) {
     if (e.keyCode === 13) {
         e.preventDefault();
     }
 });
 
-$("#code-form").submit(function (e) {
+$("#editors").on("submit", ".code-form", function (e) {
     e.preventDefault();
-    $.post( "./process2", { code: editor.getValue() }).done(function (_data) {
-        i = 0;
-        data = _data;
-        display(i);
-    });
+    let k = parseInt($(this).closest('form').parent().attr('id').substr(4));
+    if (k + 1 === editors.length) {
+        out = [];
+        for (let j = 0; j !== editors.length; ++j) {
+            out.push(editors[j].getValue());
+        }
+        $.post("./process2", {code: out}).done(function (_data) {
+            i = 0;
+            data = _data;
+            display(i);
+            addRow();
+        });
+        disableEditor(editors[i]);
+    } else {
+        while (editors.length !== k + 1) {
+            $(`#row-${editors.length - 1}`).remove();
+            editors.pop();
+        }
+        enableEditor(editors[k]);
+        container.clear();
+            $(`#row-${k} .button`)
+        .text("Execute")
+        .removeClass("btn-outline-danger")
+        .addClass("btn-outline-success");
+    }
 });
 
 $("#prev").click(function () {
@@ -44,6 +49,9 @@ $("#next").click(function () {
     i = Math.min(i + 1, data.length - 1);
     display(i);
 });
+
+addRow();
+window.scrollTo(0, 0);
 
 function display(i) {
     container.clear();
@@ -84,12 +92,92 @@ function _display(data, container, x, y, level) {
                            Math.max(x + xDelta, starts[level + 1]) + child["str"].length * charWidth / 2 + 5,
                             y + 110)
                      .stroke({ width: 3, color: "#c8c8c8"}).back();
-            _display(child, container, Math.max(x + xDelta, starts[level + 1]), y + 100, level + 1);
+            _display(child, container, Math.max(x + xDelta, starts[level + 1]), y + 100, level + 1, i);
         }
         xDelta += parent_len + charWidth;
     }
 }
 
 function initializeSVG() {
-    return SVG('drawarea').size($(".starter-template").width(), 1000);
+    return SVG("drawarea").size($(".starter-template").width(), 1000);
+}
+
+function disableEditor(editor) {
+        editor.setOptions({
+        readOnly: true,
+        highlightActiveLine: false,
+        highlightGutterLine: false
+    });
+    editor.renderer.$cursorLayer.element.style.opacity=0;
+    editor.container.style.pointerEvents="none";
+    editor.container.style.opacity=0.5;
+    editor.renderer.setStyle("disabled", true);
+    editor.blur();
+}
+
+function enableEditor(editor) {
+    editor.setOptions({
+        readOnly: false,
+        highlightActiveLine: true,
+        highlightGutterLine: true
+    });
+    editor.renderer.$cursorLayer.element.style.opacity=1;
+    editor.container.style.pointerEvents="all";
+    editor.container.style.opacity=1;
+    editor.renderer.setStyle("disabled", false);
+}
+
+function initializeEditor(editor) {
+    editor = ace.edit(editor);
+
+    ace.config.set("packaged", true);
+    ace.config.set("basePath", "/ace");
+
+    // editor.setTheme("ace/theme/clouds");
+    editor.session.setMode("ace/mode/scheme");
+    editor.setOption("minLines", 1);
+    editor.setOption("maxLines", 1);
+    editor.setOption("fontSize", 24);
+    editor.setOption("showLineNumbers", false);
+    editor.setOption("showGutter", false);
+
+    editor.container.style.background = "white";
+
+    editor.focus();
+
+    return editor;
+}
+
+function addRow() {
+    let i = editors.length;
+
+    if (i !== 0) {
+        // disable previous row
+        $(`#row-${i - 1} .button`)
+            .text("Revert")
+            .addClass("btn-outline-danger")
+            .removeClass("btn-outline-success");
+        disableEditor(editors[i - 1]);
+    }
+
+    let data = `
+    <div id="row-${i}" class="code-row">
+    <form class="code-form" method="post">
+    <div class="form-row">
+        <div class="col">
+            <div class="editor-wrapper">
+                <div class="editor"></div>
+            </div>
+        </div>
+        <div class="col-auto">
+            <button class="button form-control mb-2 btn btn-outline-success" type="submit">Execute</button>
+        </div>
+    </div>
+    </form>
+    <br>
+    </div>
+    `;
+    $("#editors").append(data);
+    console.log($(`#row-${i} .editor`).get(0));
+    editors.push(initializeEditor($(`#row-${i} .editor`).get(0)))
 }

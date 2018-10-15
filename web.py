@@ -11,9 +11,10 @@ def index():
 
 @app.route("/process2", methods=["POST"])
 def receive():
-    code = request.form["code"]
+    code = request.form.getlist("code[]")
+    print("Received:", code)
     gui.logger.reset()
-    scheme.string_exec([code])
+    scheme.string_exec(code)
     out = gui.logger.export()
     print("Returning:", out)
     return jsonify(out)
