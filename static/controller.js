@@ -52,24 +52,39 @@ function display(i) {
 }
 
 function _display(data, container, x, y, level) {
-    if (starts.length === level) {
-        starts.push([10]);
-    }
-    x = Math.max(x, starts[level]);
-    let parent = container.text(data["str"]).font("family", "Monaco").font("size", 24).dx(x).dy(y);
+    let charHeight = 32;
+    let charWidth = 14.4;
 
-    let charWidth = parent.length() / data["str"].length;
-    let charHeight = parent.leading();
+    let color;
+    switch (data["transition_type"]) {
+        case "UNEVALUATED": color = "#536dff"; break;
+        case "EVALUATING": color = "#ff0f00"; break;
+        case "EVALUATED": color = "#44ff51"; break;
+        case "APPLYING": color = "#ffa500"; break;
+    }
+
+    let rect = container.rect(data["str"].length*charWidth + 10, charHeight + 10)
+                        .dx(x - 5).dy(y)
+                        .stroke({color: color, width: 2})
+                        .fill({color: "#FFFFFF"})
+                        .radius(10);
+
+    let parent = container.text(data["str"]).font("family", "Monaco").font("size", 24).dx(x).dy(y);
     let xDelta = charWidth;
 
     starts[level] = x + parent.length() + charWidth;
 
     for (let child of data["children"]) {
-        console.log("Drawing object with p_string=" + child["parent_str"] + " and str=" + child["str"])
+        if (starts.length === level + 1) {
+            starts.push([10]);
+        }
         let parent_len = child["parent_str"].length * charWidth;
-        let rect = container.rect(parent_len, 50).dx(x + xDelta).dy(y).opacity(0.5);
         if (child["transition_type"] !== "UNEVALUATED") {
-            _display(child, container, x + xDelta, y + 100, level + 1);
+            container.line(x + xDelta + parent_len / 2, y + charHeight + 5,
+                           Math.max(x + xDelta, starts[level + 1]) + child["str"].length * charWidth / 2 + 5,
+                            y + 110)
+                     .stroke({ width: 3, color: "#c8c8c8"}).back();
+            _display(child, container, Math.max(x + xDelta, starts[level + 1]), y + 100, level + 1);
         }
         xDelta += parent_len + charWidth;
     }
