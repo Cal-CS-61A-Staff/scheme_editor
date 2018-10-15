@@ -15,4 +15,9 @@ body {
 
 #editor-wrapper {
     border: solid gray;
+    padding: 5px;
+}
+
+#drawarea {
+    width: 100%;
 }

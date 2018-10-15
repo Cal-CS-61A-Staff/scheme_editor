@@ -70,6 +70,14 @@
                 </div>
             </div>
         </form>
+        <br>
+        <div class="btn-group" role="group" aria-label="Basic example">
+          <button id="prev" type="button" class="btn btn-secondary">Prev</button>
+          <button id="next" type="button" class="btn btn-secondary">Next</button>
+        </div>
+        <br>
+        <div id="drawarea"></div>
+        </canvas>
     </div>
 
 </main><!-- /.container -->
@@ -79,7 +87,8 @@
 <!-- Placed at the end of the document so the pages load faster -->
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"
         crossorigin="anonymous"></script>
-<script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/2.6.6/svg.min.js"
+        crossorigin="anonymous"></script>
 <script src="{{ url_for('static', filename='popper.min.js') }}"></script>
 <script src="{{ url_for('static', filename='bootstrap.min.js') }}"></script>
 <script src="{{ url_for('static', filename='ace/src-min-noconflict/ace.js') }}"></script>

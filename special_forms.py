@@ -11,6 +11,8 @@ class LambdaObject(Callable):
     def __init__(self, params: List[Symbol], body: List[Expression], frame: Frame):
         self.params = params
         self.body = body
+        if len(body) > 1:
+            raise NotImplementedError("Currently, functions can only have one body expression. Try using begin to add more expressions!")
         self.frame = frame
 
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
@@ -24,17 +26,18 @@ class LambdaObject(Callable):
         # just put all the elements and then magically delete all but the last one
         # actually, put them all and then pop from the front after evaluation completes
 
-        gui_holder.expression = VisualExpression().set_entries(self.body)
+        # gui_holder.expression = VisualExpression(self.body[0])
 
         for param, value in zip(self.params, operands):
             new_frame.assign(param, value)
         out = None
+        gui_holder.expression = VisualExpression(self.body[0], gui_holder.expression.base_expr)
         for expression in self.body:
-            holder = gui_holder.expression.children[0]
-            out = evaluate(expression, new_frame, holder)
-            if len(gui_holder.expression.children) > 1:
-                gui_holder.expression.children.pop(0)
-        gui_holder.expression = gui_holder.expression.children[0].expression
+            # holder = gui_holder.expression.children[0]
+            out = evaluate(expression, new_frame, gui_holder)  # .expression.children[0])
+            # if len(gui_holder.expression.children) > 1:
+            #     gui_holder.expression.children.pop(0)
+        # gui_holder.expression = gui_holder.expression.children[0].expression
         return out
 
     def __repr__(self):
@@ -110,11 +113,11 @@ class If(Callable):
             if len(operands) == 2:
                 return Nil
             else:
-                gui_holder.expression = gui_holder.expression.children[3].expression
-                evaluate(operands[2], frame, gui_holder)
+                # gui_holder.expression = gui_holder.expression.children[3].expression
+                return evaluate(operands[2], frame, gui_holder.expression.children[3])
         else:
-            gui_holder.expression = gui_holder.expression.children[1].expression
-            return evaluate(operands[1], frame, gui_holder)
+            # gui_holder.expression = gui_holder.expression.children[1].expression
+            return evaluate(operands[1], frame, gui_holder.expression.children[2])
 
     def __repr__(self):
         return "#[if]"
@@ -175,7 +178,11 @@ class Quote(Callable):
 class Eval(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 1, len(operands))
-        return evaluate(evaluate(operands[0], frame, gui_holder.expression.children[1]), frame, gui_holder)
+        operand = evaluate(operands[0], frame, gui_holder.expression.children[1])
+        gui_holder.expression = VisualExpression(operands[0], gui_holder.expression.base_expr)
+
+        return evaluate(operand, frame, gui_holder.expression.children[1])
+
     def __repr__(self):
         return "#[eval]"
 

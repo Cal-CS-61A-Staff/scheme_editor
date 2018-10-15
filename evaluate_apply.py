@@ -46,9 +46,14 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder):
     """
     if gui_holder is None:
         gui_holder = gui.Holder(expr)  # dummy holder
-    visual_expression = gui.VisualExpression(expr)  # magically copies the attributes of the expression and creates Holder objects
-    gui_holder.link_visual(visual_expression)
+    if isinstance(gui_holder.expression, Expression):
+        visual_expression = gui.VisualExpression(expr)  # magically copies the attributes of the expression and creates Holder objects
+        gui_holder.link_visual(visual_expression)
+    else:
+        visual_expression = gui_holder.expression
     if isinstance(expr, Integer):
+        gui_holder.complete()
+        visual_expression.value = expr
         return expr
     elif isinstance(expr, Symbol):
         gui_holder.evaluate()

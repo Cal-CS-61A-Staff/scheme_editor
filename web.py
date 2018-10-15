@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 
+import gui
 import scheme
 
 app = Flask(__name__)
@@ -11,5 +12,9 @@ def index():
 @app.route("/process2", methods=["POST"])
 def receive():
     code = request.form["code"]
+    gui.logger.reset()
     scheme.string_exec([code])
-    return index()
+    out = gui.logger.export()
+    print("Returning:", out)
+    return jsonify(out)
+
