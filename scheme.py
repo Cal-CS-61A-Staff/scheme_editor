@@ -45,12 +45,14 @@ def string_exec(strings):
     >>> string_exec(["(begin (define (f b) (if (= b 0) 0 (+ 1 (f (- b 1))))) (f 3))"])
     3
     """
-    buff = TokenBuffer(strings)
     global_frame = build_global_frame()
-    while not buff.done:
-        expr = get_expression(buff)
-        holder = Holder(expr)
-        Root.setroot(holder)
-        print(evaluate(expr, global_frame, holder))
+    for string in strings:
+        gui.logger.reset()
+        buff = TokenBuffer([string])
+        while not buff.done:
+            expr = get_expression(buff)
+            holder = Holder(expr)
+            Root.setroot(holder)
+            print(evaluate(expr, global_frame, holder))
 
 
