@@ -15,8 +15,10 @@ class HolderState(Enum):
     APPLYING = auto()
 
 class VisualExpression:
-    def __init__(self, base_expr: Expression=None):
+    def __init__(self, base_expr: Expression=None, true_base_expr: Expression=None):
         self.children = None
+        self.display_value = base_expr
+        self.base_expr = base_expr if true_base_expr is None else true_base_expr
         self.value: Expression = None
         self.children: List[Holder] = []
         if base_expr is None:
@@ -29,15 +31,14 @@ class VisualExpression:
             raise NotImplementedError(base_expr)
 
     def set_entries(self, expressions: List[Expression]):
-        assert self.value is None, f"self.value of {self} is not None!"
+        self.value = None
         self.children = [Holder(expression) for expression in expressions]
         return self
 
     def __repr__(self):
         if self.value is not None:
             return repr(self.value)
-        else:
-            return "(" + " ".join(map(repr, self.children)) + ")"
+        return repr(self.display_value)
 
 
 class Holder:
@@ -79,12 +80,18 @@ class Logger:
     def __init__(self):
         self.states = []
 
+    def reset(self):
+        self.states = []
+
     def log(self, message, local, root):
         print_announce(message, local, root)
         new_state = freeze_state(root)
-        print(new_state)
+        print(new_state.export())
         print("\n"*2)
         self.states.append(new_state)
+
+    def export(self):
+        return [state.export() for state in self.states]
 
 
 print_delta = 0
@@ -93,13 +100,26 @@ class StateTree:
     def __init__(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
         self.transition_type = transition_type
         self.children = []
-        if not isinstance(expr, Expression) and expr.value is None:
+        if isinstance(expr, VisualExpression) and expr.value is None:
             for child in expr.children:
                 self.children.append(StateTree(child.expression, child.state))
+
+        if isinstance(expr, VisualExpression):
+            self.base_str = repr(expr.base_expr)
+        else:
+            self.base_str = repr(expr)
         self.str = repr(expr)
 
     def __repr__(self):
         return self.transition_type.name + " " + self.str + " " + repr(self.children)
+
+    def export(self):
+        return {
+            "transition_type": self.transition_type.name,
+            "str": self.str,
+            "parent_str": self.base_str,
+            "children": [x.export() for x in self.children]
+        }
 
 def freeze_state(state: Holder) -> StateTree:
     return StateTree(state.expression, state.state)
