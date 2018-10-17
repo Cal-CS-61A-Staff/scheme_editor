@@ -70,7 +70,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder):
         visual_expression.value = out
         gui_holder.complete()
         return out
-    elif isinstance(expr, Nil):
+    elif expr is Nil:
         visual_expression.value = Nil
         gui_holder.complete()
         return Nil
@@ -78,7 +78,6 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder):
 
 def apply(operator: Expression, operands: List[Expression], frame: Frame, gui_holder: gui.Holder):
     if isinstance(operator, Callable):
-        gui_holder.apply()
         return operator.execute(operands, frame, gui_holder)
     else:
         raise CallableResolutionError(f"Unable to pass parameters into: '{operator}'")

@@ -9,3 +9,5 @@ class CallableResolutionError(Exception): pass
 class ArithmeticError(Exception): pass
 
 class ComparisonError(Exception): pass
+
+class TypeMismatchError(Exception): pass
