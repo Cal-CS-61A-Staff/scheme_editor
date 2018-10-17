@@ -1,6 +1,5 @@
-from typing import List, Union
-
-from datamodel import Expression, Symbol, Integer, Pair, Nil, NilType
+from datamodel import Expression, Symbol, Integer, Nil
+from helper import make_list
 from scheme_exceptions import ParseError
 from lexer import TokenBuffer, SPECIALS
 
@@ -58,12 +57,6 @@ def get_rest_of_list(buffer: TokenBuffer) -> Expression:
             buffer.pop_next_token()
             break
     return make_list(out, last)
-
-
-def make_list(exprs: List[Expression], last: Expression = Nil) -> Union[Pair, NilType]:
-    if len(exprs) == 0:
-        return last
-    return Pair(exprs[0], make_list(exprs[1:], last))
 
 
 def is_integer(token: str) -> bool:

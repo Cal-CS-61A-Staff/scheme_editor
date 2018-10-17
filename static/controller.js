@@ -87,7 +87,7 @@ function _display(data, container, x, y, level) {
             starts.push([10]);
         }
         let parent_len = child["parent_str"].length * charWidth;
-        if (child["transition_type"] !== "UNEVALUATED") {
+        if (true || child["transition_type"] !== "UNEVALUATED") {
             container.line(x + xDelta + parent_len / 2, y + charHeight + 5,
                            Math.max(x + xDelta, starts[level + 1]) + child["str"].length * charWidth / 2 + 5,
                             y + 110)

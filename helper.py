@@ -1,6 +1,6 @@
-from typing import List
+from typing import List, Union
 
-from datamodel import Pair, Expression, Nil, Integer
+from datamodel import Pair, Expression, Nil, Integer, NilType
 from scheme_exceptions import OperandDeduceError, ArithmeticError, CallableResolutionError
 
 
@@ -19,7 +19,6 @@ def assert_all_integers(operands):
         if not isinstance(operand, Integer):
             raise ArithmeticError(f"Unable to perform arithmetic, as {operand} is not an integer.")
 
-
 def verify_exact_callable_length(operator: Expression, expected: int, actual: int):
     if expected != actual:
         raise CallableResolutionError(f"{operator} expected {expected} operands, received {actual}.")
@@ -27,4 +26,10 @@ def verify_exact_callable_length(operator: Expression, expected: int, actual: in
 
 def verify_min_callable_length(operator: Expression, expected: int, actual: int):
     if expected > actual:
-        raise CallableResolutionError(f"{operator} expected {expected} operands, received {actual}.")
+        raise CallableResolutionError(f"{operator} expected at least {expected} operands, received {actual}.")
+
+
+def make_list(exprs: List[Expression], last: Expression = Nil) -> Union[Pair, NilType]:
+    if len(exprs) == 0:
+        return last
+    return Pair(exprs[0], make_list(exprs[1:], last))
