@@ -1,6 +1,6 @@
 from typing import List, Union
 
-from datamodel import Pair, Expression, Nil, Integer, NilType
+from datamodel import Pair, Expression, Nil, Number, NilType
 from scheme_exceptions import OperandDeduceError, ArithmeticError, CallableResolutionError
 
 
@@ -8,16 +8,17 @@ def pair_to_list(pos: Pair) -> List[Expression]:
     out = []
     while pos is not Nil:
         if not isinstance(pos, Pair):
-            raise OperandDeduceError(f"List terminated with '{operator}, not nil")
+            raise OperandDeduceError(f"List terminated with '{pos}', not nil")
         out.append(pos.first)
         pos = pos.rest
     return out
 
 
-def assert_all_integers(operands):
+def assert_all_numbers(operands):
     for operand in operands:
-        if not isinstance(operand, Integer):
-            raise ArithmeticError(f"Unable to perform arithmetic, as {operand} is not an integer.")
+        if not isinstance(operand, Number):
+            raise ArithmeticError(f"Unable to perform arithmetic, as {operand} is not a number.")
+
 
 def verify_exact_callable_length(operator: Expression, expected: int, actual: int):
     if expected != actual:
