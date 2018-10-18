@@ -1,11 +1,12 @@
 from typing import List
 
-from datamodel import Expression, Symbol, Pair, Integer, SingletonTrue, SingletonFalse, Nil, Boolean, bools
+from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil
+from environment import global_attr
 from gui import Holder, VisualExpression
-from helper import pair_to_list, assert_all_integers, verify_exact_callable_length, verify_min_callable_length, \
+from helper import pair_to_list, verify_exact_callable_length, verify_min_callable_length, \
     make_list
 from evaluate_apply import Frame, evaluate, Callable, evaluate_all
-from scheme_exceptions import ComparisonError, OperandDeduceError
+from scheme_exceptions import OperandDeduceError
 
 
 class LambdaObject(Callable):
@@ -46,6 +47,7 @@ class LambdaObject(Callable):
         return "#[lambda_obj]"
 
 
+@global_attr("lambda")
 class Lambda(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -66,43 +68,8 @@ class Lambda(Callable):
             # noinspection PyTypeChecker
             return LambdaObject(params, [Pair(Symbol("begin"), make_list(operands[1:]))], frame)
 
-    def __repr__(self):
-        return "#[lambda]"
 
-
-class Add(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
-        assert_all_integers(operands)
-        return Integer(sum(operand.value for operand in operands))
-
-    def __repr__(self):
-        return "#[+]"
-
-
-class Subtract(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
-        assert_all_integers(operands)
-        return Integer(operands[0].value - sum(operand.value for operand in operands[1:]))
-
-    def __repr__(self):
-        return "#[-]"
-
-
-class Multiply(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
-        assert_all_integers(operands)
-        out = 1
-        for operand in operands:
-            out *= operand.value
-        return Integer(out)
-
-    def __repr__(self):
-        return "#[*]"
-
-
+@global_attr("define")
 class Define(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 1, len(operands))
@@ -120,10 +87,8 @@ class Define(Callable):
         else:
             raise OperandDeduceError("Expected a Symbol or List (aka Pair) as first operand of define.")
 
-    def __repr__(self):
-        return "#[define]"
 
-
+@global_attr("if")
 class If(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -139,10 +104,8 @@ class If(Callable):
             # gui_holder.expression = gui_holder.expression.children[1].expression
             return evaluate(operands[1], frame, gui_holder.expression.children[2])
 
-    def __repr__(self):
-        return "#[if]"
 
-
+@global_attr("begin")
 class Begin(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 1, len(operands))
@@ -155,54 +118,14 @@ class Begin(Callable):
         return "#[begin]"
 
 
-class IntegerEq(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        verify_exact_callable_length(self, 2, len(operands))
-        operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
-        for operand in operands:
-            if not isinstance(operand, Integer):
-                raise ComparisonError(f"Unable to perform integer comparison with: {operand}.")
-        return bools[operands[0].value == operands[1].value]
-
-    def __repr__(self):
-        return "#[=]"
-
-
-class IntegerLess(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        verify_exact_callable_length(self, 2, len(operands))
-        operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
-        for operand in operands:
-            if not isinstance(operand, Integer):
-                raise ComparisonError(f"Unable to perform integer comparison with: {operand}.")
-        return bools[operands[0].value < operands[1].value]
-
-    def __repr__(self):
-        return "#[<]"
-
-
-class IntegerGreater(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        verify_exact_callable_length(self, 2, len(operands))
-        operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
-        for operand in operands:
-            if not isinstance(operand, Integer):
-                raise ComparisonError(f"Unable to perform integer comparison with: {operand}.")
-        return bools[operands[0].value > operands[1].value]
-
-    def __repr__(self):
-        return "#[>]"
-
-
+@global_attr("quote")
 class Quote(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 1, len(operands))
         return operands[0]
 
-    def __repr__(self):
-        return "#[quote]"
 
-
+@global_attr("eval")
 class Eval(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 1, len(operands))
@@ -211,38 +134,8 @@ class Eval(Callable):
 
         return evaluate(operand, frame, gui_holder.expression.children[1])
 
-    def __repr__(self):
-        return "#[eval]"
 
-
-class Car(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        verify_exact_callable_length(self, 1, len(operands))
-        operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
-        operand = operands[0]
-        if isinstance(operand, Pair):
-            return operand.first
-        else:
-            raise OperandDeduceError(f"Unable to extract first element, as {operand} is not a Pair.")
-
-    def __repr__(self):
-        return "#[car]"
-
-
-class Cdr(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        verify_exact_callable_length(self, 1, len(operands))
-        operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
-        operand = operands[0]
-        if isinstance(operand, Pair):
-            return operand.rest
-        else:
-            raise OperandDeduceError(f"Unable to extract second element, as {operand} is not a Pair.")
-
-    def __repr__(self):
-        return "#[cdr]"
-
-
+@global_attr("cond")
 class Cond(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 1, len(operands))
@@ -260,10 +153,8 @@ class Cond(Callable):
                 return out
         return Nil
 
-    def __repr__(self):
-        return "#[cond]"
 
-
+@global_attr("and")
 class And(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 1, len(operands))
@@ -273,10 +164,8 @@ class And(Callable):
                 return SingletonFalse
         return SingletonTrue
 
-    def __repr__(self):
-        return "#[and]"
 
-
+@global_attr("or")
 class Or(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 1, len(operands))
@@ -286,10 +175,8 @@ class Or(Callable):
                 return SingletonTrue
         return SingletonFalse
 
-    def __repr__(self):
-        return "#[or]"
 
-
+@global_attr("let")
 class Let(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -322,10 +209,8 @@ class Let(Callable):
 
         return operands[-1]
 
-    def __repr__(self):
-        return "#[let]"
 
-
+@global_attr("mu")
 class Mu(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -346,12 +231,9 @@ class Mu(Callable):
             # noinspection PyTypeChecker
             return MuObject(params, [Pair(Symbol("begin"), make_list(operands[1:]))])
 
-    def __repr__(self):
-        return "#[mu]"
-
 
 class MuObject(Callable):
-    def __init__(self, params: List[Symbol], body: Expression):
+    def __init__(self, params: List[Symbol], body: List[Expression]):
         self.params = params
         self.body = body
 
@@ -385,31 +267,3 @@ class MuObject(Callable):
 
     def __repr__(self):
         return "#[mu_obj]"
-
-
-def build_global_frame():
-    global_frame = Frame()
-    global_frame.assign(Symbol("+"), Add())
-    global_frame.assign(Symbol("-"), Subtract())
-    global_frame.assign(Symbol("*"), Multiply())
-    global_frame.assign(Symbol("define"), Define())
-    global_frame.assign(Symbol("lambda"), Lambda())
-    global_frame.assign(Symbol("begin"), Begin())
-    global_frame.assign(Symbol("if"), If())
-    global_frame.assign(Symbol("#t"), SingletonTrue)
-    global_frame.assign(Symbol("#f"), SingletonFalse)
-    global_frame.assign(Symbol("="), IntegerEq())
-    global_frame.assign(Symbol("<"), IntegerLess())
-    global_frame.assign(Symbol(">"), IntegerGreater())
-    global_frame.assign(Symbol("quote"), Quote())
-    global_frame.assign(Symbol("eval"), Eval())
-    global_frame.assign(Symbol("car"), Car())
-    global_frame.assign(Symbol("cdr"), Cdr())
-    global_frame.assign(Symbol("nil"), Nil)
-    global_frame.assign(Symbol("cond"), Cond())
-    global_frame.assign(Symbol("and"), And())
-    global_frame.assign(Symbol("or"), Or())
-    global_frame.assign(Symbol("let"), Let())
-    global_frame.assign(Symbol("mu"), Mu())
-
-    return global_frame

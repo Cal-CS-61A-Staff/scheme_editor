@@ -1,4 +1,4 @@
-from datamodel import Expression, Symbol, Integer, Nil
+from datamodel import Expression, Symbol, Number, Nil
 from helper import make_list
 from scheme_exceptions import ParseError
 from lexer import TokenBuffer, SPECIALS
@@ -35,7 +35,7 @@ def get_expression(buffer: TokenBuffer) -> Expression:
         else:
             raise ParseError(f"Unexpected token: '{token}'")
     elif is_integer(token):
-        return Integer(int(token))
+        return Number(int(token))
     elif is_str(token):
         return Symbol(token)
     else:
@@ -46,7 +46,6 @@ def get_rest_of_list(buffer: TokenBuffer) -> Expression:
     out = []
     last = Nil
     while True:
-        out.append(get_expression(buffer))
         next = buffer.get_next_token()
         if next == ")":
             buffer.pop_next_token()
@@ -56,6 +55,7 @@ def get_rest_of_list(buffer: TokenBuffer) -> Expression:
             last = get_expression(buffer)
             buffer.pop_next_token()
             break
+        out.append(get_expression(buffer))
     return make_list(out, last)
 
 

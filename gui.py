@@ -14,8 +14,9 @@ class HolderState(Enum):
     EVALUATED = auto()
     APPLYING = auto()
 
+
 class VisualExpression:
-    def __init__(self, base_expr: Expression=None, true_base_expr: Expression=None):
+    def __init__(self, base_expr: Expression = None, true_base_expr: Expression = None):
         self.children = None
         self.display_value = base_expr
         self.base_expr = base_expr if true_base_expr is None else true_base_expr
@@ -65,16 +66,21 @@ class Holder:
     def __repr__(self):
         return repr(self.expression)
 
+
 class Root:
     root: Holder
+
     @classmethod
     def setroot(cls, root: Holder):
         cls.root = root
 
+
 def silence(*args): pass
+
 
 def print_announce(message, local, root):
     print(f"{message:10}: {repr(local):50} {repr(root):20}")
+
 
 class Logger:
     def __init__(self):
@@ -87,7 +93,7 @@ class Logger:
         print_announce(message, local, root)
         new_state = freeze_state(root)
         print(new_state.export())
-        print("\n"*2)
+        print("\n" * 2)
         self.states.append(new_state)
 
     def export(self):
@@ -95,6 +101,7 @@ class Logger:
 
 
 print_delta = 0
+
 
 class StateTree:
     def __init__(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
@@ -120,6 +127,7 @@ class StateTree:
             "parent_str": self.base_str,
             "children": [x.export() for x in self.children]
         }
+
 
 def freeze_state(state: Holder) -> StateTree:
     return StateTree(state.expression, state.state)

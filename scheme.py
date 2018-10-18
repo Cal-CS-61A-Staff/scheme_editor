@@ -4,9 +4,14 @@ import gui
 from evaluate_apply import evaluate
 from gui import Holder, Root
 from parser import get_expression
-from special_forms import build_global_frame
+from environment import build_global_frame
 from lexer import TokenBuffer
 
+import primitives
+# noinspection PyUnresolvedReferences
+import special_forms
+
+primitives.load_primitives()
 
 def string_exec(strings):
     """

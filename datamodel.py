@@ -3,19 +3,12 @@ from __future__ import annotations
 from typing import Union
 
 
-class Expression:
-    def get_gui_expr(self):
-        raise NotImplementedError
-    def __repr__(self):
-        raise NotImplementedError()
+class Expression: pass
 
 
 class ValueHolder(Expression):
     def __init__(self, value):
         self.value = value
-
-    def get_gui_expr(self):
-        return
 
     def __repr__(self):
         return str(self.value)
@@ -24,7 +17,7 @@ class ValueHolder(Expression):
 class Symbol(ValueHolder): pass
 
 
-class Integer(ValueHolder): pass
+class Number(ValueHolder): pass
 
 
 class Pair(Expression):
@@ -49,11 +42,13 @@ class NilType(Expression):
 class Boolean(Expression):
     def __init__(self, val: bool):
         self.val = val
+
     def __repr__(self):
         if self.val:
             return "#t"
         else:
             return "#f"
+
 
 SingletonTrue = Boolean(True)
 SingletonFalse = Boolean(False)
