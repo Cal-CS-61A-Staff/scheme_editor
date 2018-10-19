@@ -31,7 +31,7 @@ class Append(BuiltIn):
 
 
 @global_attr("car")
-class Car(BuiltIn):
+class Car(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if isinstance(operand, Pair):
             return operand.first
@@ -40,7 +40,7 @@ class Car(BuiltIn):
 
 
 @global_attr("cdr")
-class Cdr(BuiltIn):
+class Cdr(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if isinstance(operand, Pair):
             return operand.rest

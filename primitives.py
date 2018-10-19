@@ -16,6 +16,7 @@ class BuiltIn(Callable):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         raise NotImplementedError()
 
+
 class SingleOperandPrimitive(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 1, len(operands))

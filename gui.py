@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from enum import Enum, auto
 from typing import List, Union
+from uuid import uuid4
 
-from datamodel import Expression, ValueHolder, Pair
+from datamodel import Expression, ValueHolder, Pair, Nil
 import evaluate_apply
 from helper import pair_to_list
 
@@ -22,9 +23,10 @@ class VisualExpression:
         self.base_expr = base_expr if true_base_expr is None else true_base_expr
         self.value: Expression = None
         self.children: List[Holder] = []
+        self.id = uuid4()
         if base_expr is None:
             return
-        if isinstance(base_expr, ValueHolder) or isinstance(base_expr, evaluate_apply.Callable):
+        if isinstance(base_expr, ValueHolder) or isinstance(base_expr, evaluate_apply.Callable) or base_expr == Nil:
             self.value = base_expr
         elif isinstance(base_expr, Pair):
             self.set_entries(pair_to_list(base_expr))
@@ -85,24 +87,27 @@ def print_announce(message, local, root):
 class Logger:
     def __init__(self):
         self.states = []
-        self._out = ""
+        self._out = []
 
     def reset(self):
         self.states = []
-        self._out = ""
+        self._out.append("")
+
+    def clear_out(self):
+        self._out = []
 
     def log(self, message, local, root):
-        print_announce(message, local, root)
+        # print_announce(message, local, root)
         new_state = freeze_state(root)
-        print(new_state.export())
-        print("\n" * 2)
+        # print(new_state.export())
+        # print("\n" * 2)
         self.states.append(new_state)
 
     def export(self):
-        return {"states": [state.export() for state in self.states], "out": self._out.strip()}
+        return {"states": [state.export() for state in self.states], "out": [x.strip() for x in self._out]}
 
     def out(self, val):
-        self._out += repr(val) + "\n"
+        self._out[-1] += repr(val) + "\n"
 
 
 print_delta = 0
@@ -118,6 +123,7 @@ class StateTree:
 
         if isinstance(expr, VisualExpression):
             self.base_str = repr(expr.base_expr)
+            # self.id = expr.id
         else:
             self.base_str = repr(expr)
         self.str = repr(expr)
@@ -129,6 +135,7 @@ class StateTree:
         return {
             "transition_type": self.transition_type.name,
             "str": self.str,
+            # "id": self.id,
             "parent_str": self.base_str,
             "children": [x.export() for x in self.children]
         }

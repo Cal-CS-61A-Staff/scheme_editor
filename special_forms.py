@@ -63,6 +63,7 @@ class Define(Callable):
         verify_min_callable_length(self, 2, len(operands))
         first = operands[0]
         if isinstance(first, Symbol):
+            verify_exact_callable_length(self, 2, len(operands))
             frame.assign(first, evaluate(operands[1], frame, gui_holder.expression.children[2]))
             return first
         elif isinstance(first, Pair):
@@ -134,7 +135,7 @@ class Cond(Callable):
             cond_holder = gui_holder.expression.children[cond_i + 1]
             verify_min_callable_length(self, 2, len(expanded))
             cond_holder.link_visual(VisualExpression(cond))
-            if evaluate(expanded[0], frame, cond_holder.expression.children[0]) is not SingletonFalse:
+            if isinstance(expanded[0], Symbol) and expanded[0].value == "else" or evaluate(expanded[0], frame, cond_holder.expression.children[0]) is not SingletonFalse:
                 out = None
                 for i, expr in enumerate(expanded[1:]):
                     out = evaluate(expr, frame, cond_holder.expression.children[i + 1])
@@ -170,7 +171,7 @@ class Let(Callable):
         verify_min_callable_length(self, 2, len(operands))
 
         bindings = operands[0]
-        if not isinstance(bindings, Pair):
+        if not isinstance(bindings, Pair) and bindings is not Nil:
             raise OperandDeduceError(f"Expected first argument of let to be a Pair, not {bindings}.")
 
         new_frame = Frame(frame)

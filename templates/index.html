@@ -53,21 +53,27 @@
     </div>
 </nav>
 
-<main role="main" class="container">
-
+<main role="main" class="container-fluid">
+    <div class="row"> <div class="col-sm">
     <div class="starter-template">
-        <h1>Scheme-o-matic</h1>
-        <p class="lead">Enter a line of Scheme below:</p>
-    </div>
-    <div id="editors">
-    </div>
-    <div class="code-row">
-        <div class="prevnexts btn-group" role="group" aria-label="Basic example">
-          <button id="prev" type="button" class="btn btn-secondary">Prev</button>
-          <button id="next" type="button" class="btn btn-secondary">Next</button>
+            <h1>Scheme-o-matic</h1>
+            <p class="lead">Enter a line of Scheme below:</p>
+        </div></div></div>
+    <div class="row">
+        <div class="col-lg editor-col">
+        <div id="editors">
         </div>
-        <br>
-        <div id="drawarea"></div>
+        </div>
+        <div class="col-lg">
+            <div class="code-row">
+                <div id="drawarea"></div>
+                <br>
+                <br>
+                <div class="prevnexts btn-group" role="group" aria-label="Basic example">
+                  <button id="prev" type="button" class="btn btn-secondary">Prev</button>
+                  <button id="next" type="button" class="btn btn-secondary">Next</button>
+                </div>            </div>
+        </div>
     </div>
 
 </main><!-- /.container -->

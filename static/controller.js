@@ -5,16 +5,14 @@ let starts = [0];
 let editors = [];
 let container = initializeSVG();
 
-$(".editor").keydown(function (e) {
-    if (e.keyCode === 13) {
-        e.preventDefault();
-    }
-});
 
 $("#editors").on("submit", ".code-form", function (e) {
     e.preventDefault();
     let k = parseInt($(this).closest('form').parent().attr('id').substr(4));
     if (k + 1 === editors.length) {
+        if (editors[editors.length - 1].getValue().trim() === "") {
+            return;
+        }
         let out = [];
         for (let j = 0; j !== editors.length; ++j) {
             out.push(editors[j].getValue());
@@ -22,10 +20,15 @@ $("#editors").on("submit", ".code-form", function (e) {
         $.post("./process2", {code: out}).done(function (_data) {
             i = 0;
             data = _data["states"];
-            display(i);
-            addRow(_data["out"]);
+            if (data.length > 0) {
+                display(i);
+            }
+            addRow(false);
+            for (let j = 0; j !== editors.length; ++j) {
+                $(`#output-${j}`).html(_data["out"][j]);
+            }
         });
-        disableEditor(editors[i]);
+        // disableEditor(editors[i]);
     } else {
         while (editors.length !== k + 1) {
             $(`#row-${editors.length - 1}`).remove();
@@ -50,13 +53,23 @@ $("#next").click(function () {
     display(i);
 });
 
-addRow();
+addRow(true);
 window.scrollTo(0, 0);
 
 function display(i) {
     container.clear();
     starts = [0];
+
+    let svg = $("#drawarea > svg").get(0);
+    let zoom = svgPanZoom(svg).getZoom();
+    let pan = svgPanZoom(svg).getPan();
+
+    svgPanZoom(svg).destroy();
     _display(data[i], container, 10, 10, 0);
+    svgPanZoom(svg, {fit: false, zoomEnabled: true, center: false});
+
+    svgPanZoom(svg).zoom(zoom);
+    svgPanZoom(svg).pan(pan);
 }
 
 function _display(data, container, x, y, level) {
@@ -96,18 +109,18 @@ function _display(data, container, x, y, level) {
         }
         let parent_len = child["parent_str"].length * charWidth;
         container.line(x + xDelta + parent_len / 2, y + charHeight + 5,
-            Math.max(x + xDelta, starts[level + 1]) + child["str"].length * charWidth / 2 + 5,
+            Math.max(x + xDelta - 100000, starts[level + 1]) + child["str"].length * charWidth / 2 + 5,
             y + 110)
             .stroke({width: 3, color: "#c8c8c8"}).back();
-        _display(child, container, Math.max(x + xDelta, starts[level + 1]), y + 100, level + 1, i);
+        _display(child, container, Math.max(x + xDelta - 100000, starts[level + 1]), y + 100, level + 1, i);
         xDelta += parent_len + charWidth;
     }
 }
 
 function initializeSVG() {
-    let out = SVG("drawarea").size($(".starter-template").width() * 20, 1000);
-    // svgPanZoom("#SvgjsSvg1001");
-    return out
+    out = SVG("drawarea").size($(".starter-template").width() / 2, 500);
+    svgPanZoom($("#drawarea > svg").get(0), {fit: false, zoomEnabled: true, center: false});
+    return out;
 }
 
 function disableEditor(editor) {
@@ -156,7 +169,7 @@ function initializeEditor(editor) {
     return editor;
 }
 
-function addRow(text) {
+function addRow(isFirst) {
     let i = editors.length;
 
     if (i !== 0) {
@@ -165,21 +178,21 @@ function addRow(text) {
             .text("Revert")
             .addClass("btn-outline-danger")
             .removeClass("btn-outline-success");
-        disableEditor(editors[i - 1]);
+        // disableEditor(editors[i - 1]);
     }
 
     let target = 1;
 
     let middle = `
     <div class="form-row"> <div class="col">
-        <div class="editor-wrapper" style="width: 100%">
-            <div style="white-space: pre-line" class="editor">${text}</div>
+        <div id="output-${i - 1}" class="editor-wrapper" style="width: 100%">
+            <div style="white-space: pre-line" class="editor"></div>
         </div>
     </div></div>
     <br>
     `;
 
-    if (text === undefined) {
+    if (isFirst) {
         middle = "";
         target = 0;
     }
