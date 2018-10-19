@@ -31,3 +31,4 @@ def load_primitives():
     __import__("arithmetic")
     __import__("lists")
     __import__("type_checking")
+    __import__("console")
