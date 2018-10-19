@@ -181,12 +181,10 @@ function addRow(isFirst) {
         // disableEditor(editors[i - 1]);
     }
 
-    let target = 1;
 
     let middle = `
     <div class="form-row"> <div class="col">
-        <div id="output-${i - 1}" class="editor-wrapper" style="width: 100%">
-            <div style="white-space: pre-line" class="editor"></div>
+        <div id="output-${i - 1}" style="white-space: pre-line" class="editor-wrapper" style="width: 100%">
         </div>
     </div></div>
     <br>
@@ -194,7 +192,6 @@ function addRow(isFirst) {
 
     if (isFirst) {
         middle = "";
-        target = 0;
     }
 
     let data = `
@@ -217,5 +214,5 @@ function addRow(isFirst) {
     </div>
     `;
     $("#editors").append(data);
-    editors.push(initializeEditor($(`#row-${i} .editor`).get(target)))
+    editors.push(initializeEditor($(`#row-${i} .editor`).get(0)))
 }

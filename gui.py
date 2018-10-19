@@ -87,11 +87,13 @@ def print_announce(message, local, root):
 class Logger:
     def __init__(self):
         self.states = []
+        self.environments = {}
         self._out = []
 
     def reset(self):
         self.states = []
         self._out.append("")
+        self.environments = {}
 
     def clear_out(self):
         self._out = []
