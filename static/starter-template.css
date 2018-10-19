@@ -28,4 +28,6 @@ body {
 
 #drawarea {
     width: 100%;
+    border: solid gray;
+    padding: 0;
 }

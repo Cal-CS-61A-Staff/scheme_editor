@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 
 import gui
 import scheme
+from runtime_limiter import limiter, TimeLimitException
 from scheme_exceptions import SchemeError
 
 app = Flask(__name__)
@@ -17,11 +18,18 @@ def receive():
     code = request.form.getlist("code[]")
     print("Received:", code)
     gui.logger.reset()
+    gui.logger.clear_out()
     try:
-        scheme.string_exec(code, gui.logger.out)
+        limiter(3, scheme.string_exec, code, gui.logger.out)
     except SchemeError as e:
         gui.logger.out(e)
+    except TimeLimitException:
+        gui.logger.out("Time limit exceeded.")
+    except Exception as e:
+        gui.logger.out(e)
+        raise
 
     out = gui.logger.export()
+    print(out)
     return jsonify(out)
 

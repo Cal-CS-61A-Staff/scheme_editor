@@ -54,6 +54,8 @@ def string_exec(strings, out):
     global_frame = build_global_frame()
     for string in strings:
         gui.logger.reset()
+        if not string.strip():
+            continue
         buff = TokenBuffer([string])
         while not buff.done:
             expr = get_expression(buff)
