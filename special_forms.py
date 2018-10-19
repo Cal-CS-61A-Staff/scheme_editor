@@ -10,7 +10,7 @@ from scheme_exceptions import OperandDeduceError
 
 
 class LambdaObject(Callable):
-    def __init__(self, params: List[Symbol], body: Expression, frame: Frame):
+    def __init__(self, params: List[Symbol], body: List[Expression], frame: Frame):
         self.params = params
         self.body = body
         self.frame = frame
@@ -22,25 +22,13 @@ class LambdaObject(Callable):
 
         gui_holder.apply()
 
-        # need to substitute body expressions into the holder
-        # we can wrap them in a begin?
-        # that's unnecessarily complex
-        # just put all the elements and then magically delete all but the last one
-        # actually, put them all and then pop from the front after evaluation completes
-
-        # gui_holder.expression = VisualExpression(self.body[0])
-
         for param, value in zip(self.params, operands):
             new_frame.assign(param, value)
         out = None
         gui_holder.expression.set_entries(
             [VisualExpression(expr, gui_holder.expression.base_expr) for expr in self.body])
         for i, expression in enumerate(self.body):
-            # holder = gui_holder.expression.children[0]
             out = evaluate(expression, new_frame, gui_holder.expression.children[i])
-            # if len(gui_holder.expression.children) > 1:
-            #     gui_holder.expression.children.pop(0)
-        # gui_holder.expression = gui_holder.expression.children[0].expression
         return out
 
     def __repr__(self):
@@ -72,7 +60,7 @@ class Lambda(Callable):
 @global_attr("define")
 class Define(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        verify_min_callable_length(self, 1, len(operands))
+        verify_min_callable_length(self, 2, len(operands))
         first = operands[0]
         if isinstance(first, Symbol):
             frame.assign(first, evaluate(operands[1], frame, gui_holder.expression.children[2]))
@@ -132,7 +120,7 @@ class Eval(Callable):
         operand = evaluate(operands[0], frame, gui_holder.expression.children[1])
         gui_holder.expression = VisualExpression(operands[0], gui_holder.expression.base_expr)
 
-        return evaluate(operand, frame, gui_holder.expression.children[1])
+        return evaluate(operand, frame, gui_holder)
 
 
 @global_attr("cond")
@@ -141,7 +129,7 @@ class Cond(Callable):
         verify_min_callable_length(self, 1, len(operands))
         for cond_i, cond in enumerate(operands):
             if not isinstance(cond, Pair):
-                raise OperandDeduceError(f"Unable to evaluate clause of cond, as {operand} is not a Pair.")
+                raise OperandDeduceError(f"Unable to evaluate clause of cond, as {cond} is not a Pair.")
             expanded = pair_to_list(cond)
             cond_holder = gui_holder.expression.children[cond_i + 1]
             verify_min_callable_length(self, 2, len(expanded))
@@ -244,13 +232,29 @@ class MuObject(Callable):
 
         gui_holder.apply()
 
-        # need to substitute body expressions into the holder
-        # we can wrap them in a begin?
-        # that's unnecessarily complex
-        # just put all the elements and then magically delete all but the last one
-        # actually, put them all and then pop from the front after evaluation completes
+        for param, value in zip(self.params, operands):
+            new_frame.assign(param, value)
+        out = None
+        gui_holder.expression.set_entries(
+            [VisualExpression(expr, gui_holder.expression.base_expr) for expr in self.body])
+        for i, expression in enumerate(self.body):
+            out = evaluate(expression, new_frame, gui_holder.expression.children[i])
+        return out
 
-        # gui_holder.expression = VisualExpression(self.body[0])
+    def __repr__(self):
+        return "#[mu_obj]"
+
+
+class MacroObject(Callable):
+    def __init__(self, params: List[Symbol], body: List[Expression], frame: Frame):
+        self.params = params
+        self.body = body
+        self.frame = frame
+
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+        new_frame = Frame(self.frame)
+        # operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
+        verify_exact_callable_length(self, len(self.params), len(operands))
 
         for param, value in zip(self.params, operands):
             new_frame.assign(param, value)
@@ -258,12 +262,32 @@ class MuObject(Callable):
         gui_holder.expression.set_entries(
             [VisualExpression(expr, gui_holder.expression.base_expr) for expr in self.body])
         for i, expression in enumerate(self.body):
-            # holder = gui_holder.expression.children[0]
             out = evaluate(expression, new_frame, gui_holder.expression.children[i])
-            # if len(gui_holder.expression.children) > 1:
-            #     gui_holder.expression.children.pop(0)
-        # gui_holder.expression = gui_holder.expression.children[0].expression
+
+        gui_holder.expression.set_entries([VisualExpression(out, gui_holder.expression.base_expr)])
+        out = evaluate(out, frame, gui_holder.expression.children[i])
         return out
 
     def __repr__(self):
-        return "#[mu_obj]"
+        return "#[macro_obj]"
+
+
+@global_attr("define-macro")
+class DefineMacro(Callable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+        verify_min_callable_length(self, 2, len(operands))
+        params = operands[0]
+        if not isinstance(params, Pair):
+            raise OperandDeduceError(f"Expected a Pair, not {params}, as the first operand of define-macro.")
+        params = pair_to_list(params)
+        for param in params:
+            if not isinstance(param, Symbol):
+                raise OperandDeduceError(f"{param} is not a Symbol.")
+        name, *params = params
+        if len(operands) == 2:
+            # noinspection PyTypeChecker
+            frame.assign(name, MacroObject(params, operands[1:], frame))
+        else:
+            # noinspection PyTypeChecker
+            frame.assign(name, MacroObject(params, [Pair(Symbol("begin"), make_list(operands[1:]))], frame))
+        return name

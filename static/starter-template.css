@@ -2,9 +2,8 @@ body {
   padding-top: 5rem;
 }
 .starter-template {
-  padding: 3rem 1.5rem;
-  text-align: center;
-    padding-bottom: 0;
+    text-align: center;
+    padding: 3rem 1.5rem 0;
 }
 
 .code-row {
@@ -22,6 +21,9 @@ body {
 .editor-wrapper {
     border: solid gray;
     padding: 5px;
+    font-family: Monaco;
+    font-size: 24px;
+    text-align: left;
 }
 
 #drawarea {
