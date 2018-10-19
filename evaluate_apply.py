@@ -4,7 +4,7 @@ from typing import Dict, List
 
 from datamodel import Symbol, Expression, Number, Pair, Nil
 import gui
-from scheme_exceptions import NameError, CallableResolutionError
+from scheme_exceptions import SymbolLookupError, CallableResolutionError
 from helper import pair_to_list
 
 
@@ -20,7 +20,7 @@ class Frame:
         if varname.value in self.vars:
             return self.vars[varname.value]
         if self.parent is None:
-            raise NameError(f"Variable not found in current environment: '{varname}'")
+            raise SymbolLookupError(f"Variable not found in current environment: '{varname}'")
         return self.parent.lookup(varname)
 
 

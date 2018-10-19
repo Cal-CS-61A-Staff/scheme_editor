@@ -1,13 +1,24 @@
-class ParseError(Exception): pass
+class SchemeError(Exception):
+    def __repr__(self):
+        return str(self)
 
-class NameError(Exception): pass
 
-class OperandDeduceError(Exception): pass
+class ParseError(SchemeError): pass
 
-class CallableResolutionError(Exception): pass
 
-class ArithmeticError(Exception): pass
+class SymbolLookupError(SchemeError): pass
 
-class ComparisonError(Exception): pass
 
-class TypeMismatchError(Exception): pass
+class OperandDeduceError(SchemeError): pass
+
+
+class CallableResolutionError(SchemeError): pass
+
+
+class MathError(SchemeError): pass
+
+
+class ComparisonError(SchemeError): pass
+
+
+class TypeMismatchError(SchemeError): pass

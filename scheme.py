@@ -13,7 +13,8 @@ import special_forms
 
 primitives.load_primitives()
 
-def string_exec(strings):
+
+def string_exec(strings, out):
     """
     >>> gui.silent = True
 
@@ -58,6 +59,6 @@ def string_exec(strings):
             expr = get_expression(buff)
             holder = Holder(expr)
             Root.setroot(holder)
-            print(evaluate(expr, global_frame, holder))
+            out(evaluate(expr, global_frame, holder))
 
 

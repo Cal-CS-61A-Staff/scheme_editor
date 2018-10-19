@@ -85,9 +85,11 @@ def print_announce(message, local, root):
 class Logger:
     def __init__(self):
         self.states = []
+        self._out = ""
 
     def reset(self):
         self.states = []
+        self._out = ""
 
     def log(self, message, local, root):
         print_announce(message, local, root)
@@ -97,7 +99,10 @@ class Logger:
         self.states.append(new_state)
 
     def export(self):
-        return [state.export() for state in self.states]
+        return {"states": [state.export() for state in self.states], "out": self._out.strip()}
+
+    def out(self, val):
+        self._out += repr(val) + "\n"
 
 
 print_delta = 0
