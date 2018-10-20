@@ -86,30 +86,51 @@ def print_announce(message, local, root):
 
 class Logger:
     def __init__(self):
-        self.states = []
-        self.environments = {}
-        self._out = []
+        self.states = None
+        self._out = None
+        self.frames = None
+        self.frame_lookup = None
+        self.environments = None
+        self.environment_indices = None
 
-    def reset(self):
+        self.new_query()
+
+    def clear_diagram(self):
         self.states = []
         self._out.append("")
-        self.environments = {}
+        self.environment_indices = []
+        self.environments = []
 
-    def clear_out(self):
+    def new_query(self):
+        self._out = []
+        self.frames = []
+        self.frame_lookup = {}
+        self.clear_diagram()
         self._out = []
 
     def log(self, message, local, root):
-        # print_announce(message, local, root)
         new_state = freeze_state(root)
-        # print(new_state.export())
-        # print("\n" * 2)
         self.states.append(new_state)
 
     def export(self):
-        return {"states": [state.export() for state in self.states], "out": [x.strip() for x in self._out]}
+        return {"states": [state.export() for state in self.states],
+                "out": [x.strip() for x in self._out],
+                "environments": self.environments,
+                "environment_indices": self.environment_indices,
+                }
 
     def out(self, val):
         self._out[-1] += repr(val) + "\n"
+
+    def frame_create(self, frame):
+        self.frame_lookup[frame] = len(self.frames)
+        self.frames.append(frame)
+
+    def frame_store(self, frame, name, value):
+        self.environments.append([])
+        for frame in self.frames:
+            self.environments[-1].append([[k, repr(v)] for k, v in frame.vars.items()])
+        self.environment_indices.append(len(self.states))
 
 
 print_delta = 0

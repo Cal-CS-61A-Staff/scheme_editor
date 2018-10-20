@@ -6,6 +6,7 @@ from gui import Holder, VisualExpression
 from helper import pair_to_list, verify_exact_callable_length, verify_min_callable_length, \
     make_list
 from evaluate_apply import Frame, evaluate, Callable, evaluate_all
+from primitives import SingleOperandPrimitive
 from scheme_exceptions import OperandDeduceError
 
 
@@ -26,13 +27,13 @@ class LambdaObject(Callable):
             new_frame.assign(param, value)
         out = None
         gui_holder.expression.set_entries(
-            [VisualExpression(expr, gui_holder.expression.base_expr) for expr in self.body])
+            [VisualExpression(expr, gui_holder.expression.display_value) for expr in self.body])
         for i, expression in enumerate(self.body):
             out = evaluate(expression, new_frame, gui_holder.expression.children[i])
         return out
 
     def __repr__(self):
-        return "#[lambda_obj]"
+        return f"#[(lambda ({' '.join(map(repr, self.params))}) {' '.join(map(repr, self.body))})]"
 
 
 @global_attr("lambda")
@@ -119,9 +120,9 @@ class Eval(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 1, len(operands))
         operand = evaluate(operands[0], frame, gui_holder.expression.children[1])
-        gui_holder.expression = VisualExpression(operands[0], gui_holder.expression.base_expr)
+        gui_holder.expression.set_entries([VisualExpression(operand, gui_holder.expression.display_value)])
 
-        return evaluate(operand, frame, gui_holder)
+        return evaluate(operand, frame, gui_holder.expression.children[0])
 
 
 @global_attr("cond")
@@ -237,13 +238,13 @@ class MuObject(Callable):
             new_frame.assign(param, value)
         out = None
         gui_holder.expression.set_entries(
-            [VisualExpression(expr, gui_holder.expression.base_expr) for expr in self.body])
+            [VisualExpression(expr, gui_holder.expression.display_value) for expr in self.body])
         for i, expression in enumerate(self.body):
             out = evaluate(expression, new_frame, gui_holder.expression.children[i])
         return out
 
     def __repr__(self):
-        return "#[mu_obj]"
+        return f"#[(mu ({' '.join(map(repr, self.params))}) {' '.join(map(repr, self.body))})]"
 
 
 class MacroObject(Callable):
@@ -261,16 +262,16 @@ class MacroObject(Callable):
             new_frame.assign(param, value)
         out = None
         gui_holder.expression.set_entries(
-            [VisualExpression(expr, gui_holder.expression.base_expr) for expr in self.body])
+            [VisualExpression(expr, gui_holder.expression.display_value) for expr in self.body])
         for i, expression in enumerate(self.body):
             out = evaluate(expression, new_frame, gui_holder.expression.children[i])
 
-        gui_holder.expression.set_entries([VisualExpression(out, gui_holder.expression.base_expr)])
+        gui_holder.expression.set_entries([VisualExpression(out, gui_holder.expression.display_value)])
         out = evaluate(out, frame, gui_holder.expression.children[i])
         return out
 
     def __repr__(self):
-        return "#[macro_obj]"
+        return f"#[(macro ({' '.join(map(repr, self.params))}) {' '.join(map(repr, self.body))})]"
 
 
 @global_attr("define-macro")

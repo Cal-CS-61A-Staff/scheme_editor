@@ -53,6 +53,11 @@ class TokenBuffer:
 
     def __init__(self, lines):
         self.i = 0
+        for i, line in enumerate(lines):
+            out = ""
+            for real_line in line.split("\n"):
+                out += real_line.split(";")[0]
+            lines[i] = out
         self.string = " ".join(lines).strip()
         self.done = False
         self.next_token = None
@@ -69,7 +74,7 @@ class TokenBuffer:
             if next.isspace():
                 self.next_token = curr
                 return curr
-            elif curr and next in SPECIALS:
+            elif curr and next in SPECIALS and next != ".":
                 self.next_token = curr
                 return curr
             curr += self.pop_next_char()

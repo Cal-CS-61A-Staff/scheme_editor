@@ -17,7 +17,11 @@ class ValueHolder(Expression):
 class Symbol(ValueHolder): pass
 
 
-class Number(ValueHolder): pass
+class Number(ValueHolder):
+    def __repr__(self):
+        if isinstance(self.value, int) or self.value.is_integer():
+            return str(int(self.value))
+        return super().__repr__()
 
 
 class Pair(Expression):

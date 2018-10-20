@@ -1,6 +1,6 @@
 from typing import List
 
-from datamodel import Expression, Number, bools
+from datamodel import Expression, Number, bools, Boolean, SingletonFalse
 from environment import global_attr
 from evaluate_apply import Frame
 from gui import Holder
@@ -146,3 +146,11 @@ class IsZero(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         assert_all_numbers([operand])
         return bools[operand.value == 0]
+
+
+@global_attr("not")
+class Not(SingleOperandPrimitive):
+    def execute_simple(self, operand: Expression) -> Expression:
+        if not isinstance(operand, Boolean):
+            raise NotImplementedError("Unable to negate non booleans (yet)!")
+        return bools[operand is SingletonFalse]

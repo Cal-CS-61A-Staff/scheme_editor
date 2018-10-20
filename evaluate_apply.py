@@ -12,9 +12,11 @@ class Frame:
     def __init__(self, parent: Frame = None):
         self.parent = parent
         self.vars: Dict[Symbol, Expression] = {}
+        gui.logger.frame_create(self)
 
     def assign(self, varname: Symbol, varval: Expression):
         self.vars[varname.value] = varval
+        gui.logger.frame_store(self, varname.value, varval)
 
     def lookup(self, varname: Symbol):
         if varname.value in self.vars:
@@ -22,6 +24,9 @@ class Frame:
         if self.parent is None:
             raise SymbolLookupError(f"Variable not found in current environment: '{varname}'")
         return self.parent.lookup(varname)
+
+    def __hash__(self):
+        return id(self)
 
 
 def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder):
