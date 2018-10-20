@@ -100,6 +100,7 @@ class Logger:
         self._out.append("")
         self.environment_indices = []
         self.environments = []
+        self.frame_store(None, None, None)
 
     def new_query(self):
         self._out = []
@@ -115,8 +116,7 @@ class Logger:
     def export(self):
         return {"states": [state.export() for state in self.states],
                 "out": [x.strip() for x in self._out],
-                "environments": self.environments,
-                "environment_indices": self.environment_indices,
+                "environments": [*zip(self.environment_indices, self.environments)]
                 }
 
     def out(self, val):
@@ -124,13 +124,15 @@ class Logger:
 
     def frame_create(self, frame):
         self.frame_lookup[frame] = len(self.frames)
+        frame.id = len(self.frames)
         self.frames.append(frame)
 
     def frame_store(self, frame, name, value):
         self.environments.append([])
         for frame in self.frames:
-            self.environments[-1].append([[k, repr(v)] for k, v in frame.vars.items()])
-        self.environment_indices.append(len(self.states))
+            self.environments[-1].append([[self.frame_lookup[frame], self.frame_lookup.get(frame.parent, 0)],
+                                          [[k, repr(v)] for k, v in frame.vars.items()]])
+        self.environment_indices.append(len(self.states) - 1)
 
 
 print_delta = 0

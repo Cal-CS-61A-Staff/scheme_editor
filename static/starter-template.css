@@ -21,12 +21,18 @@ body {
 .editor-wrapper {
     border: solid gray;
     padding: 5px;
-    font-family: Monaco;
-    font-size: 24px;
+    font-family: Monaco, monospace;
+    font-size: 16px;
     text-align: left;
 }
 
-#drawarea {
+#substitution_tree {
+    width: 100%;
+    border: solid gray;
+    padding: 0;
+}
+
+#environment_diagram {
     width: 100%;
     border: solid gray;
     padding: 0;

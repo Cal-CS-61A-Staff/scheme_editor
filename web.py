@@ -25,6 +25,7 @@ def receive():
     except TimeLimitException:
         gui.logger.out("Time limit exceeded.")
     except Exception as e:
+        raise
         gui.logger.out(e)
 
     out = gui.logger.export()
