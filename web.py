@@ -17,8 +17,7 @@ def index():
 def receive():
     code = request.form.getlist("code[]")
     print("Received:", code)
-    gui.logger.reset()
-    gui.logger.clear_out()
+    gui.logger.new_query()
     try:
         limiter(3, scheme.string_exec, code, gui.logger.out)
     except SchemeError as e:
@@ -27,7 +26,6 @@ def receive():
         gui.logger.out("Time limit exceeded.")
     except Exception as e:
         gui.logger.out(e)
-        raise
 
     out = gui.logger.export()
     print(out)

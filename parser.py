@@ -34,8 +34,8 @@ def get_expression(buffer: TokenBuffer) -> Expression:
             return make_list([Symbol("quote"), get_expression(buffer)])
         else:
             raise ParseError(f"Unexpected token: '{token}'")
-    elif is_integer(token):
-        return Number(int(token))
+    elif is_number(token):
+        return Number(float(token))
     elif is_str(token):
         return Symbol(token)
     else:
@@ -59,9 +59,9 @@ def get_rest_of_list(buffer: TokenBuffer) -> Expression:
     return make_list(out, last)
 
 
-def is_integer(token: str) -> bool:
+def is_number(token: str) -> bool:
     try:
-        int(token)
+        float(token)
         return True
     except ValueError:
         return False

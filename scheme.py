@@ -53,7 +53,7 @@ def string_exec(strings, out):
     """
     global_frame = build_global_frame()
     for string in strings:
-        gui.logger.reset()
+        gui.logger.clear_diagram()
         if not string.strip():
             continue
         buff = TokenBuffer([string])

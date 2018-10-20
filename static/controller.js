@@ -118,7 +118,7 @@ function _display(data, container, x, y, level) {
 }
 
 function initializeSVG() {
-    out = SVG("drawarea").size($(".starter-template").width() / 2, 500);
+    out = SVG("drawarea").size($(".starter-template").width(), 500);
     svgPanZoom($("#drawarea > svg").get(0), {fit: false, zoomEnabled: true, center: false});
     return out;
 }

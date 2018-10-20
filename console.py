@@ -5,12 +5,12 @@ from datamodel import Expression, Nil
 from environment import global_attr
 from evaluate_apply import Callable, Frame
 from helper import verify_exact_callable_length
+from primitives import SingleOperandPrimitive
 
 
 @global_attr("print")
-class Print(Callable):
+class Print(SingleOperandPrimitive):
 
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: gui.Holder):
-        verify_exact_callable_length(self, 1, len(operands))
-        gui.logger.out(operands[0])
+    def execute_simple(self, operand: Expression) -> Expression:
+        gui.logger.out(operand)
         return Nil
