@@ -11,10 +11,11 @@ from scheme_exceptions import OperandDeduceError
 
 
 class LambdaObject(Callable):
-    def __init__(self, params: List[Symbol], body: List[Expression], frame: Frame):
+    def __init__(self, params: List[Symbol], body: List[Expression], frame: Frame, name: str = "lambda"):
         self.params = params
         self.body = body
         self.frame = frame
+        self.name = name
 
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         new_frame = Frame(self.frame)
@@ -33,12 +34,12 @@ class LambdaObject(Callable):
         return out
 
     def __repr__(self):
-        return f"#[(lambda ({' '.join(map(repr, self.params))}) {' '.join(map(repr, self.body))})]"
+        return f"({self.name} {' '.join(map(repr, self.params))}) [parent = f{self.frame.id}]"
 
 
 @global_attr("lambda")
 class Lambda(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, name: str = "lambda"):
         verify_min_callable_length(self, 2, len(operands))
         params = operands[0]
         if isinstance(params, Symbol):
@@ -52,10 +53,10 @@ class Lambda(Callable):
                 raise OperandDeduceError(f"{param} is not a Symbol.")
         if len(operands) == 2:
             # noinspection PyTypeChecker
-            return LambdaObject(params, operands[1:], frame)
+            return LambdaObject(params, operands[1:], frame, name)
         else:
             # noinspection PyTypeChecker
-            return LambdaObject(params, [Pair(Symbol("begin"), make_list(operands[1:]))], frame)
+            return LambdaObject(params, [Pair(Symbol("begin"), make_list(operands[1:]))], frame, name)
 
 
 @global_attr("define")
@@ -72,7 +73,7 @@ class Define(Callable):
             operands[0] = first.rest
             if not isinstance(name, Symbol):
                 raise OperandDeduceError(f"Expected a Symbol, not {name}.")
-            frame.assign(name, Lambda().execute(operands, frame, gui_holder))
+            frame.assign(name, Lambda().execute(operands, frame, gui_holder, name.value))
             return name
         else:
             raise OperandDeduceError("Expected a Symbol or List (aka Pair) as first operand of define.")
@@ -202,7 +203,7 @@ class Let(Callable):
 
 @global_attr("mu")
 class Mu(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, name: str = "mu"):
         verify_min_callable_length(self, 2, len(operands))
         params = operands[0]
         if isinstance(params, Symbol):
@@ -216,16 +217,17 @@ class Mu(Callable):
                 raise OperandDeduceError(f"{param} is not a Symbol.")
         if len(operands) == 2:
             # noinspection PyTypeChecker
-            return MuObject(params, operands[1:])
+            return MuObject(params, operands[1:], name)
         else:
             # noinspection PyTypeChecker
-            return MuObject(params, [Pair(Symbol("begin"), make_list(operands[1:]))])
+            return MuObject(params, [Pair(Symbol("begin"), make_list(operands[1:]))], name)
 
 
 class MuObject(Callable):
-    def __init__(self, params: List[Symbol], body: List[Expression]):
+    def __init__(self, params: List[Symbol], body: List[Expression], name: str):
         self.params = params
         self.body = body
+        self.name = name
 
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         new_frame = Frame(frame)
@@ -244,14 +246,15 @@ class MuObject(Callable):
         return out
 
     def __repr__(self):
-        return f"#[(mu ({' '.join(map(repr, self.params))}) {' '.join(map(repr, self.body))})]"
+        return f"({self.name} {' '.join(map(repr, self.params))})"
 
 
 class MacroObject(Callable):
-    def __init__(self, params: List[Symbol], body: List[Expression], frame: Frame):
+    def __init__(self, params: List[Symbol], body: List[Expression], frame: Frame, name: str):
         self.params = params
         self.body = body
         self.frame = frame
+        self.name = name
 
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         new_frame = Frame(self.frame)
@@ -271,7 +274,7 @@ class MacroObject(Callable):
         return out
 
     def __repr__(self):
-        return f"#[(macro ({' '.join(map(repr, self.params))}) {' '.join(map(repr, self.body))})]"
+        return f"({self.name} {' '.join(map(repr, self.params))}) [parent = f{self.frame.id}]"
 
 
 @global_attr("define-macro")
@@ -288,8 +291,8 @@ class DefineMacro(Callable):
         name, *params = params
         if len(operands) == 2:
             # noinspection PyTypeChecker
-            frame.assign(name, MacroObject(params, operands[1:], frame))
+            frame.assign(name, MacroObject(params, operands[1:], frame, name.value))
         else:
             # noinspection PyTypeChecker
-            frame.assign(name, MacroObject(params, [Pair(Symbol("begin"), make_list(operands[1:]))], frame))
+            frame.assign(name, MacroObject(params, [Pair(Symbol("begin"), make_list(operands[1:]))], frame, name.value))
         return name

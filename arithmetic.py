@@ -1,6 +1,6 @@
 from typing import List
 
-from datamodel import Expression, Number, bools, Boolean, SingletonFalse
+from datamodel import Expression, Number, bools, Boolean, SingletonFalse, ValueHolder, Pair, SingletonTrue
 from environment import global_attr
 from evaluate_apply import Frame
 from gui import Holder
@@ -154,3 +154,26 @@ class Not(SingleOperandPrimitive):
         if not isinstance(operand, Boolean):
             raise NotImplementedError("Unable to negate non booleans (yet)!")
         return bools[operand is SingletonFalse]
+
+
+@global_attr("eq?")
+class IsEq(BuiltIn):
+    def execute_evaluated(self, operands: List[Expression], frame: Frame):
+        verify_exact_callable_length(self, 2, len(operands))
+        if all(isinstance(x, ValueHolder) for x in operands):
+            return bools[operands[0].value == operands[1].value]
+        return bools[operands[0] is operands[1]]
+
+
+@global_attr("equal?")
+class IsEqual(BuiltIn):
+    def execute_evaluated(self, operands: List[Expression], frame: Frame):
+        verify_exact_callable_length(self, 2, len(operands))
+        if all(isinstance(x, ValueHolder) for x in operands):
+            return bools[operands[0].value == operands[1].value]
+        elif all(isinstance(x, Pair) for x in operands):
+            return bools[IsEqual().execute_evaluated([operands[0].first, operands[1].first], frame) is SingletonTrue and \
+                         IsEqual().execute_evaluated([operands[0].rest, operands[1].rest], frame) is SingletonTrue]
+        else:
+            return IsEq().execute_evaluated(operands, frame)
+

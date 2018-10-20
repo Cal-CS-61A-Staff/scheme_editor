@@ -7,7 +7,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../../../../favicon.ico">
 
-    <title>Starter Template for Bootstrap</title>
+    <title>Scheme thing</title>
 
     <!-- Bootstrap core CSS -->
     <link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet">
@@ -19,7 +19,7 @@
 <body>
 
 <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-    <a class="navbar-brand" href="#">Navbar</a>
+    <a class="navbar-brand" href="#">Placeholder Navbar for Scheme thing</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
             aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -58,18 +58,23 @@
         <h1>Scheme-o-matic</h1>
         <p class="lead">Enter a line of Scheme below:</p>
     </div>
-    <div id="editors">
-    </div>
-    <div class="code-row">
-        <div class="prevnexts btn-group" role="group" aria-label="Basic example">
-            <button id="prev" type="button" class="btn btn-secondary">Prev</button>
-            <button id="next" type="button" class="btn btn-secondary">Next</button>
+    <div class="row flex-fill d-flex">
+        <div class="col-6">
+            <div id="editors"></div>
         </div>
-        <br> <br>
-        <div id="drawarea"></div>
+        <div class="col-6">
+            <div class="prevnexts btn-group" role="group" aria-label="Basic example">
+                <button id="prev" type="button" class="btn btn-secondary">Prev</button>
+                <button id="next" type="button" class="btn btn-secondary">Next</button>
+            </div>
+            <br> <br>
+            <div id="substitution_tree" class="flex-grow-1"></div>
+            <br>
+            <div id="environment_diagram" class="flex-grow-1"></div>
+        </div>
     </div>
 
-</main><!-- /.container -->
+</main><!-- /.tree_container -->
 
 <!-- Bootstrap core JavaScript
 ================================================== -->

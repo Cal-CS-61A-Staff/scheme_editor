@@ -1,10 +1,11 @@
 let i = 0;
-let data = [];
+let states = [];
+let environments = [];
 let starts = [0];
 
 let editors = [];
-let container = initializeSVG();
-
+let tree_container = initializeTreeSvg();
+let environment_container = initializeEnvironmentSvg();
 
 $("#editors").on("submit", ".code-form", function (e) {
     e.preventDefault();
@@ -17,15 +18,16 @@ $("#editors").on("submit", ".code-form", function (e) {
         for (let j = 0; j !== editors.length; ++j) {
             out.push(editors[j].getValue());
         }
-        $.post("./process2", {code: out}).done(function (_data) {
+        $.post("./process2", {code: out}).done(function (data) {
             i = 0;
-            data = _data["states"];
-            if (data.length > 0) {
+            states = data["states"];
+            environments = data["environments"];
+            if (states.length > 0) {
                 display(i);
             }
             addRow(false);
             for (let j = 0; j !== editors.length; ++j) {
-                $(`#output-${j}`).html(_data["out"][j]);
+                $(`#output-${j}`).html(data["out"][j]);
             }
         });
         // disableEditor(editors[i]);
@@ -35,7 +37,10 @@ $("#editors").on("submit", ".code-form", function (e) {
             editors.pop();
         }
         enableEditor(editors[k]);
-        container.clear();
+        tree_container.clear();
+        states = [];
+        environment_container.clear();
+        environments = [];
         $(`#row-${k} .button`)
             .text("Execute")
             .removeClass("btn-outline-danger")
@@ -44,12 +49,14 @@ $("#editors").on("submit", ".code-form", function (e) {
 });
 
 $("#prev").click(function () {
+    if (states.length === 0) return;
     i = Math.max(i - 1, 0);
     display(i);
 });
 
 $("#next").click(function () {
-    i = Math.min(i + 1, data.length - 1);
+    if (states.length === 0) return;
+    i = Math.min(i + 1, states.length - 1);
     display(i);
 });
 
@@ -57,24 +64,75 @@ addRow(true);
 window.scrollTo(0, 0);
 
 function display(i) {
-    container.clear();
+    tree_container.clear();
     starts = [0];
 
-    let svg = $("#drawarea > svg").get(0);
+    let svg = $("#substitution_tree > svg").get(0);
     let zoom = svgPanZoom(svg).getZoom();
     let pan = svgPanZoom(svg).getPan();
 
     svgPanZoom(svg).destroy();
-    _display(data[i], container, 10, 10, 0);
+    display_tree(states[i], tree_container, 10, 10, 0);
     svgPanZoom(svg, {fit: false, zoomEnabled: true, center: false});
 
     svgPanZoom(svg).zoom(zoom);
     svgPanZoom(svg).pan(pan);
+
+    // Yeah I know copy + paste is bad but whatever
+
+    svg = $("#environment_diagram > svg").get(0);
+    zoom = svgPanZoom(svg).getZoom();
+    pan = svgPanZoom(svg).getPan();
+
+    svgPanZoom(svg).destroy();
+    display_env(environments, environment_container, i);
+    svgPanZoom(svg, {fit: false, zoomEnabled: true, center: false});
+
+    svgPanZoom(svg).zoom(zoom);
+    svgPanZoom(svg).pan(pan);
+
 }
 
-function _display(data, container, x, y, level) {
-    let charHeight = 32;
-    let charWidth = 14.4;
+function display_env(environments, container, i) {
+    let charHeight = 32 * 2 / 3;
+    let charWidth = 14.4 * 2 / 3;
+
+    let j;
+    for (j = 0; j !== environments.length; ++j) {
+        if (environments[j][0] >= i) {
+            break;
+        }
+    }
+    --j;
+    if (j < 0) {
+        return;
+    }
+    container.clear();
+
+    let curr_y = 10;
+
+    for (let frame of environments[j][1].slice(1)) {
+        let out = "Frame: f" + frame[0][0] + " [parent = f" + frame[0][1] + "]\n";
+        let maxlen = out.length;
+        for (let k = 0; k !== frame[1].length; ++k) {
+            let line = frame[1][k][0] + ": " + frame[1][k][1] + "\n";
+            maxlen = Math.max(maxlen, line.length);
+            out += line;
+        }
+        let text = container.text(out).font("family", "Monaco").font("size", 16).dx(25).dy(curr_y);
+        let rect = container.rect(maxlen * charWidth + 10, charHeight * (frame[1].length + 1) + 10)
+            .dx(15).dy(curr_y)
+            .stroke({color: "#000000", width: 2})
+            .fill({color: "#FFFFFF"})
+            .radius(10).back();
+
+        curr_y += charHeight * (frame[1].length + 1) + 20;
+    }
+}
+
+function display_tree(data, container, x, y, level) {
+    let charHeight = 32 * 2 / 3;
+    let charWidth = 14.4 * 2 / 3;
 
     let color;
     switch (data["transition_type"]) {
@@ -98,7 +156,7 @@ function _display(data, container, x, y, level) {
         .fill({color: "#FFFFFF"})
         .radius(10);
 
-    let parent = container.text(data["str"]).font("family", "Monaco").font("size", 24).dx(x).dy(y);
+    let parent = container.text(data["str"]).font("family", "Monaco").font("size", 16).dx(x).dy(y);
     let xDelta = charWidth;
 
     starts[level] = x + parent.length() + charWidth;
@@ -112,14 +170,20 @@ function _display(data, container, x, y, level) {
             Math.max(x + xDelta - 100000, starts[level + 1]) + child["str"].length * charWidth / 2 + 5,
             y + 110)
             .stroke({width: 3, color: "#c8c8c8"}).back();
-        _display(child, container, Math.max(x + xDelta - 100000, starts[level + 1]), y + 100, level + 1, i);
+        display_tree(child, container, Math.max(x + xDelta - 100000, starts[level + 1]), y + 100, level + 1);
         xDelta += parent_len + charWidth;
     }
 }
 
-function initializeSVG() {
-    out = SVG("drawarea").size($(".starter-template").width(), 500);
-    svgPanZoom($("#drawarea > svg").get(0), {fit: false, zoomEnabled: true, center: false});
+function initializeTreeSvg() {
+    out = SVG("substitution_tree").size($(".starter-template").width() / 2, 300);
+    svgPanZoom($("#substitution_tree > svg").get(0), {fit: false, zoomEnabled: true, center: false});
+    return out;
+}
+
+function initializeEnvironmentSvg() {
+    out = SVG("environment_diagram").size($(".starter-template").width() / 2, 300);
+    svgPanZoom($("#environment_diagram > svg").get(0), {fit: false, zoomEnabled: true, center: false});
     return out;
 }
 
@@ -130,7 +194,7 @@ function disableEditor(editor) {
         highlightGutterLine: false
     });
     editor.renderer.$cursorLayer.element.style.opacity = 0;
-    // editor.container.style.pointerEvents="none";
+    // editor.tree_container.style.pointerEvents="none";
     editor.container.style.opacity = 0.5;
     editor.renderer.setStyle("disabled", true);
     editor.blur();
@@ -158,7 +222,7 @@ function initializeEditor(editor) {
     editor.session.setMode("ace/mode/scheme");
     editor.setOption("minLines", 1);
     editor.setOption("maxLines", 100);
-    editor.setOption("fontSize", 24);
+    editor.setOption("fontSize", 16);
     editor.setOption("showLineNumbers", false);
     editor.setOption("showGutter", false);
 
