@@ -177,10 +177,10 @@ function display_env(environments, container, i) {
     let curr_y = 10;
 
     for (let frame of environments[j][1].slice(1)) {
-        let out = "Frame: f" + frame[0][0] + " [parent = f" + frame[0][1] + "]\n";
+        let out = "Frame f" + frame[0][0] + ": " + frame[0][2] + " [parent = f" + frame[0][1] + "]\n";
         let maxlen = out.length;
         for (let k = 0; k !== frame[1].length; ++k) {
-            let line = frame[1][k][0] + ": " + frame[1][k][1] + "\n";
+            let line = "   " + frame[1][k][0] + ": " + frame[1][k][1] + "\n";
             maxlen = Math.max(maxlen, line.length);
             out += line;
         }

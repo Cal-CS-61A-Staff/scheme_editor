@@ -9,9 +9,11 @@ from helper import pair_to_list
 
 
 class Frame:
-    def __init__(self, parent: Frame = None):
+    def __init__(self, name: str, parent: Frame = None):
         self.parent = parent
+        self.name = name
         self.vars: Dict[str, Expression] = {}
+        self.id = "unknown (error)"
         gui.logger.frame_create(self)
 
     def assign(self, varname: Symbol, varval: Expression):
