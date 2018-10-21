@@ -2,7 +2,7 @@ from typing import List
 
 from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil
 from environment import global_attr
-from gui import Holder, VisualExpression
+from gui import Holder, VisualExpression, return_symbol
 from helper import pair_to_list, verify_exact_callable_length, verify_min_callable_length, \
     make_list
 from evaluate_apply import Frame, evaluate, Callable, evaluate_all
@@ -31,6 +31,7 @@ class LambdaObject(Callable):
             [VisualExpression(expr, gui_holder.expression.display_value) for expr in self.body])
         for i, expression in enumerate(self.body):
             out = evaluate(expression, new_frame, gui_holder.expression.children[i])
+        new_frame.assign(return_symbol, out)
         return out
 
     def __repr__(self):
@@ -198,6 +199,7 @@ class Let(Callable):
 
         operands = evaluate_all(operands[1:], new_frame, gui_holder.expression.children[2:])
 
+        new_frame.assign(return_symbol, operands[-1])
         return operands[-1]
 
 
@@ -243,6 +245,7 @@ class MuObject(Callable):
             [VisualExpression(expr, gui_holder.expression.display_value) for expr in self.body])
         for i, expression in enumerate(self.body):
             out = evaluate(expression, new_frame, gui_holder.expression.children[i])
+        new_frame.assign(return_symbol, out)
         return out
 
     def __repr__(self):
@@ -271,6 +274,7 @@ class MacroObject(Callable):
 
         gui_holder.expression.set_entries([VisualExpression(out, gui_holder.expression.display_value)])
         out = evaluate(out, frame, gui_holder.expression.children[i])
+        new_frame.assign(return_symbol, out)
         return out
 
     def __repr__(self):

@@ -4,7 +4,7 @@ from enum import Enum, auto
 from typing import List, Union
 from uuid import uuid4
 
-from datamodel import Expression, ValueHolder, Pair, Nil
+from datamodel import Expression, ValueHolder, Pair, Nil, Symbol
 import evaluate_apply
 from helper import pair_to_list
 
@@ -92,8 +92,9 @@ class Logger:
         self.frame_lookup = None
         self.environments = None
         self.environment_indices = None
+        self.skip_tree = None
 
-        self.new_query()
+        self.new_query(True)
 
     def clear_diagram(self):
         self.states = []
@@ -102,16 +103,20 @@ class Logger:
         self.environments = []
         self.frame_store(None, None, None)
 
-    def new_query(self):
+    def new_query(self, skip_tree):
         self._out = []
         self.frames = []
         self.frame_lookup = {}
         self.clear_diagram()
         self._out = []
+        self.skip_tree = skip_tree
+        print(skip_tree)
 
     def log(self, message, local, root):
-        new_state = freeze_state(root)
-        self.states.append(new_state)
+        if not self.skip_tree:
+            new_state = freeze_state(root)
+            self.states.append(new_state)
+            # print("saving state")
 
     def export(self):
         return {"states": [state.export() for state in self.states],
@@ -172,3 +177,5 @@ def freeze_state(state: Holder) -> StateTree:
 
 logger = Logger()
 announce = logger.log
+
+return_symbol = Symbol("Return Value")

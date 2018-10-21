@@ -7,6 +7,8 @@ let editors = [];
 let tree_container = initializeTreeSvg();
 let environment_container = initializeEnvironmentSvg();
 
+let displayingStates = true;
+
 $("#editors").on("submit", ".code-form", function (e) {
     e.preventDefault();
     let k = parseInt($(this).closest('form').parent().attr('id').substr(4));
@@ -18,7 +20,21 @@ $("#editors").on("submit", ".code-form", function (e) {
         for (let j = 0; j !== editors.length; ++j) {
             out.push(editors[j].getValue());
         }
-        $.post("./process2", {code: out}).done(function (data) {
+        displayingStates = !$("#hide_subs").is(':checked');
+
+        if (!displayingStates) {
+            $("#substitution_tree").hide();
+            $("#sub_br").hide();
+            $("#sub_nav").hide();
+            $("#environment_diagram").height(600);
+            environment_container.height(600);
+        } else {
+            $("#substitution_tree").show();
+            $("#sub_br").show();
+            $("#sub_nav").show();
+        }
+
+        $.post("./process2", {code: out, skip_tree: $("#hide_subs").is(':checked')}).done(function (data) {
             i = 0;
             states = data["states"];
             environments = data["environments"];
@@ -49,14 +65,42 @@ $("#editors").on("submit", ".code-form", function (e) {
 });
 
 $("#prev").click(function () {
-    if (states.length === 0) return;
+    if (environments.length === 0) return;
     i = Math.max(i - 1, 0);
     display(i);
 });
 
 $("#next").click(function () {
-    if (states.length === 0) return;
-    i = Math.min(i + 1, states.length - 1);
+    if (environments.length === 0) return;
+    if (displayingStates) {
+        i = Math.min(i + 1, states.length - 1);
+    } else {
+        i = Math.min(i + 1, environments.length - 1);
+    }
+    display(i);
+});
+
+$("#prev_fast").click(function () {
+    if (environments.length === 0) return;
+    if (displayingStates) {
+        i = environments[Math.max(get_curr_env(i) - 2, 0)][0] + 1;
+    } else {
+        --i;
+    }
+    console.log(i);
+    i = Math.max(i, 0);
+    display(i)
+});
+
+$("#next_fast").click(function () {
+    if (environments.length === 0) return;
+    if (displayingStates) {
+        i = environments[Math.min(get_curr_env(i) + 1, environments.length - 1)][0] + 1;
+    } else {
+        ++i;
+        i = Math.min(i + 1, environments.length - 1);
+    }
+    i = Math.max(i, 0);
     display(i);
 });
 
@@ -67,22 +111,25 @@ function display(i) {
     tree_container.clear();
     starts = [0];
 
-    let svg = $("#substitution_tree > svg").get(0);
-    let zoom = svgPanZoom(svg).getZoom();
-    let pan = svgPanZoom(svg).getPan();
+    if (displayingStates) {
+        let svg = $("#substitution_tree > svg").get(0);
+        let zoom = svgPanZoom(svg).getZoom();
+        let pan = svgPanZoom(svg).getPan();
 
-    svgPanZoom(svg).destroy();
-    display_tree(states[i], tree_container, 10, 10, 0);
-    svgPanZoom(svg, {fit: false, zoomEnabled: true, center: false});
+        svgPanZoom(svg).destroy();
+        if (states !== []) {
+            display_tree(states[i], tree_container, 10, 10, 0);
+        }
+        svgPanZoom(svg, {fit: false, zoomEnabled: true, center: false});
 
-    svgPanZoom(svg).zoom(zoom);
-    svgPanZoom(svg).pan(pan);
-
+        svgPanZoom(svg).zoom(zoom);
+        svgPanZoom(svg).pan(pan);
+    }
     // Yeah I know copy + paste is bad but whatever
 
-    svg = $("#environment_diagram > svg").get(0);
-    zoom = svgPanZoom(svg).getZoom();
-    pan = svgPanZoom(svg).getPan();
+    let svg = $("#environment_diagram > svg").get(0);
+    let zoom = svgPanZoom(svg).getZoom();
+    let pan = svgPanZoom(svg).getPan();
 
     svgPanZoom(svg).destroy();
     display_env(environments, environment_container, i);
@@ -93,10 +140,7 @@ function display(i) {
 
 }
 
-function display_env(environments, container, i) {
-    let charHeight = 32 * 2 / 3;
-    let charWidth = 14.4 * 2 / 3;
-
+function get_curr_env(i) {
     let j;
     for (j = 0; j !== environments.length; ++j) {
         if (environments[j][0] >= i) {
@@ -104,8 +148,18 @@ function display_env(environments, container, i) {
         }
     }
     --j;
-    if (j < 0) {
-        return;
+    return j;
+}
+
+function display_env(environments, container, i) {
+    let charHeight = 32 * 2 / 3;
+    let charWidth = 14.4 * 2 / 3;
+
+    let j;
+    if (displayingStates) {
+        j = get_curr_env(i);
+    } else {
+        j = i;
     }
     container.clear();
 
