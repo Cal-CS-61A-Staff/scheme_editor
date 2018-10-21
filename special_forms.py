@@ -5,7 +5,7 @@ from environment import global_attr
 from gui import Holder, VisualExpression, return_symbol
 from helper import pair_to_list, verify_exact_callable_length, verify_min_callable_length, \
     make_list
-from evaluate_apply import Frame, evaluate, Callable, evaluate_all
+from evaluate_apply import Frame, evaluate, Callable, evaluate_all, apply
 from primitives import SingleOperandPrimitive
 from scheme_exceptions import OperandDeduceError
 
@@ -36,6 +36,9 @@ class LambdaObject(Callable):
 
     def __repr__(self):
         return f"({self.name} {' '.join(map(repr, self.params))}) [parent = f{self.frame.id}]"
+
+    def __str__(self):
+        return f"#[{self.name}]"
 
 
 @global_attr("lambda")
@@ -123,8 +126,23 @@ class Eval(Callable):
         verify_exact_callable_length(self, 1, len(operands))
         operand = evaluate(operands[0], frame, gui_holder.expression.children[1])
         gui_holder.expression.set_entries([VisualExpression(operand, gui_holder.expression.display_value)])
-
+        gui_holder.apply()
         return evaluate(operand, frame, gui_holder.expression.children[0])
+
+
+@global_attr("apply")
+class Apply(Callable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+        raise NotImplementedError("Apply isn't implemented yet. Sorry! :P")
+        # verify_exact_callable_length(self, 2, len(operands))
+        # func = evaluate(operands[0], frame, gui_holder.expression.children[0])
+        # todo = Pair(func, operands[1])
+        # if not isinstance(operands[1], Pair):
+        #     raise OperandDeduceError(f"Expected second argument of apply to be a Pair, not {operands[1]}")
+        # gui_holder.expression.set_entries([VisualExpression(todo, gui_holder.expression.display_value)])
+        # gui_holder.apply()
+        #
+        # return apply(func, pair_to_list(operands[1]), frame, gui_holder.expression.children[0])
 
 
 @global_attr("cond")
@@ -136,10 +154,12 @@ class Cond(Callable):
                 raise OperandDeduceError(f"Unable to evaluate clause of cond, as {cond} is not a Pair.")
             expanded = pair_to_list(cond)
             cond_holder = gui_holder.expression.children[cond_i + 1]
-            verify_min_callable_length(self, 2, len(expanded))
             cond_holder.link_visual(VisualExpression(cond))
-            if isinstance(expanded[0], Symbol) and expanded[0].value == "else" or evaluate(expanded[0], frame, cond_holder.expression.children[0]) is not SingletonFalse:
-                out = None
+            if not isinstance(expanded[0], Symbol) or expanded[0].value != "else":
+                eval_condition = evaluate(expanded[0], frame, cond_holder.expression.children[0])
+            if (isinstance(expanded[0], Symbol) and expanded[
+                0].value == "else") or eval_condition is not SingletonFalse:
+                out = eval_condition
                 for i, expr in enumerate(expanded[1:]):
                     out = evaluate(expr, frame, cond_holder.expression.children[i + 1])
                 return out
@@ -149,22 +169,23 @@ class Cond(Callable):
 @global_attr("and")
 class And(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        verify_min_callable_length(self, 1, len(operands))
+        verify_min_callable_length(self, 0, len(operands))
+        value = None
         for i, expr in enumerate(operands):
             value = evaluate(expr, frame, gui_holder.expression.children[i + 1])
             if value is SingletonFalse:
                 return SingletonFalse
-        return SingletonTrue
+        return value if operands else SingletonTrue
 
 
 @global_attr("or")
 class Or(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        verify_min_callable_length(self, 1, len(operands))
+        verify_min_callable_length(self, 0, len(operands))
         for i, expr in enumerate(operands):
             value = evaluate(expr, frame, gui_holder.expression.children[i + 1])
-            if value is SingletonTrue:
-                return SingletonTrue
+            if value is not SingletonFalse:
+                return value
         return SingletonFalse
 
 
