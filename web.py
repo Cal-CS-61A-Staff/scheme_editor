@@ -22,7 +22,7 @@ def receive():
     skip_tree = (skip_tree == "true")
     gui.logger.new_query(skip_tree)
     try:
-        limiter(3, scheme.string_exec, code, gui.logger.out)
+        limiter(3000, scheme.string_exec, code, gui.logger.out)
     except SchemeError as e:
         gui.logger.out(e)
     except TimeLimitException:
@@ -31,6 +31,6 @@ def receive():
         gui.logger.out(e)
 
     out = gui.logger.export()
-    print(out)
+    # print(out)
     return jsonify(out)
 

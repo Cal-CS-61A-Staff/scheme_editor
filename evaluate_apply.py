@@ -56,7 +56,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder):
         gui_holder.link_visual(visual_expression)
     else:
         visual_expression = gui_holder.expression
-    if isinstance(expr, Number):
+    if isinstance(expr, Number) or isinstance(expr, Callable):
         gui_holder.complete()
         visual_expression.value = expr
         return expr

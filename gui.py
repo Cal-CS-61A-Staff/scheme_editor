@@ -40,8 +40,8 @@ class VisualExpression:
 
     def __repr__(self):
         if self.value is not None:
-            return repr(self.value)
-        return repr(self.display_value)
+            return str(self.value)
+        return str(self.display_value)
 
 
 class Holder:
@@ -124,8 +124,11 @@ class Logger:
                 "environments": [*zip(self.environment_indices, self.environments)]
                 }
 
-    def out(self, val):
-        self._out[-1] += repr(val) + "\n"
+    def out(self, val, end="\n"):
+        self.raw_out(repr(val) + end)
+
+    def raw_out(self, val, end="\n"):
+        self._out[-1] += val
 
     def frame_create(self, frame):
         self.frame_lookup[frame] = len(self.frames)
