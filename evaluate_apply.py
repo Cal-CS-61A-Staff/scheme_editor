@@ -11,7 +11,7 @@ from helper import pair_to_list
 class Frame:
     def __init__(self, parent: Frame = None):
         self.parent = parent
-        self.vars: Dict[Symbol, Expression] = {}
+        self.vars: Dict[str, Expression] = {}
         gui.logger.frame_create(self)
 
     def assign(self, varname: Symbol, varval: Expression):
