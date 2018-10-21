@@ -2,11 +2,10 @@ from typing import List
 
 from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil
 from environment import global_attr
+from evaluate_apply import Frame, evaluate, Callable, evaluate_all
 from gui import Holder, VisualExpression, return_symbol
 from helper import pair_to_list, verify_exact_callable_length, verify_min_callable_length, \
     make_list
-from evaluate_apply import Frame, evaluate, Callable, evaluate_all, apply
-from primitives import SingleOperandPrimitive
 from scheme_exceptions import OperandDeduceError
 
 
@@ -18,7 +17,7 @@ class LambdaObject(Callable):
         self.name = name
 
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        new_frame = Frame(self.frame)
+        new_frame = Frame(self.name, self.frame)
         operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
         verify_exact_callable_length(self, len(self.params), len(operands))
 
@@ -157,8 +156,9 @@ class Cond(Callable):
             cond_holder.link_visual(VisualExpression(cond))
             if not isinstance(expanded[0], Symbol) or expanded[0].value != "else":
                 eval_condition = evaluate(expanded[0], frame, cond_holder.expression.children[0])
-            if (isinstance(expanded[0], Symbol) and expanded[
-                0].value == "else") or eval_condition is not SingletonFalse:
+            # noinspection PyUnboundLocalVariable
+            if (isinstance(expanded[0], Symbol) and expanded[0].value == "else") \
+                    or eval_condition is not SingletonFalse:
                 out = eval_condition
                 for i, expr in enumerate(expanded[1:]):
                     out = evaluate(expr, frame, cond_holder.expression.children[i + 1])
@@ -198,7 +198,7 @@ class Let(Callable):
         if not isinstance(bindings, Pair) and bindings is not Nil:
             raise OperandDeduceError(f"Expected first argument of let to be a Pair, not {bindings}.")
 
-        new_frame = Frame(frame)
+        new_frame = Frame("anonymous let", frame)
 
         gui_holder.expression.children[1].link_visual(VisualExpression(bindings))
         bindings_holder = gui_holder.expression.children[1]
@@ -253,7 +253,7 @@ class MuObject(Callable):
         self.name = name
 
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        new_frame = Frame(frame)
+        new_frame = Frame(self.name, frame)
         operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
         verify_exact_callable_length(self, len(self.params), len(operands))
 
@@ -272,6 +272,9 @@ class MuObject(Callable):
     def __repr__(self):
         return f"({self.name} {' '.join(map(repr, self.params))})"
 
+    def __str__(self):
+        return f"#[{self.name}]"
+
 
 class MacroObject(Callable):
     def __init__(self, params: List[Symbol], body: List[Expression], frame: Frame, name: str):
@@ -281,7 +284,7 @@ class MacroObject(Callable):
         self.name = name
 
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        new_frame = Frame(self.frame)
+        new_frame = Frame(self.name, self.frame)
         # operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
         verify_exact_callable_length(self, len(self.params), len(operands))
 
@@ -300,6 +303,9 @@ class MacroObject(Callable):
 
     def __repr__(self):
         return f"({self.name} {' '.join(map(repr, self.params))}) [parent = f{self.frame.id}]"
+
+    def __str__(self):
+        return f"#[{self.name}]"
 
 
 @global_attr("define-macro")

@@ -141,8 +141,9 @@ class Logger:
             self.environment_indices.pop()
         self.environments.append([])
         for frame in self.frames:
-            self.environments[-1].append([[self.frame_lookup[frame], self.frame_lookup.get(frame.parent, 0)],
-                                          [[k, repr(v)] for k, v in frame.vars.items()]])
+            self.environments[-1].append(
+                [[self.frame_lookup[frame], self.frame_lookup.get(frame.parent, 0), frame.name],
+                 [[k, repr(v)] for k, v in frame.vars.items()]])
         self.environment_indices.append(len(self.states) - 1)
 
 

@@ -28,6 +28,7 @@ def receive():
     except TimeLimitException:
         gui.logger.out("Time limit exceeded. Try disabling the substitution visualizer (top checkbox) for increased performance.")
     except Exception as e:
+        raise
         gui.logger.out(e)
 
     out = gui.logger.export()

@@ -19,10 +19,10 @@ global_attr = make_frame_decorator(defdict)
 
 
 def build_global_frame():
-    frame = Frame()
+    frame = Frame("builtins")
     for k, v in defdict.items():
         frame.assign(k, v)
     frame.assign(Symbol("nil"), Nil)
     frame.assign(Symbol("#t"), SingletonTrue)
     frame.assign(Symbol("#f"), SingletonFalse)
-    return Frame(frame)
+    return Frame("Global", frame)
