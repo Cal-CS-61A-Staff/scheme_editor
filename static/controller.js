@@ -9,6 +9,8 @@ let environment_container = initializeEnvironmentSvg();
 
 let displayingStates = true;
 
+let isFirst = true;
+
 $("#editors").on("submit", ".code-form", function (e) {
     e.preventDefault();
     let k = parseInt($(this).closest('form').parent().attr('id').substr(4));
@@ -38,7 +40,8 @@ $("#editors").on("submit", ".code-form", function (e) {
             i = 0;
             states = data["states"];
             environments = data["environments"];
-            if (states.length > 0) {
+            if (environments.length > 0) {
+                isFirst = true;
                 display(i);
             }
             addRow(false);
@@ -83,7 +86,7 @@ $("#next").click(function () {
 $("#prev_fast").click(function () {
     if (environments.length === 0) return;
     if (displayingStates) {
-        i = environments[Math.max(get_curr_env(i) - 2, 0)][0] + 1;
+        i = environments[Math.max(get_curr_env(i) - 1, 0)][0] + 1;
     } else {
         --i;
     }
@@ -97,7 +100,6 @@ $("#next_fast").click(function () {
     if (displayingStates) {
         i = environments[Math.min(get_curr_env(i) + 1, environments.length - 1)][0] + 1;
     } else {
-        ++i;
         i = Math.min(i + 1, environments.length - 1);
     }
     i = Math.max(i, 0);
@@ -122,8 +124,12 @@ function display(i) {
         }
         svgPanZoom(svg, {fit: false, zoomEnabled: true, center: false});
 
-        svgPanZoom(svg).zoom(zoom);
-        svgPanZoom(svg).pan(pan);
+        if (isFirst) {
+            svgPanZoom(svg).reset();
+        } else {
+            svgPanZoom(svg).zoom(zoom);
+            svgPanZoom(svg).pan(pan);
+        }
     }
     // Yeah I know copy + paste is bad but whatever
 
@@ -135,9 +141,14 @@ function display(i) {
     display_env(environments, environment_container, i);
     svgPanZoom(svg, {fit: false, zoomEnabled: true, center: false});
 
-    svgPanZoom(svg).zoom(zoom);
-    svgPanZoom(svg).pan(pan);
+    if (isFirst) {
+        svgPanZoom(svg).reset();
+    } else {
+        svgPanZoom(svg).zoom(zoom);
+        svgPanZoom(svg).pan(pan);
+    }
 
+    isFirst = false;
 }
 
 function get_curr_env(i) {

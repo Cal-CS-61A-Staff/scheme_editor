@@ -133,6 +133,9 @@ class Logger:
         self.frames.append(frame)
 
     def frame_store(self, frame, name, value):
+        if self.states and self.environment_indices and self.environment_indices[-1] == len(self.states) - 1:
+            self.environments.pop()
+            self.environment_indices.pop()
         self.environments.append([])
         for frame in self.frames:
             self.environments[-1].append([[self.frame_lookup[frame], self.frame_lookup.get(frame.parent, 0)],
