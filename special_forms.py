@@ -46,6 +46,7 @@ class Lambda(Callable):
         verify_min_callable_length(self, 2, len(operands))
         params = operands[0]
         if isinstance(params, Symbol):
+            raise NotImplementedError("Varargs not yet implemented!")
             params = [operands[0]]
         elif isinstance(params, Pair) or params is Nil:
             params = pair_to_list(params)
