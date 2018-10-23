@@ -4,7 +4,7 @@ from datamodel import Expression, Number, bools, Boolean, SingletonFalse, ValueH
 from environment import global_attr
 from evaluate_apply import Frame
 from gui import Holder
-from helper import assert_all_numbers, verify_exact_callable_length
+from helper import assert_all_numbers, verify_exact_callable_length, verify_min_callable_length
 from primitives import BuiltIn, SingleOperandPrimitive
 from scheme_exceptions import ComparisonError
 
@@ -19,6 +19,7 @@ class Add(BuiltIn):
 @global_attr("-")
 class Subtract(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame):
+        verify_min_callable_length(self, 1, len(operands))
         assert_all_numbers(operands)
         if len(operands) == 1:
             return Number(-operands[0].value)
@@ -38,6 +39,7 @@ class Multiply(BuiltIn):
 @global_attr("/")
 class Divide(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
+        verify_min_callable_length(self, 1, len(operands))
         assert_all_numbers(operands)
         if len(operands) == 1:
             return Number(1 / operands[0].value)
