@@ -11,6 +11,9 @@ let displayingStates = true;
 
 let isFirst = true;
 
+let charHeight = 32 * 2 / 3;
+let charWidth = 14.4 * 2 / 3;
+
 $("#editors").on("submit", ".code-form", function (e) {
     e.preventDefault();
     let k = parseInt($(this).closest('form').parent().attr('id').substr(4));
@@ -163,9 +166,6 @@ function get_curr_env(i) {
 }
 
 function display_env(environments, container, i) {
-    let charHeight = 32 * 2 / 3;
-    let charWidth = 14.4 * 2 / 3;
-
     let j;
     if (displayingStates) {
         j = get_curr_env(i);
@@ -184,7 +184,7 @@ function display_env(environments, container, i) {
             maxlen = Math.max(maxlen, line.length);
             out += line;
         }
-        let text = container.text(out).font("family", "Monaco").font("size", 16).dx(25).dy(curr_y);
+        let text = container.text(out).font("family", "Monaco, monospace").font("size", 16).dx(25).dy(curr_y);
         let rect = container.rect(maxlen * charWidth + 10, charHeight * (frame[1].length + 1) + 10)
             .dx(15).dy(curr_y)
             .stroke({color: "#000000", width: 2})
@@ -196,9 +196,6 @@ function display_env(environments, container, i) {
 }
 
 function display_tree(data, container, x, y, level) {
-    let charHeight = 32 * 2 / 3;
-    let charWidth = 14.4 * 2 / 3;
-
     let color;
     switch (data["transition_type"]) {
         case "UNEVALUATED":
@@ -221,8 +218,10 @@ function display_tree(data, container, x, y, level) {
         .fill({color: "#FFFFFF"})
         .radius(10);
 
-    let parent = container.text(data["str"]).font("family", "Monaco").font("size", 16).dx(x).dy(y);
+    let parent = container.text(data["str"]).font("family", "Monaco, monospace").font("size", 16).dx(x).dy(y);
     let xDelta = charWidth;
+
+    charWidth = parent.length() / data["str"].length;
 
     starts[level] = x + parent.length() + charWidth;
 
@@ -316,7 +315,7 @@ function addRow(isFirst) {
         <div id="output-${i - 1}" style="white-space: pre-line" class="editor-wrapper" style="width: 100%">
         </div>
     </div></div>
-    <br>
+    <br><br>
     `;
 
     if (isFirst) {
