@@ -93,6 +93,7 @@ class Logger:
         self.environments = None
         self.environment_indices = None
         self.skip_tree = None
+        self.code = None
 
         self.new_query(True)
 
@@ -121,8 +122,12 @@ class Logger:
     def export(self):
         return {"states": [state.export() for state in self.states],
                 "out": [x.strip() for x in self._out],
-                "environments": [*zip(self.environment_indices, self.environments)]
+                "environments": [*zip(self.environment_indices, self.environments)],
+                "code": self.code,
                 }
+
+    def setID(self, code):
+        self.code = code
 
     def out(self, val, end="\n"):
         self.raw_out(repr(val) + end)
