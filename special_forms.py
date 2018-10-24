@@ -157,7 +157,7 @@ class Cond(Callable):
             cond_holder.link_visual(VisualExpression(cond))
             if not isinstance(expanded[0], Symbol) or expanded[0].value != "else":
                 eval_condition = evaluate(expanded[0], frame, cond_holder.expression.children[0])
-            # noinspection PyUnboundLocalVariable
+            eval_condition = Nil
             if (isinstance(expanded[0], Symbol) and expanded[0].value == "else") \
                     or eval_condition is not SingletonFalse:
                 out = eval_condition
