@@ -18,40 +18,7 @@ $("#editors").on("submit", ".code-form", function (e) {
     e.preventDefault();
     let k = parseInt($(this).closest('form').parent().attr('id').substr(4));
     if (k + 1 === editors.length) {
-        if (editors[editors.length - 1].getValue().trim() === "") {
-            return;
-        }
-        let out = [];
-        for (let j = 0; j !== editors.length; ++j) {
-            out.push(editors[j].getValue());
-        }
-        displayingStates = !$("#hide_subs").is(':checked');
-
-        if (!displayingStates) {
-            $("#substitution_tree").hide();
-            $("#sub_br").hide();
-            $("#sub_nav").hide();
-            $("#environment_diagram").height(600);
-            environment_container.height(600);
-        } else {
-            $("#substitution_tree").show();
-            $("#sub_br").show();
-            $("#sub_nav").show();
-        }
-
-        $.post("./process2", {code: out, skip_tree: $("#hide_subs").is(':checked')}).done(function (data) {
-            i = 0;
-            states = data["states"];
-            environments = data["environments"];
-            if (environments.length > 0) {
-                isFirst = true;
-                display(i);
-            }
-            addRow(false);
-            for (let j = 0; j !== editors.length; ++j) {
-                $(`#output-${j}`).html(data["out"][j]);
-            }
-        });
+        submit();
         // disableEditor(editors[i]);
     } else {
         while (editors.length !== k + 1) {
@@ -107,6 +74,22 @@ $("#next_fast").click(function () {
     }
     i = Math.max(i, 0);
     display(i);
+});
+
+$("#share_btn").click(function (e) {
+    console.log(e.target.childNodes[0]);
+    let selection = window.getSelection();
+    selection.removeAllRanges();
+    const el = document.createElement('textarea');
+    el.value = e.target.innerHTML;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+});
+
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
 });
 
 addRow(true);
@@ -344,3 +327,64 @@ function addRow(isFirst) {
     $("#editors").append(data);
     editors.push(initializeEditor($(`#row-${i} .editor`).get(0)))
 }
+
+function init() {
+    let decoded = $.parseJSON(start_data);
+    if ($.isEmptyObject(decoded)) {
+        return;
+    }
+    let lines = decoded["code"].length;
+    for (let i = 1; i !== lines; ++i) {
+        addRow();
+    }
+    for (let i = 0; i !== lines; ++i) {
+        editors[i].setValue(decoded["code"][i]);
+        editors[i].clearSelection();
+    }
+    if (decoded["skip_tree"]) {
+        $("#hide_subs").prop("checked", true);
+    }
+    submit();
+}
+
+function submit() {
+    if (editors[editors.length - 1].getValue().trim() === "") {
+        return;
+    }
+    let out = [];
+    for (let j = 0; j !== editors.length; ++j) {
+        out.push(editors[j].getValue());
+    }
+    displayingStates = !$("#hide_subs").is(':checked');
+
+    if (!displayingStates) {
+        $("#substitution_tree").hide();
+        $("#sub_br").hide();
+        $("#sub_nav").hide();
+        $("#environment_diagram").height(600);
+        environment_container.height(600);
+    } else {
+        $("#substitution_tree").show();
+        $("#sub_br").show();
+        $("#sub_nav").show();
+    }
+
+    $.post("./process2", {code: out, skip_tree: $("#hide_subs").is(':checked')}).done(function (data) {
+        i = 0;
+        states = data["states"];
+        environments = data["environments"];
+        console.log(data["code"]);
+        if (environments.length > 0) {
+            isFirst = true;
+            display(i);
+        }
+        addRow(false);
+        for (let j = 0; j !== editors.length; ++j) {
+            $(`#output-${j}`).html(data["out"][j]);
+        }
+        $("#share_btn").text("scheme.pythonanywhere.com/" + data["code"]).show();
+        window.history.replaceState(null, null, '/' + data["code"]);
+    });
+}
+
+init();
