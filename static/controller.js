@@ -374,7 +374,7 @@ function submit() {
         states = data["states"];
         environments = data["environments"];
         console.log(data["code"]);
-        if (environments.length > 0) {
+        if ((displayingStates && states.length > 0) || (!displayingStates && environments.length > 0)) {
             isFirst = true;
             display(i);
         }
