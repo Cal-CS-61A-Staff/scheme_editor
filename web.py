@@ -47,6 +47,6 @@ def handle(code, skip_tree):
         gui.logger.out(e)
 
     out = gui.logger.export()
-    # print(out)
+    print(out)
     return jsonify(out)
 
