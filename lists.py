@@ -15,7 +15,7 @@ class Append(BuiltIn):
         if len(operands) == 0: return Nil
         out = []
         for operand in operands[:-1]:
-            if not isinstance(operand, Pair):
+            if not isinstance(operand, Pair) and operand is not Nil:
                 raise OperandDeduceError(f"Expected operand to be valid list, not {operand}")
             out.extend(pair_to_list(operand))
         try:
@@ -58,7 +58,7 @@ class Cons(BuiltIn):
 @global_attr("length")
 class Length(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
-        if not isinstance(operand, Pair):
+        if not isinstance(operand, Pair) and operand is not Nil:
             raise OperandDeduceError(f"Unable to calculate length, as {operand} is not a valid list.")
         return Number(len(pair_to_list(operand)))
 
