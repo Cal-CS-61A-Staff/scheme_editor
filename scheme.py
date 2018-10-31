@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gui
+from datamodel import Undefined
 from evaluate_apply import evaluate
 from gui import Holder, Root
 from parser import get_expression
@@ -61,6 +62,6 @@ def string_exec(strings, out):
             expr = get_expression(buff)
             holder = Holder(expr)
             Root.setroot(holder)
-            out(evaluate(expr, global_frame, holder))
-
-
+            res = evaluate(expr, global_frame, holder)
+            if res is not Undefined:
+                out(res)

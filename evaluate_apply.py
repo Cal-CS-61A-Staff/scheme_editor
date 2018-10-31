@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Dict, List
 
-from datamodel import Symbol, Expression, Number, Pair, Nil
+from datamodel import Symbol, Expression, Number, Pair, Nil, Undefined
 import gui
 from scheme_exceptions import SymbolLookupError, CallableResolutionError
 from helper import pair_to_list
@@ -58,6 +58,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder):
         gui_holder.link_visual(visual_expression)
     else:
         visual_expression = gui_holder.expression
+
     if isinstance(expr, Number) or isinstance(expr, Callable):
         gui_holder.complete()
         visual_expression.value = expr
@@ -77,10 +78,10 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder):
         visual_expression.value = out
         gui_holder.complete()
         return out
-    elif expr is Nil:
-        visual_expression.value = Nil
+    elif expr is Nil or expr is Undefined:
+        visual_expression.value = expr
         gui_holder.complete()
-        return Nil
+        return expr
 
 
 def apply(operator: Expression, operands: List[Expression], frame: Frame, gui_holder: gui.Holder):

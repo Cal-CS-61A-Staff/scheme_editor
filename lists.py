@@ -63,8 +63,27 @@ class Length(SingleOperandPrimitive):
         return Number(len(pair_to_list(operand)))
 
 
+@global_attr("map")
+class Map(BuiltIn):
+    def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
+        verify_exact_callable_length(self, 2, len(operands))
+
+        func, lst = operands
+
+        if not isinstance(func, Callable):
+            raise OperandDeduceError(f"Unable to call {operands[0]}")
+
+        if not isinstance(lst, Pair):
+            raise OperandDeduceError(f"Unable to iterate, since {operands[1]} is not a valid list.")
+
+        lst = pair_to_list(operands[1])
+        out = [func.execute([x], frame)]
+
+        return Nil
+        ...
+
+
 @global_attr("list")
 class List(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         return make_list(operands)
-

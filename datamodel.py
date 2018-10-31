@@ -43,6 +43,11 @@ class NilType(Expression):
         return "nil"
 
 
+class UndefinedType(Expression):
+    def __repr__(self):
+        return "undefined"
+
+
 class Boolean(Expression):
     def __init__(self, val: bool):
         self.val = val
@@ -60,3 +65,4 @@ SingletonFalse = Boolean(False)
 bools = [SingletonFalse, SingletonTrue]
 
 Nil = NilType()
+Undefined = UndefinedType()

@@ -114,6 +114,8 @@ class Logger:
         print(skip_tree)
 
     def log(self, message, local, root):
+        if local is dummy_holder:
+            return
         if not self.skip_tree:
             new_state = freeze_state(root)
             self.states.append(new_state)
@@ -190,4 +192,5 @@ def freeze_state(state: Holder) -> StateTree:
 logger = Logger()
 announce = logger.log
 
+dummy_holder = Holder(Nil)
 return_symbol = Symbol("Return Value")
