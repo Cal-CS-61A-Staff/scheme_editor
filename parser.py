@@ -32,6 +32,10 @@ def get_expression(buffer: TokenBuffer) -> Expression:
             return get_rest_of_list(buffer)
         elif token == "'":
             return make_list([Symbol("quote"), get_expression(buffer)])
+        elif token == ",":
+            return make_list([Symbol("unquote"), get_expression(buffer)])
+        elif token == "`":
+            return make_list([Symbol("quasiquote"), get_expression(buffer)])
         else:
             raise ParseError(f"Unexpected token: '{token}'")
     elif is_number(token):
