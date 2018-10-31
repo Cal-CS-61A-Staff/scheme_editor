@@ -1,6 +1,7 @@
 from scheme_exceptions import ParseError
 
-SPECIALS = ["(", ")", ".", "'"]
+SPECIALS = ["(", ")", ".", "'", "`", ","]
+
 
 def get_input():
     out = []

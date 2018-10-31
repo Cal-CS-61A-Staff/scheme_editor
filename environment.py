@@ -1,3 +1,4 @@
+import scheme
 from datamodel import Symbol, Nil, SingletonTrue, SingletonFalse
 from evaluate_apply import Frame
 
@@ -25,4 +26,8 @@ def build_global_frame():
     frame.assign(Symbol("nil"), Nil)
     frame.assign(Symbol("#t"), SingletonTrue)
     frame.assign(Symbol("#f"), SingletonFalse)
+
+    with open("builtins.scm") as file:
+        scheme.string_exec([" ".join(file.readlines())], lambda *x, **y: None, frame)
+
     return Frame("Global", frame)

@@ -7,6 +7,7 @@ from uuid import uuid4
 from datamodel import Expression, ValueHolder, Pair, Nil, Symbol
 import evaluate_apply
 from helper import pair_to_list
+from scheme_exceptions import OperandDeduceError
 
 
 class HolderState(Enum):
@@ -29,7 +30,10 @@ class VisualExpression:
         if isinstance(base_expr, ValueHolder) or isinstance(base_expr, evaluate_apply.Callable) or base_expr == Nil:
             self.value = base_expr
         elif isinstance(base_expr, Pair):
-            self.set_entries(pair_to_list(base_expr))
+            try:
+                self.set_entries(pair_to_list(base_expr))
+            except OperandDeduceError:
+                self.set_entries([base_expr.first, base_expr.rest])
         else:
             raise NotImplementedError(base_expr)
 
@@ -114,8 +118,6 @@ class Logger:
         print(skip_tree)
 
     def log(self, message, local, root):
-        if local is dummy_holder:
-            return
         if not self.skip_tree:
             new_state = freeze_state(root)
             self.states.append(new_state)
@@ -149,7 +151,7 @@ class Logger:
         self.environments.append([])
         for frame in self.frames:
             self.environments[-1].append(
-                [[self.frame_lookup[frame], self.frame_lookup.get(frame.parent, 0), frame.name],
+                [[self.frame_lookup[frame], self.frame_lookup.get(frame.parent, "Global"), frame.name],
                  [[k, repr(v)] for k, v in frame.vars.items()]])
         self.environment_indices.append(len(self.states) - 1)
 
@@ -192,5 +194,4 @@ def freeze_state(state: Holder) -> StateTree:
 logger = Logger()
 announce = logger.log
 
-dummy_holder = Holder(Nil)
 return_symbol = Symbol("Return Value")

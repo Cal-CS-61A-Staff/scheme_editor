@@ -1,6 +1,6 @@
 from typing import List
 
-from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined
+from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Number
 from environment import global_attr
 from evaluate_apply import Frame, evaluate, Callable, evaluate_all
 from gui import Holder, VisualExpression, return_symbol
@@ -108,9 +108,6 @@ class Begin(Callable):
         for operand, holder in zip(operands, gui_holder.expression.children[1:]):
             out = evaluate(operand, frame, holder)
         return out
-
-    def __repr__(self):
-        return "#[begin]"
 
 
 @global_attr("quote")
@@ -322,9 +319,52 @@ class DefineMacro(Callable):
                 raise OperandDeduceError(f"{param} is not a Symbol.")
         name, *params = params
         if len(operands) == 2:
-            # noinspection PyTypeChecker
             frame.assign(name, MacroObject(params, operands[1:], frame, name.value))
         else:
-            # noinspection PyTypeChecker
             frame.assign(name, MacroObject(params, [Pair(Symbol("begin"), make_list(operands[1:]))], frame, name.value))
         return name
+
+
+@global_attr("quasiquote")
+class Quasiquote(Callable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+        verify_exact_callable_length(self, 1, len(operands))
+        return Quasiquote.quasiquote_evaluate(operands[0], frame, gui_holder.expression.children[1])
+
+    @classmethod
+    def quasiquote_evaluate(cls, expr: Expression, frame: Frame, gui_holder: Holder):
+        is_well_formed = False
+
+        if isinstance(expr, Pair):
+            try:
+                pair_to_list(expr)
+            except OperandDeduceError:
+                pass
+            else:
+                is_well_formed = True
+
+        visual_expression = VisualExpression(expr)
+        gui_holder.link_visual(visual_expression)
+
+        if isinstance(expr, Pair):
+            if isinstance(expr.first, Symbol) and expr.first.value == "unquote":
+                gui_holder.evaluate()
+                verify_exact_callable_length(Symbol("unquote"), 1, len(pair_to_list(expr)) - 1)
+                out = evaluate(expr.rest.first, frame, visual_expression.children[1])
+                visual_expression.value = out
+                gui_holder.complete()
+                return out
+            else:
+                if is_well_formed:
+                    out = []
+                    for sub_expr, holder in zip(pair_to_list(expr), visual_expression.children):
+                        out.append(Quasiquote.quasiquote_evaluate(sub_expr, frame, holder))
+                    out = make_list(out)
+                else:
+                    out = Pair(Quasiquote.quasiquote_evaluate(expr.first, frame, visual_expression.children[0]),
+                               Quasiquote.quasiquote_evaluate(expr.rest, frame, visual_expression.children[1]))
+                visual_expression.value = out
+                return out
+        else:
+            visual_expression.value = expr
+            return expr

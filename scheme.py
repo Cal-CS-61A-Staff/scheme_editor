@@ -15,7 +15,7 @@ import special_forms
 primitives.load_primitives()
 
 
-def string_exec(strings, out):
+def string_exec(strings, out, global_frame=None):
     """
     >>> gui.silent = True
 
@@ -52,7 +52,9 @@ def string_exec(strings, out):
     >>> string_exec(["(begin (define (f b) (if (= b 0) 0 (+ 1 (f (- b 1))))) (f 3))"])
     3
     """
-    global_frame = build_global_frame()
+    if global_frame is None:
+        global_frame = build_global_frame()
+    gui.logger._out = []
     for string in strings:
         gui.logger.clear_diagram()
         if not string.strip():
