@@ -1,6 +1,6 @@
 from typing import List
 
-from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil
+from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined
 from environment import global_attr
 from evaluate_apply import Frame, evaluate, Callable, evaluate_all
 from gui import Holder, VisualExpression, return_symbol
@@ -91,7 +91,7 @@ class If(Callable):
             verify_exact_callable_length(self, 3, len(operands))
         if evaluate(operands[0], frame, gui_holder.expression.children[1]) is SingletonFalse:
             if len(operands) == 2:
-                return Nil
+                return Undefined
             else:
                 # gui_holder.expression = gui_holder.expression.children[3].expression
                 return evaluate(operands[2], frame, gui_holder.expression.children[3])
@@ -164,7 +164,7 @@ class Cond(Callable):
                 for i, expr in enumerate(expanded[1:]):
                     out = evaluate(expr, frame, cond_holder.expression.children[i + 1])
                 return out
-        return Nil
+        return Undefined
 
 
 @global_attr("and")
