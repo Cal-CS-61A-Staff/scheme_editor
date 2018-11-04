@@ -43,10 +43,9 @@ def handle(code, skip_tree):
         gui.logger.out("Time limit exceeded. Try disabling the substitution visualizer (top checkbox) for increased "
                        "performance.")
     except Exception as e:
-        raise
+        # raise
         gui.logger.out(e)
 
     out = gui.logger.export()
-    print(out)
     return jsonify(out)
 
