@@ -48,12 +48,9 @@ class UndefinedType(Expression):
         return "undefined"
 
 
-class Boolean(Expression):
-    def __init__(self, val: bool):
-        self.val = val
-
+class Boolean(ValueHolder):
     def __repr__(self):
-        if self.val:
+        if self.value:
             return "#t"
         else:
             return "#f"

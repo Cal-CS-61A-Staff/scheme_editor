@@ -1,4 +1,4 @@
-from datamodel import Expression, Symbol, Number, Nil
+from datamodel import Expression, Symbol, Number, Nil, SingletonTrue, SingletonFalse
 from helper import make_list
 from scheme_exceptions import ParseError
 from lexer import TokenBuffer, SPECIALS
@@ -39,7 +39,16 @@ def get_expression(buffer: TokenBuffer) -> Expression:
         else:
             raise ParseError(f"Unexpected token: '{token}'")
     elif is_number(token):
-        return Number(float(token))
+        try:
+            return Number(int(token))
+        except ValueError:
+            return Number(float(token))
+    elif token == "#t":
+        return SingletonTrue
+    elif token == "#f":
+        return SingletonFalse
+    elif token == "nil":
+        return Nil
     elif is_str(token):
         return Symbol(token)
     else:

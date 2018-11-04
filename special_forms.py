@@ -295,6 +295,7 @@ class MacroObject(Callable):
             out = evaluate(expression, new_frame, gui_holder.expression.children[i])
 
         gui_holder.expression.set_entries([VisualExpression(out, gui_holder.expression.display_value)])
+        print("To evaluate:", out, "i=", gui_holder.expression.children[i])
         out = evaluate(out, frame, gui_holder.expression.children[i])
         new_frame.assign(return_symbol, out)
         return out
@@ -354,6 +355,9 @@ class Quasiquote(Callable):
                 visual_expression.value = out
                 gui_holder.complete()
                 return out
+            elif isinstance(expr.first, Symbol) and expr.first.value == "quasiquote":
+                visual_expression.value = expr
+                return expr
             else:
                 if is_well_formed:
                     out = []
