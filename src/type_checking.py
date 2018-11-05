@@ -1,9 +1,9 @@
-from datamodel import Expression, Boolean, Number, Symbol, Nil, SingletonTrue, SingletonFalse, Pair, bools
-from environment import global_attr
-from helper import pair_to_list
-from primitives import SingleOperandPrimitive
-from scheme_exceptions import OperandDeduceError
-from special_forms import LambdaObject, MuObject
+from src.datamodel import Expression, Boolean, Number, Symbol, Nil, SingletonTrue, SingletonFalse, Pair, bools
+from src.environment import global_attr
+from src.helper import pair_to_list
+from src.primitives import SingleOperandPrimitive
+from src.scheme_exceptions import OperandDeduceError
+from src.special_forms import LambdaObject, MuObject
 
 
 @global_attr("atom?")

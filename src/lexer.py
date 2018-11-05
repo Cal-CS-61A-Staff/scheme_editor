@@ -1,4 +1,4 @@
-from scheme_exceptions import ParseError
+from src.scheme_exceptions import ParseError
 
 SPECIALS = ["(", ")", ".", "'", "`", ","]
 

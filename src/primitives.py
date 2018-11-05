@@ -1,10 +1,10 @@
 from typing import List
 
-from gui import Holder
+from src.gui import Holder
 
-from datamodel import Expression, Pair
-from evaluate_apply import Callable, Frame, evaluate_all
-from helper import verify_exact_callable_length, verify_min_callable_length, make_list
+from src.datamodel import Expression
+from src.evaluate_apply import Callable, Frame, evaluate_all
+from src.helper import verify_exact_callable_length
 
 
 class BuiltIn(Callable):

@@ -1,11 +1,11 @@
 from typing import List
 
-import gui
-from datamodel import Expression, Nil, Undefined
-from environment import global_attr
-from evaluate_apply import Callable, Frame
-from helper import verify_exact_callable_length
-from primitives import SingleOperandPrimitive, BuiltIn
+from src import gui
+from src.datamodel import Expression, Undefined
+from src.environment import global_attr
+from src.evaluate_apply import Frame
+from src.helper import verify_exact_callable_length
+from src.primitives import SingleOperandPrimitive, BuiltIn
 
 
 @global_attr("print")

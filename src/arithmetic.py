@@ -1,12 +1,10 @@
 from typing import List
 
-from datamodel import Expression, Number, bools, Boolean, SingletonFalse, ValueHolder, Pair, SingletonTrue
-from environment import global_attr
-from evaluate_apply import Frame
-from gui import Holder
-from helper import assert_all_numbers, verify_exact_callable_length, verify_min_callable_length
-from primitives import BuiltIn, SingleOperandPrimitive
-from scheme_exceptions import ComparisonError
+from src.datamodel import Expression, Number, bools, Boolean, SingletonFalse, ValueHolder, Pair, SingletonTrue
+from src.environment import global_attr
+from src.evaluate_apply import Frame
+from src.helper import assert_all_numbers, verify_exact_callable_length, verify_min_callable_length
+from src.primitives import BuiltIn, SingleOperandPrimitive
 
 
 @global_attr("+")

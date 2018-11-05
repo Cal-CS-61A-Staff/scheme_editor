@@ -1,7 +1,7 @@
-from datamodel import Expression, Symbol, Number, Nil, SingletonTrue, SingletonFalse
-from helper import make_list
-from scheme_exceptions import ParseError
-from lexer import TokenBuffer, SPECIALS
+from src.datamodel import Expression, Symbol, Number, Nil, SingletonTrue, SingletonFalse
+from src.helper import make_list
+from src.scheme_exceptions import ParseError
+from src.lexer import TokenBuffer, SPECIALS
 
 
 def tokenize(buffer: TokenBuffer):
