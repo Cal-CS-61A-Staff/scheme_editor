@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Dict, List
 
-from datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean
-import gui
-from scheme_exceptions import SymbolLookupError, CallableResolutionError
-from helper import pair_to_list
+from src.datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean
+from src import gui
+from src.scheme_exceptions import SymbolLookupError, CallableResolutionError
+from src.helper import pair_to_list
 
 
 class Frame:

@@ -17,11 +17,12 @@ def generate_id(n=3):
     return "".join(get_word().lower().capitalize().strip() for _ in range(3))
 
 
-def save(code_lines, skip_envs):
+def save(code_lines, skip_envs, hide_return_frames):
     conn = sqlite3.connect("saved")
     to_store = repr(code_lines)
     lookup = generate_id()
-    conn.execute("INSERT INTO stored_lines VALUES(?, ?, ?)", (lookup, to_store, skip_envs))
+    conn.execute("INSERT INTO stored_lines VALUES(?, ?, ?, ?)",
+                 (lookup, to_store, skip_envs, hide_return_frames))
     conn.commit()
     conn.close()
     return lookup

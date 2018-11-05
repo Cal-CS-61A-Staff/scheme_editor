@@ -1,6 +1,6 @@
-import scheme
-from datamodel import Symbol, Nil, SingletonTrue, SingletonFalse
-from evaluate_apply import Frame
+from src import scheme
+from src.datamodel import Symbol, Nil, SingletonTrue, SingletonFalse
+from src.evaluate_apply import Frame
 
 
 def make_frame_decorator(defdict):

@@ -47,13 +47,18 @@
       <Position>3</Position>
       <DataType>boolean|0s</DataType>
     </column>
-    <index id="16" parent="7" name="sqlite_autoindex_stored_lines_1">
+    <column id="16" parent="7" name="hide_return_frames">
+      <Position>4</Position>
+      <DataType>boolean|0s</DataType>
+      <DefaultExpression>FALSE</DefaultExpression>
+    </column>
+    <index id="17" parent="7" name="sqlite_autoindex_stored_lines_1">
       <NameSurrogate>1</NameSurrogate>
       <ColNames>code</ColNames>
       <ColumnCollations></ColumnCollations>
       <Unique>1</Unique>
     </index>
-    <key id="17" parent="7">
+    <key id="18" parent="7">
       <ColNames>code</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>sqlite_autoindex_stored_lines_1</UnderlyingIndexName>

@@ -2,11 +2,9 @@ import json
 
 from flask import Flask, render_template, request, jsonify
 
-import database
-import gui
-import scheme
-from runtime_limiter import limiter, TimeLimitException
-from scheme_exceptions import SchemeError
+from src import scheme, database, gui
+from src.runtime_limiter import limiter, TimeLimitException
+from src.scheme_exceptions import SchemeError
 
 app = Flask(__name__)
 
@@ -27,14 +25,15 @@ def lookup(code):
 @app.route("/process2", methods=["POST"])
 def receive():
     code = request.form.getlist("code[]")
-    skip_tree = request.form.get("skip_tree")
-    skip_tree = (skip_tree == "true")
-    return handle(code, skip_tree)
+    skip_tree = request.form.get("skip_tree") == "true"
+    hide_return_frames = request.form.get("hide_return_frames") == "true"
+    print(request.form.get("hide_return_frames"))
+    return handle(code, skip_tree, hide_return_frames)
 
 
-def handle(code, skip_tree):
-    gui.logger.setID(database.save(code, skip_tree))
-    gui.logger.new_query(skip_tree)
+def handle(code, skip_tree, hide_return_frames):
+    gui.logger.setID(database.save(code, skip_tree, hide_return_frames))
+    gui.logger.new_query(skip_tree, hide_return_frames)
     try:
         limiter(3, scheme.string_exec, code, gui.logger.out)
     except SchemeError as e:
@@ -43,7 +42,7 @@ def handle(code, skip_tree):
         gui.logger.out("Time limit exceeded. Try disabling the substitution visualizer (top checkbox) for increased "
                        "performance.")
     except Exception as e:
-        # raise
+        raise
         gui.logger.out(e)
 
     out = gui.logger.export()

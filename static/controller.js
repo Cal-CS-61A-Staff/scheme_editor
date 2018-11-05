@@ -362,6 +362,7 @@ function submit() {
         out.push(editors[j].getValue());
     }
     displayingStates = !$("#hide_subs").is(':checked');
+    let hideReturnFrames = $("#hide_ret_frames").is(':checked');
 
     if (!displayingStates) {
         $("#substitution_tree").hide();
@@ -375,7 +376,11 @@ function submit() {
         $("#sub_nav").show();
     }
 
-    $.post("./process2", {code: out, skip_tree: $("#hide_subs").is(':checked')}).done(function (data) {
+    $.post("./process2", {
+        code: out,
+        skip_tree: $("#hide_subs").is(':checked'),
+        hide_return_frames: hideReturnFrames
+    }).done(function (data) {
         i = 0;
         states = data["states"];
         environments = data["environments"];

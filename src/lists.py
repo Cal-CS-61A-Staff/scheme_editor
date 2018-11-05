@@ -1,12 +1,11 @@
 from typing import List
 
-from datamodel import Expression, Pair, SingletonFalse, SingletonTrue, Nil, Number
-from environment import global_attr
-from evaluate_apply import evaluate_all, evaluate, Callable, Frame
-from gui import Holder
-from helper import pair_to_list, make_list, verify_exact_callable_length
-from primitives import SingleOperandPrimitive, BuiltIn
-from scheme_exceptions import OperandDeduceError
+from src.datamodel import Expression, Pair, Nil, Number
+from src.environment import global_attr
+from src.evaluate_apply import Frame
+from src.helper import pair_to_list, make_list, verify_exact_callable_length
+from src.primitives import SingleOperandPrimitive, BuiltIn
+from src.scheme_exceptions import OperandDeduceError
 
 
 @global_attr("append")

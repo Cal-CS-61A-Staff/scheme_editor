@@ -4,10 +4,10 @@ from enum import Enum, auto
 from typing import List, Union
 from uuid import uuid4
 
-from datamodel import Expression, ValueHolder, Pair, Nil, Symbol
-import evaluate_apply
-from helper import pair_to_list
-from scheme_exceptions import OperandDeduceError
+from src.datamodel import Expression, ValueHolder, Pair, Nil, Symbol
+from src import evaluate_apply
+from src.helper import pair_to_list
+from src.scheme_exceptions import OperandDeduceError
 
 
 class HolderState(Enum):
@@ -98,8 +98,10 @@ class Logger:
         self.environment_indices = None
         self.skip_tree = None
         self.code = None
+        self.hide_return_frames = False
+        self.frame_cnt = None
 
-        self.new_query(True)
+        self.new_query(True, False)
 
     def clear_diagram(self):
         self.states = []
@@ -108,14 +110,15 @@ class Logger:
         self.environments = []
         self.frame_store(None, None, None)
 
-    def new_query(self, skip_tree):
+    def new_query(self, skip_tree, hide_return_frames):
         self._out = []
         self.frames = []
         self.frame_lookup = {}
         self.clear_diagram()
         self._out = []
         self.skip_tree = skip_tree
-        print(skip_tree)
+        self.hide_return_frames = hide_return_frames
+        self.frame_cnt = 0
 
     def log(self, message, local, root):
         if not self.skip_tree:
@@ -141,7 +144,8 @@ class Logger:
 
     def frame_create(self, frame):
         self.frame_lookup[frame] = len(self.frames)
-        frame.id = len(self.frames)
+        frame.id = self.frame_cnt
+        self.frame_cnt += 1
         self.frames.append(frame)
 
     def frame_store(self, frame, name, value):
@@ -151,9 +155,13 @@ class Logger:
         self.environments.append([])
         for frame in self.frames:
             self.environments[-1].append(
-                [[self.frame_lookup[frame], self.frame_lookup.get(frame.parent, "Global"), frame.name],
+                [[frame.id, frame.parent.id if frame.parent is not None else "Global", frame.name],
                  [[k, repr(v)] for k, v in frame.vars.items()]])
         self.environment_indices.append(len(self.states) - 1)
+        if self.hide_return_frames:
+            self.frames = [f for f in self.frames if return_symbol.value not in f.vars]
+        if self.hide_return_frames and name is return_symbol.value:
+            self.frame_store(frame, None, None)
 
 
 print_delta = 0
@@ -191,7 +199,7 @@ def freeze_state(state: Holder) -> StateTree:
     return StateTree(state.expression, state.state)
 
 
+return_symbol = Symbol("Return Value")
+
 logger = Logger()
 announce = logger.log
-
-return_symbol = Symbol("Return Value")
