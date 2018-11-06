@@ -301,9 +301,8 @@ class MacroObject(Callable):
             out = evaluate(expression, new_frame, gui_holder.expression.children[i])
 
         gui_holder.expression.set_entries([VisualExpression(out, gui_holder.expression.display_value)])
-        print("To evaluate:", out, "i=", gui_holder.expression.children[i])
-        out = evaluate(out, frame, gui_holder.expression.children[i])
         new_frame.assign(return_symbol, out)
+        out = evaluate(out, frame, gui_holder.expression.children[i])
         return out
 
     def __repr__(self):
