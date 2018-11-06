@@ -4,7 +4,7 @@ from enum import Enum, auto
 from typing import List, Union
 from uuid import uuid4
 
-from src.datamodel import Expression, ValueHolder, Pair, Nil, Symbol
+from src.datamodel import Expression, ValueHolder, Pair, Nil, Symbol, Undefined
 from src import evaluate_apply
 from src.helper import pair_to_list
 from src.scheme_exceptions import OperandDeduceError
@@ -27,7 +27,8 @@ class VisualExpression:
         self.id = uuid4()
         if base_expr is None:
             return
-        if isinstance(base_expr, ValueHolder) or isinstance(base_expr, evaluate_apply.Callable) or base_expr == Nil:
+        if isinstance(base_expr, ValueHolder) or isinstance(base_expr,
+                                                            evaluate_apply.Callable) or base_expr == Nil or base_expr == Undefined:
             self.value = base_expr
         elif isinstance(base_expr, Pair):
             try:
@@ -100,6 +101,7 @@ class Logger:
         self.code = None
         self.hide_return_frames = False
         self.frame_cnt = None
+        self.strict_mode = None;
 
         self.new_query(True, False)
 
@@ -110,7 +112,7 @@ class Logger:
         self.environments = []
         self.frame_store(None, None, None)
 
-    def new_query(self, skip_tree, hide_return_frames):
+    def new_query(self, skip_tree, hide_return_frames, strict_mode=False):
         self._out = []
         self.frames = []
         self.frame_lookup = {}
@@ -119,6 +121,7 @@ class Logger:
         self.skip_tree = skip_tree
         self.hide_return_frames = hide_return_frames
         self.frame_cnt = 0
+        self.strict_mode = strict_mode
 
     def log(self, message, local, root):
         if not self.skip_tree:
@@ -139,8 +142,11 @@ class Logger:
     def out(self, val, end="\n"):
         self.raw_out(repr(val) + end)
 
-    def raw_out(self, val, end="\n"):
-        self._out[-1] += val
+    def raw_out(self, val):
+        if self._out:
+            self._out[-1] += val
+        else:
+            print(val, end="")
 
     def frame_create(self, frame):
         self.frame_lookup[frame] = len(self.frames)

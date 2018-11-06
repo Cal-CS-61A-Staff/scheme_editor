@@ -1,7 +1,8 @@
 from typing import List
 
+from src.scheme_exceptions import OperandDeduceError
 from src import gui
-from src.datamodel import Expression, Undefined
+from src.datamodel import Expression, Undefined, Symbol
 from src.environment import global_attr
 from src.evaluate_apply import Frame
 from src.helper import verify_exact_callable_length
@@ -28,3 +29,16 @@ class Newline(BuiltIn):
         verify_exact_callable_length(self, 0, len(operands))
         gui.logger.raw_out("\n")
         return Undefined
+
+
+@global_attr("load")
+class Load(BuiltIn):
+    def execute_evaluated(self, operands: List[Expression], frame: Frame):
+        import src.execution as execution
+        if not gui.logger.strict_mode:
+            raise NotImplementedError("Unable to load files from web interface.")
+        verify_exact_callable_length(self, 1, len(operands))
+        if not isinstance(operands[0], Symbol):
+            raise OperandDeduceError(f"Load expected a Symbol, received {operands[0]}.")
+        with open(f"{operands[0].value}.scm") as file:
+            execution.string_exec([" ".join(file.readlines())], lambda *x, **y: None, frame)

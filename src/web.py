@@ -2,7 +2,7 @@ import json
 
 from flask import Flask, render_template, request, jsonify
 
-from src import scheme, database, gui
+from src import execution, database, gui
 from src.runtime_limiter import limiter, TimeLimitException
 from src.scheme_exceptions import SchemeError
 
@@ -35,7 +35,7 @@ def handle(code, skip_tree, hide_return_frames):
     gui.logger.setID(database.save(code, skip_tree, hide_return_frames))
     gui.logger.new_query(skip_tree, hide_return_frames)
     try:
-        limiter(3, scheme.string_exec, code, gui.logger.out)
+        limiter(3, execution.string_exec, code, gui.logger.out)
     except SchemeError as e:
         gui.logger.out(e)
     except TimeLimitException:

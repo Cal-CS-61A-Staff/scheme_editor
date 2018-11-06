@@ -1,8 +1,16 @@
 """A Scheme interpreter and its read-eval-print loop."""
-
 from scheme_builtins import *
 from scheme_reader import *
-from ucb import main, trace
+
+import src.datamodel as datamodel
+import src.evaluate_apply as evaluate_apply
+import src.parser as parser
+import src.lexer as lexer
+import src.environment as environment
+import src.gui as gui
+
+from ucb import main
+
 
 ##############
 # Eval/Apply #
@@ -17,13 +25,33 @@ def scheme_eval(expr, env, _=None): # Optional third argument is ignored
     >>> scheme_eval(expr, create_global_frame())
     4
     """
-    return 'Your Code Here'
+
+    if env.real_env is None:
+        env.real_env = environment.build_global_frame()
+    gui.logger.new_query(False, True, strict_mode=True)
+    try:
+        expr = parser.get_expression(lexer.TokenBuffer([str(expr)]))
+        out = evaluate_apply.evaluate(expr, env.real_env, gui.Holder(expr))
+    except Exception as e:
+        raise SchemeError(e)
+    return out
+
+
+class FakeProcedure(evaluate_apply.Callable):
+    def __init__(self, proc):
+        self.proc = proc
+
+    def execute(self, operands, frame, _=None):
+        real_operands = []
+        for operand in operands:
+            real_operands.append(parser.get_expression(lexer.TokenBuffer(str(operand))))
+        return self.proc.apply(real_operands, frame)
 
 
 def scheme_apply(procedure, args, env):
     """Apply Scheme PROCEDURE to argument values ARGS (a Scheme list) in
     environment ENV."""
-    return 'Your Code Here'
+    return procedure.apply(args.map(lambda x: scheme_eval(x, env)), env)
 
 
 
@@ -34,9 +62,10 @@ def scheme_apply(procedure, args, env):
 class Frame:
     """An environment frame binds Scheme symbols to Scheme values."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, real_env=None):
         """An empty frame with parent frame PARENT (which may be None)."""
         "Your Code Here"
+        self.real_env = real_env
 
     def __repr__(self):
         if self.parent is None:
@@ -85,6 +114,18 @@ class BuiltinProcedure(Procedure):
         """
         # BEGIN PROBLEM 2
         "*** YOUR CODE HERE ***"
+        lst = []
+        args.map(lst.append)
+        for i, elem in enumerate(lst):
+            if isinstance(elem, datamodel.ValueHolder):
+                lst[i] = elem.value
+        try:
+            if self.use_env:
+                return self.fn(*lst, env)
+            else:
+                return self.fn(*lst)
+        except Exception as e:
+            raise SchemeError(e)
         # END PROBLEM 2
 
 
@@ -266,7 +307,7 @@ def read_eval_print_loop(next_line, env, interactive=False, quiet=False,
             while src.more_on_line:
                 expression = scheme_read(src)
                 result = scheme_eval(expression, env)
-                if not quiet and result is not None:
+                if not quiet and result is not None and result is not datamodel.Undefined:
                     print(repl_str(result))
         except (SchemeError, SyntaxError, ValueError, RuntimeError) as err:
             if (isinstance(err, RuntimeError) and

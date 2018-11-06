@@ -39,18 +39,18 @@ def get_expression(buffer: TokenBuffer) -> Expression:
         else:
             raise ParseError(f"Unexpected token: '{token}'")
     elif is_number(token):
-        try:
+        if float(token) == round(float(token)):
             return Number(int(token))
-        except ValueError:
+        else:
             return Number(float(token))
-    elif token == "#t":
+    elif token == "#t" or token.lower() == "true":
         return SingletonTrue
-    elif token == "#f":
+    elif token == "#f" or token.lower() == "false":
         return SingletonFalse
     elif token == "nil":
         return Nil
     elif is_str(token):
-        return Symbol(token)
+        return Symbol(token.lower())
     else:
         raise ParseError(f"Unexpected token: '{token}'")
 
@@ -66,7 +66,8 @@ def get_rest_of_list(buffer: TokenBuffer) -> Expression:
         elif next == ".":
             buffer.pop_next_token()
             last = get_expression(buffer)
-            buffer.pop_next_token()
+            if buffer.pop_next_token() != ")":
+                raise ParseError(f"Only one expression may follow a dot in a dotted list.")
             break
         out.append(get_expression(buffer))
     return make_list(out, last)
