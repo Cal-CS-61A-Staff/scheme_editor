@@ -1,4 +1,4 @@
-from src.datamodel import Expression, Symbol, Number, Nil, SingletonTrue, SingletonFalse
+from src.datamodel import Expression, Symbol, Number, Nil, SingletonTrue, SingletonFalse, String
 from src.helper import make_list
 from src.scheme_exceptions import ParseError
 from src.lexer import TokenBuffer, SPECIALS
@@ -36,6 +36,10 @@ def get_expression(buffer: TokenBuffer) -> Expression:
             return make_list([Symbol("unquote"), get_expression(buffer)])
         elif token == "`":
             return make_list([Symbol("quasiquote"), get_expression(buffer)])
+        elif token == "\"":
+            return get_string(buffer)
+        elif token == "\\":
+            raise ParseError("Symbols with backslashes aren't yet supported! Pick a better naming convention :P")
         else:
             raise ParseError(f"Unexpected token: '{token}'")
     elif is_number(token):
@@ -53,6 +57,22 @@ def get_expression(buffer: TokenBuffer) -> Expression:
         return Symbol(token.lower())
     else:
         raise ParseError(f"Unexpected token: '{token}'")
+
+
+def get_string(buffer: TokenBuffer) -> String:
+    out = []
+    while True:
+        token = buffer.pop_next_token()
+        if token == "\"":
+            return String("".join(out))
+        elif token == "\\":
+            escaped = buffer.pop_next_token()
+            if escaped == "n":
+                out.append("\n")
+            else:
+                out.append(escaped)
+        else:
+            out.append(token)
 
 
 def get_rest_of_list(buffer: TokenBuffer) -> Expression:
