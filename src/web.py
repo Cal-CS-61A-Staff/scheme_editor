@@ -19,7 +19,10 @@ def lookup(code):
     val = database.load(code)
     if val is None:
         return index()
-    return render_template("index.html", start_data=repr(json.dumps({"code": eval(val[0]), "skip_tree": bool(val[1])})))
+    return render_template("index.html",
+                           start_data=repr(json.dumps({"code": eval(val[0]),
+                                                       "skip_tree": bool(val[1]),
+                                                       "hide_return_frames": bool(val[2])})))
 
 
 @app.route("/process2", methods=["POST"])

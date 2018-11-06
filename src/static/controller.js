@@ -350,6 +350,9 @@ function init() {
     if (decoded["skip_tree"]) {
         $("#hide_subs").prop("checked", true);
     }
+    if (decoded["hide_return_frames"]) {
+        $("#hide_return_frames").prop("checked", true);
+    }
     submit();
 }
 
