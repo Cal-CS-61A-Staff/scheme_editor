@@ -91,7 +91,7 @@ class TokenBuffer:
 
     def get_next_char(self) -> str:
         if self.done:
-            raise ParseError("Character buffer exhausted")
+            raise ParseError("Incomplete expression, probably due to unmatched parentheses.")
         return self.string[self.i]
 
     def pop_next_char(self) -> str:

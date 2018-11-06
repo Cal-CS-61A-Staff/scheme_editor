@@ -40,11 +40,17 @@ class Pair(Expression):
 
 class NilType(Expression):
     def __repr__(self):
+        from src.gui import logger
+        if logger.strict_mode:
+            return "()"
         return "nil"
 
 
 class UndefinedType(Expression):
     def __repr__(self):
+        from src.gui import logger
+        if logger.strict_mode:
+            return ""
         return "undefined"
 
 

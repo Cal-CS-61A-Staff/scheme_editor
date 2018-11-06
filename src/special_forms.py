@@ -1,9 +1,9 @@
 from typing import List
 
 from src.datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined
-from src.environment import global_attr
+import src.environment as environment
 from src.evaluate_apply import Frame, evaluate, Callable, evaluate_all
-from src.gui import Holder, VisualExpression, return_symbol
+from src.gui import Holder, VisualExpression, return_symbol, logger
 from src.helper import pair_to_list, verify_exact_callable_length, verify_min_callable_length, \
     make_list
 from src.scheme_exceptions import OperandDeduceError
@@ -23,24 +23,33 @@ class LambdaObject(Callable):
 
         gui_holder.apply()
 
+        if len(self.body) > 1:
+            body = [Pair(Symbol("begin"), make_list(self.body))]
+        else:
+            body = self.body
+
         for param, value in zip(self.params, operands):
             new_frame.assign(param, value)
         out = None
         gui_holder.expression.set_entries(
-            [VisualExpression(expr, gui_holder.expression.display_value) for expr in self.body])
-        for i, expression in enumerate(self.body):
+            [VisualExpression(expr, gui_holder.expression.display_value) for expr in body])
+        for i, expression in enumerate(body):
             out = evaluate(expression, new_frame, gui_holder.expression.children[i])
         new_frame.assign(return_symbol, out)
         return out
 
     def __repr__(self):
+        if logger.strict_mode:
+            return f"(lambda ({(' '.join(map(repr, self.params)))}) {' '.join(map(repr, self.body))})"
         return f"({self.name} {' '.join(map(repr, self.params))}) [parent = f{self.frame.id}]"
 
     def __str__(self):
+        if logger.strict_mode:
+            return repr(self)
         return f"#[{self.name}]"
 
 
-@global_attr("lambda")
+@environment.global_attr("lambda")
 class Lambda(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, name: str = "lambda"):
         verify_min_callable_length(self, 2, len(operands))
@@ -55,15 +64,10 @@ class Lambda(Callable):
         for param in params:
             if not isinstance(param, Symbol):
                 raise OperandDeduceError(f"{param} is not a Symbol.")
-        if len(operands) == 2:
-            # noinspection PyTypeChecker
-            return LambdaObject(params, operands[1:], frame, name)
-        else:
-            # noinspection PyTypeChecker
-            return LambdaObject(params, [Pair(Symbol("begin"), make_list(operands[1:]))], frame, name)
+        return LambdaObject(params, operands[1:], frame, name)
 
 
-@global_attr("define")
+@environment.global_attr("define")
 class Define(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -83,7 +87,7 @@ class Define(Callable):
             raise OperandDeduceError("Expected a Symbol or List (aka Pair) as first operand of define.")
 
 
-@global_attr("if")
+@environment.global_attr("if")
 class If(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -100,7 +104,7 @@ class If(Callable):
             return evaluate(operands[1], frame, gui_holder.expression.children[2])
 
 
-@global_attr("begin")
+@environment.global_attr("begin")
 class Begin(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 1, len(operands))
@@ -110,14 +114,14 @@ class Begin(Callable):
         return out
 
 
-@global_attr("quote")
+@environment.global_attr("quote")
 class Quote(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 1, len(operands))
         return operands[0]
 
 
-@global_attr("eval")
+@environment.global_attr("eval")
 class Eval(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 1, len(operands))
@@ -127,7 +131,7 @@ class Eval(Callable):
         return evaluate(operand, frame, gui_holder.expression.children[0])
 
 
-@global_attr("apply")
+@environment.global_attr("apply")
 class Apply(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         raise NotImplementedError("Apply isn't implemented yet. Sorry! :P")
@@ -142,7 +146,7 @@ class Apply(Callable):
         # return apply(func, pair_to_list(operands[1]), frame, gui_holder.expression.children[0])
 
 
-@global_attr("cond")
+@environment.global_attr("cond")
 class Cond(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 1, len(operands))
@@ -164,10 +168,9 @@ class Cond(Callable):
         return Undefined
 
 
-@global_attr("and")
+@environment.global_attr("and")
 class And(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        verify_min_callable_length(self, 0, len(operands))
         value = None
         for i, expr in enumerate(operands):
             value = evaluate(expr, frame, gui_holder.expression.children[i + 1])
@@ -176,10 +179,9 @@ class And(Callable):
         return value if operands else SingletonTrue
 
 
-@global_attr("or")
+@environment.global_attr("or")
 class Or(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        verify_min_callable_length(self, 0, len(operands))
         for i, expr in enumerate(operands):
             value = evaluate(expr, frame, gui_holder.expression.children[i + 1])
             if value is not SingletonFalse:
@@ -187,7 +189,7 @@ class Or(Callable):
         return SingletonFalse
 
 
-@global_attr("let")
+@environment.global_attr("let")
 class Let(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -222,7 +224,7 @@ class Let(Callable):
         return operands[-1]
 
 
-@global_attr("mu")
+@environment.global_attr("mu")
 class Mu(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, name: str = "mu"):
         verify_min_callable_length(self, 2, len(operands))
@@ -268,9 +270,13 @@ class MuObject(Callable):
         return out
 
     def __repr__(self):
+        if logger.strict_mode:
+            return f"(lambda ({(' '.join(map(repr, self.params)))}) {' '.join(map(repr, self.body))})"
         return f"({self.name} {' '.join(map(repr, self.params))})"
 
     def __str__(self):
+        if logger.strict_mode:
+            return repr(self)
         return f"#[{self.name}]"
 
 
@@ -301,13 +307,17 @@ class MacroObject(Callable):
         return out
 
     def __repr__(self):
+        if logger.strict_mode:
+            return f"(lambda ({(' '.join(map(repr, self.params)))}) {' '.join(map(repr, self.body))})"
         return f"({self.name} {' '.join(map(repr, self.params))}) [parent = f{self.frame.id}]"
 
     def __str__(self):
+        if logger.strict_mode:
+            return repr(self)
         return f"#[{self.name}]"
 
 
-@global_attr("define-macro")
+@environment.global_attr("define-macro")
 class DefineMacro(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -326,7 +336,7 @@ class DefineMacro(Callable):
         return name
 
 
-@global_attr("quasiquote")
+@environment.global_attr("quasiquote")
 class Quasiquote(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 1, len(operands))

@@ -1,10 +1,10 @@
 from typing import List
 
+from src.helper import verify_exact_callable_length
 from src.gui import Holder
 
 from src.datamodel import Expression
 from src.evaluate_apply import Callable, Frame, evaluate_all
-from src.helper import verify_exact_callable_length
 
 
 class BuiltIn(Callable):
@@ -28,7 +28,7 @@ class SingleOperandPrimitive(BuiltIn):
 
 
 def load_primitives():
-    __import__("arithmetic")
-    __import__("lists")
-    __import__("type_checking")
-    __import__("console")
+    __import__("src.arithmetic")
+    __import__("src.lists")
+    __import__("src.type_checking")
+    __import__("src.console")

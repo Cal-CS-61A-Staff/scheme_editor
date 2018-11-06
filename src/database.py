@@ -4,7 +4,7 @@ from typing import Tuple, Union
 
 
 def get_word() -> str:
-    with open("words.txt") as file:
+    with open("src/words.txt") as file:
         word = next(file)
         for i, trial in enumerate(file):
             if randrange(i + 2) != 0:
