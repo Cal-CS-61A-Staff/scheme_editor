@@ -2,7 +2,7 @@ from typing import List
 
 from src.scheme_exceptions import OperandDeduceError
 from src import gui
-from src.datamodel import Expression, Undefined, Symbol
+from src.datamodel import Expression, Undefined, Symbol, String
 from src.environment import global_attr
 from src.evaluate_apply import Frame
 from src.helper import verify_exact_callable_length
@@ -19,7 +19,10 @@ class Print(SingleOperandPrimitive):
 @global_attr("display")
 class Display(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
-        gui.logger.out(operand, end="")
+        if isinstance(operand, String):
+            gui.logger.raw_out(operand.value)
+        else:
+            gui.logger.out(operand, end="")
         return Undefined
 
 

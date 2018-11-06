@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import Union
 
 
-class Expression: pass
+class Expression:
+    pass
 
 
 class ValueHolder(Expression):
@@ -14,7 +15,8 @@ class ValueHolder(Expression):
         return str(self.value)
 
 
-class Symbol(ValueHolder): pass
+class Symbol(ValueHolder):
+    pass
 
 
 class Number(ValueHolder):
@@ -60,6 +62,11 @@ class Boolean(ValueHolder):
             return "#t"
         else:
             return "#f"
+
+
+class String(ValueHolder):
+    def __repr__(self):
+        return "\"" + self.value + "\""
 
 
 SingletonTrue = Boolean(True)
