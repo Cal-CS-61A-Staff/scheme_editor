@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC
 from typing import Dict, List
 
 from src.datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean, String
@@ -98,6 +99,11 @@ def apply(operator: Expression, operands: List[Expression], frame: Frame, gui_ho
 
 class Callable(Expression):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: gui.Holder):
+        raise NotImplementedError()
+
+
+class Applicable(Callable, ABC):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: gui.Holder, eval_operands=True):
         raise NotImplementedError()
 
 

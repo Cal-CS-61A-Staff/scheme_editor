@@ -7,6 +7,7 @@ import src.evaluate_apply as evaluate_apply
 import src.parser as parser
 import src.lexer as lexer
 import src.environment as environment
+import src.scheme_exceptions as scheme_exceptions
 import src.gui as gui
 
 from ucb import main
@@ -32,7 +33,7 @@ def scheme_eval(expr, env, _=None): # Optional third argument is ignored
     try:
         expr = parser.get_expression(lexer.TokenBuffer([str(expr)]))
         out = evaluate_apply.evaluate(expr, env.real_env, gui.Holder(expr))
-    except Exception as e:
+    except (ZeroDivisionError, scheme_exceptions.SchemeError) as e:
         raise SchemeError(e)
     return out
 
@@ -54,7 +55,6 @@ def scheme_apply(procedure, args, env):
     return procedure.apply(args.map(lambda x: scheme_eval(x, env)), env)
 
 
-
 ################
 # Environments #
 ################
@@ -72,15 +72,6 @@ class Frame:
             return '<Global Frame>'
         s = sorted(['{0}: {1}'.format(k, v) for k, v in self.bindings.items()])
         return '<{{{0}}} -> {1}>'.format(', '.join(s), repr(self.parent))
-
-    def define(self, symbol, value):
-        """Define Scheme SYMBOL to have VALUE."""
-
-        return 'Your Code Here'
-
-    # BEGIN PROBLEM 2/3
-    "*** YOUR CODE HERE ***"
-    # END PROBLEM 2/3
 
 ##############
 # Procedures #
@@ -124,13 +115,13 @@ class BuiltinProcedure(Procedure):
                 return self.fn(*lst, env)
             else:
                 return self.fn(*lst)
-        except Exception as e:
+        except TypeError as e:
             raise SchemeError(e)
         # END PROBLEM 2
 
+"""A procedure defined by a lambda expression or a define form."""
 
 class LambdaProcedure(Procedure):
-    """A procedure defined by a lambda expression or a define form."""
 
     def __init__(self, formals, body, env):
         """A procedure with formal parameter list FORMALS (a Scheme list),
@@ -146,150 +137,6 @@ class LambdaProcedure(Procedure):
     def __repr__(self):
         return 'LambdaProcedure({0}, {1}, {2})'.format(
             repr(self.formals), repr(self.body), repr(self.env))
-
-
-def add_builtins(frame, funcs_and_names):
-    """Enter bindings in FUNCS_AND_NAMES into FRAME, an environment frame,
-    as built-in procedures. Each item in FUNCS_AND_NAMES has the form
-    (NAME, PYTHON-FUNCTION, INTERNAL-NAME)."""
-    for name, fn, proc_name in funcs_and_names:
-        frame.define(name, BuiltinProcedure(fn, name=proc_name))
-
-#################
-# Special Forms #
-#################
-
-"""
-How you implement special forms is up to you. We recommend you encapsulate the
-logic for each special form separately somehow, which you can do here.
-"""
-
-
-# Utility methods for checking the structure of Scheme programs
-
-def check_form(expr, min, max=float('inf')):
-    """Check EXPR is a proper list whose length is at least MIN and no more
-    than MAX (default: no maximum). Raises a SchemeError if this is not the
-    case.
-
-    >>> check_form(read_line('(a b)'), 2)
-    """
-    if not scheme_listp(expr):
-        raise SchemeError('badly formed expression: ' + repl_str(expr))
-    length = len(expr)
-    if length < min:
-        raise SchemeError('too few operands in form')
-    elif length > max:
-        raise SchemeError('too many operands in form')
-
-def check_formals(formals):
-    """Check that FORMALS is a valid parameter list, a Scheme list of symbols
-    in which each symbol is distinct. Raise a SchemeError if the list of
-    formals is not a well-formed list of symbols or if any symbol is repeated.
-
-    >>> check_formals(read_line('(a b c)'))
-    """
-    symbols = set()
-    def check_and_add(symbol):
-        if not scheme_symbolp(symbol):
-            raise SchemeError('non-symbol: {0}'.format(symbol))
-        if symbol in symbols:
-            raise SchemeError('duplicate symbol: {0}'.format(symbol))
-        symbols.add(symbol)
-
-    while isinstance(formals, Pair):
-        check_and_add(formals.first)
-        formals = formals.second
-
-    if formals != nil:
-        check_and_add(formals)
-
-def check_procedure(procedure):
-    """Check that PROCEDURE is a valid Scheme procedure."""
-    if not scheme_procedurep(procedure):
-        raise SchemeError('{0} is not callable: {1}'.format(
-            type(procedure).__name__.lower(), repl_str(procedure)))
-
-#################
-# Dynamic Scope #
-#################
-
-class MuProcedure(Procedure):
-    """A procedure defined by a mu expression, which has dynamic scope.
-     _________________
-    < Scheme is cool! >
-     -----------------
-            \   ^__^
-             \  (oo)\_______
-                (__)\       )\/\
-                    ||----w |
-                    ||     ||
-    """
-
-    def __init__(self, formals, body):
-        """A procedure with formal parameter list FORMALS (a Scheme list) and
-        Scheme list BODY as its definition."""
-        self.formals = formals
-        self.body = body
-
-
-    def __str__(self):
-        return str(Pair('mu', Pair(self.formals, self.body)))
-
-    def __repr__(self):
-        return 'MuProcedure({0}, {1})'.format(
-            repr(self.formals), repr(self.body))
-
-
-##################
-# Tail Recursion #
-##################
-
-# Make classes/functions for creating tail recursive programs here?
-
-def complete_apply(procedure, args, env):
-    """Apply procedure to args in env; ensure the result is not a Thunk.
-    Right now it just calls scheme_apply, but you will need to change this
-    if you attempt the extra credit."""
-    val = scheme_apply(procedure, args, env) 
-    # Add stuff here?
-    return val
-
-
-
-####################
-# Extra Procedures #
-####################
-
-def scheme_map(fn, s, env):
-    check_type(fn, scheme_procedurep, 0, 'map')
-    check_type(s, scheme_listp, 1, 'map')
-    return s.map(lambda x: complete_apply(fn, Pair(x, nil), env))
-
-def scheme_filter(fn, s, env):
-    check_type(fn, scheme_procedurep, 0, 'filter')
-    check_type(s, scheme_listp, 1, 'filter')
-    head, current = nil, nil
-    while s is not nil:
-        item, s = s.first, s.second
-        if complete_apply(fn, Pair(item, nil), env):
-            if head is nil:
-                head = Pair(item, nil)
-                current = head
-            else:
-                current.second = Pair(item, nil)
-                current = current.second
-    return head
-
-def scheme_reduce(fn, s, env):
-    check_type(fn, scheme_procedurep, 0, 'reduce')
-    check_type(s, lambda x: x is not nil, 1, 'reduce')
-    check_type(s, scheme_listp, 1, 'reduce')
-    value, s = s.first, s.second
-    while s is not nil:
-        value = complete_apply(fn, scheme_list(value, s.first), env)
-        s = s.second
-    return value
 
 ################
 # Input/Output #
@@ -350,6 +197,7 @@ def scheme_load(*args):
 
     read_eval_print_loop(next_line, env, quiet=quiet)
 
+
 def scheme_open(filename):
     """If either FILENAME or FILENAME.scm is the name of a valid file,
     return a Python file opened to it. Otherwise, raise an error."""
@@ -363,26 +211,10 @@ def scheme_open(filename):
     except IOError as exc:
         raise SchemeError(str(exc))
 
+
 def create_global_frame():
     """Initialize and return a single-frame environment with built-in names."""
-    env = Frame(None)
-    env.define('eval',
-               BuiltinProcedure(scheme_eval, True, 'eval'))
-    env.define('apply',
-               BuiltinProcedure(complete_apply, True, 'apply'))
-    env.define('load',
-               BuiltinProcedure(scheme_load, True, 'load'))
-    env.define('procedure?',
-               BuiltinProcedure(scheme_procedurep, False, 'procedure?'))
-    env.define('map',
-               BuiltinProcedure(scheme_map, True, 'map'))
-    env.define('filter',
-               BuiltinProcedure(scheme_filter, True, 'filter'))
-    env.define('reduce',
-               BuiltinProcedure(scheme_reduce, True, 'reduce'))
-    env.define('undefined', None)
-    add_builtins(env, BUILTINS)
-    return env
+    return Frame(None)
 
 @main
 def run(*argv):

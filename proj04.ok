@@ -15,9 +15,9 @@
       "tests/05.py": "ok_test",
       "tests/06.py": "ok_test",
       "tests/07.py": "ok_test",
-      "tests/08.py": "ok_test",
       "tests/09.py": "ok_test",
-      "tests.scm": "scheme_test"
+      "tests.scm": "scheme_test",
+      "tests/08.py": "ok_test"
   },
   "protocols": [
       "restore",

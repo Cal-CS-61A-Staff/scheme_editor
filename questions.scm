@@ -6,7 +6,10 @@
 ; Some utility functions that you may find useful to implement.
 
 (define (cons-all first rests)
- 'replace-this-line)
+    (if (null? rests)
+        nil
+        (cons (cons first (car rests))
+              (cons-all first (cdr rests)))))
 
 (define (zip pairs)
  'replace-this-line)
@@ -24,10 +27,15 @@
 ;; Problem 18
 ;; List all ways to make change for TOTAL with DENOMS
 (define (list-change total denoms)
- ; BEGIN PROBLEM 18
- 'replace-this-line
-)
-; END PROBLEM 18
+    (cond
+        ((null? denoms) nil)
+        ((< total 0) nil)
+        ((= total 0) `(nil))
+        (else (append
+                  (cons-all
+                      (car denoms)
+                      (list-change (- total (car denoms)) denoms))
+                  (list-change total (cdr denoms))))))
 
 ;; Problem 19
 ;; Returns a function that checks if an expression is the special form FORM
@@ -43,32 +51,34 @@
 (define (let-to-lambda expr)
  (cond ((atom? expr)
         ; BEGIN PROBLEM 19
-        'replace-this-line
+        expr
         ; END PROBLEM 19
  )
   ((quoted? expr)
    ; BEGIN PROBLEM 19
-   'replace-this-line
+   expr
    ; END PROBLEM 19
   )
   ((or (lambda? expr)
-    (define? expr))
+       (define? expr))
    (let ((form (car expr))
          (params (cadr expr))
          (body (cddr expr)))
     ; BEGIN PROBLEM 19
-    'replace-this-line
+    `(,form ,params . ,(map let-to-lambda body))
     ; END PROBLEM 19
    ))
   ((let? expr)
    (let ((values (cadr expr))
          (body (cddr expr)))
-    ; BEGIN PROBLEM 19
-    'replace-this-line
-    ; END PROBLEM 19
+     ; BEGIN PROBLEM 19
+     (define names (map car values))
+     (define vals (map cadr values))
+     (append `((lambda ,names . ,(map let-to-lambda body)) . ,(map let-to-lambda vals)))
+     ; END PROBLEM 19
    ))
   (else
    ; BEGIN PROBLEM 19
-   'replace-this-line
+   (map let-to-lambda expr)
    ; END PROBLEM 19
   )))

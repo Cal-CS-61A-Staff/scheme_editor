@@ -170,8 +170,6 @@ def scheme_read(src):
         return make_proj_pair(scm_expr)
     except scheme_exceptions.ParseError as e:
         raise SyntaxError(e)
-    finally:
-        gui.logger.strict_mode = True
     # END PROBLEM 1/2
 
 
