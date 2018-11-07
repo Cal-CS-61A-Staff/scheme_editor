@@ -2,23 +2,24 @@ from typing import List
 
 from src.datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined
 import src.environment as environment
-from src.evaluate_apply import Frame, evaluate, Callable, evaluate_all
+from src.evaluate_apply import Frame, evaluate, Callable, evaluate_all, Applicable
 from src.gui import Holder, VisualExpression, return_symbol, logger
 from src.helper import pair_to_list, verify_exact_callable_length, verify_min_callable_length, \
     make_list
 from src.scheme_exceptions import OperandDeduceError
 
 
-class LambdaObject(Callable):
+class LambdaObject(Applicable):
     def __init__(self, params: List[Symbol], body: List[Expression], frame: Frame, name: str = "lambda"):
         self.params = params
         self.body = body
         self.frame = frame
         self.name = name
 
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, eval_operands=True):
         new_frame = Frame(self.name, self.frame)
-        operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
+        if eval_operands:
+            operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
         verify_exact_callable_length(self, len(self.params), len(operands))
 
         gui_holder.apply()
@@ -122,28 +123,30 @@ class Quote(Callable):
 
 
 @environment.global_attr("eval")
-class Eval(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+class Eval(Applicable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, eval_operands=True):
         verify_exact_callable_length(self, 1, len(operands))
-        operand = evaluate(operands[0], frame, gui_holder.expression.children[1])
+        if eval_operands:
+            operand = evaluate(operands[0], frame, gui_holder.expression.children[1])
         gui_holder.expression.set_entries([VisualExpression(operand, gui_holder.expression.display_value)])
         gui_holder.apply()
         return evaluate(operand, frame, gui_holder.expression.children[0])
 
 
 @environment.global_attr("apply")
-class Apply(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        raise NotImplementedError("Apply isn't implemented yet. Sorry! :P")
-        # verify_exact_callable_length(self, 2, len(operands))
-        # func = evaluate(operands[0], frame, gui_holder.expression.children[0])
-        # todo = Pair(func, operands[1])
-        # if not isinstance(operands[1], Pair):
-        #     raise OperandDeduceError(f"Expected second argument of apply to be a Pair, not {operands[1]}")
-        # gui_holder.expression.set_entries([VisualExpression(todo, gui_holder.expression.display_value)])
-        # gui_holder.apply()
-        #
-        # return apply(func, pair_to_list(operands[1]), frame, gui_holder.expression.children[0])
+class Apply(Applicable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, eval_operands=True):
+        verify_exact_callable_length(self, 2, len(operands))
+        if eval_operands:
+            operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
+        func, args = operands
+        if not isinstance(func, Applicable):
+            raise OperandDeduceError(f"Unable to apply {func}.")
+        gui_holder.expression.set_entries([VisualExpression(Pair(func, args), gui_holder.expression.display_value)])
+        gui_holder.expression.children[0].expression.children = []
+        gui_holder.apply()
+        args = pair_to_list(args)
+        return func.execute(args, frame, gui_holder.expression.children[0], False)
 
 
 @environment.global_attr("cond")
@@ -252,9 +255,10 @@ class MuObject(Callable):
         self.body = body
         self.name = name
 
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, eval_operands=True):
         new_frame = Frame(self.name, frame)
-        operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
+        if eval_operands:
+            operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
         verify_exact_callable_length(self, len(self.params), len(operands))
 
         gui_holder.apply()
@@ -280,7 +284,7 @@ class MuObject(Callable):
         return f"#[{self.name}]"
 
 
-class MacroObject(Callable):
+class MacroObject(Applicable):
     def __init__(self, params: List[Symbol], body: List[Expression], frame: Frame, name: str):
         self.params = params
         self.body = body
@@ -347,14 +351,16 @@ class Quasiquote(Callable):
 
         if isinstance(expr, Pair):
             try:
-                pair_to_list(expr)
+                lst = pair_to_list(expr)
             except OperandDeduceError:
                 pass
             else:
-                is_well_formed = True
+                is_well_formed = not any(map(lambda x: isinstance(x, Symbol) and x.value == "unquote", lst))
 
         visual_expression = VisualExpression(expr)
         gui_holder.link_visual(visual_expression)
+        if not is_well_formed:
+            visual_expression.children[2:] = []
 
         if isinstance(expr, Pair):
             if isinstance(expr.first, Symbol) and expr.first.value == "unquote":

@@ -20,9 +20,14 @@ class Symbol(ValueHolder):
 
 
 class Number(ValueHolder):
+    # noinspection PyMissingConstructor
+    def __init__(self, value, *, force_float=False):
+        if value == round(value) and not force_float:
+            self.value = round(value)
+        else:
+            self.value = value
+
     def __repr__(self):
-        if isinstance(self.value, int) or self.value.is_integer():
-            return str(int(self.value))
         return super().__repr__()
 
 

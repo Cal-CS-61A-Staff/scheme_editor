@@ -1,21 +1,21 @@
 test = {
-    'name': 'Problem 2',
-    'points': 3,
-    'suites': [
+  'name': 'Problem 2',
+  'points': 3,
+  'suites': [
+    {
+      'cases': [
         {
-            'cases': [
-                {
-                    'code': r"""
+          'code': r"""
           >>> src = Buffer(tokenize_lines(["(1 . 2)"]))
           >>> scheme_read(src)
           Pair(1, 2)
           >>> src.current()
           """,
-                    'hidden': False,
-                    'locked': False
-                },
-                {
-                    'code': r"""
+          'hidden': False,
+          'locked': False
+        },
+        {
+          'code': r"""
           >>> read_line('(1 2 . 3)')
           Pair(1, Pair(2, 3))
           >>> read_line('(1 . 2 3)')
@@ -29,11 +29,11 @@ test = {
           >>> read_line("(1 2")
           SyntaxError
           """,
-                    'hidden': False,
-                    'locked': False
-                },
-                {
-                    'code': r"""
+          'hidden': False,
+          'locked': False
+        },
+        {
+          'code': r"""
           >>> read_tail(Buffer(tokenize_lines(['. 1)'])))
           1
           >>> read_tail(Buffer(tokenize_lines(['. 1'])))
@@ -45,16 +45,16 @@ test = {
           >>> read_line("(1 . (quote (2 (3 4))) 6)")
           SyntaxError
           """,
-                    'hidden': False,
-                    'locked': False
-                }
-            ],
-            'scored': True,
-            'setup': r"""
+          'hidden': False,
+          'locked': False
+        }
+      ],
+      'scored': True,
+      'setup': r"""
       >>> from scheme_reader import *
       """,
-            'teardown': '',
-            'type': 'doctest'
-        }
-    ]
+      'teardown': '',
+      'type': 'doctest'
+    }
+  ]
 }

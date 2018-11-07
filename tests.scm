@@ -35,7 +35,7 @@
 (/ 10 5)
 ; expect 2
 
-(+ 2 .7 10)
+(+ 2.7 10)
 ; expect 12.7
 
 (+ 21 35 12 7)
@@ -51,10 +51,10 @@
 ; expect 57
 
 (+ (* 3
-    (+ (* 2 4)
-     (+ 3 5)))
- (+ (- 10 7)
-  6))
+      (+ (* 2 4)
+         (+ 3 5)))
+   (+ (- 10 7)
+      6))
 ; expect 57
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -73,7 +73,7 @@ size
 (* 5 size)
 ; expect 10
 
-(define pi 3 .14159)
+(define pi 3.14159)
 (define radius 10)
 (* pi (* radius radius))
 ; expect 314.159
@@ -100,21 +100,21 @@ circumference
 ; expect 81
 
 (define (sum-of-squares x y)
- (+ (square x) (square y)))
+  (+ (square x) (square y)))
 (sum-of-squares 3 4)
 ; expect 25
 
 (define (f a)
- (sum-of-squares (+ a 1) (* a 2)))
+  (sum-of-squares (+ a 1) (* a 2)))
 (f 5)
 ; expect 136
 
 ;;; 1.1.6
 
 (define (abs x)
- (cond ((> x 0) x)
-  ((= x 0) 0)
-  ((< x 0) (- x))))
+  (cond ((> x 0) x)
+        ((= x 0) 0)
+        ((< x 0) (- x))))
 (abs -3)
 ; expect 3
 
@@ -125,25 +125,25 @@ circumference
 ; expect 3
 
 (define (a-plus-abs-b a b)
- ((if (> b 0) + -) a b))
+  ((if (> b 0) + -) a b))
 (a-plus-abs-b 3 -2)
 ; expect 5
 
 ;;; 1.1.7
 
 (define (sqrt-iter guess x)
- (if (good-enough? guess x)
-  guess
-  (sqrt-iter (improve guess x)
-   x)))
+  (if (good-enough? guess x)
+      guess
+      (sqrt-iter (improve guess x)
+                 x)))
 (define (improve guess x)
- (average guess (/ x guess)))
+  (average guess (/ x guess)))
 (define (average x y)
- (/ (+ x y) 2))
+  (/ (+ x y) 2))
 (define (good-enough? guess x)
- (< (abs (- (square guess) x)) 0 .001))
+  (< (abs (- (square guess) x)) 0.001))
 (define (sqrt x)
- (sqrt-iter 1 .0 x))
+  (sqrt-iter 1.0 x))
 (sqrt 9)
 ; expect 3.00009155413138
 
@@ -159,15 +159,15 @@ circumference
 ;;; 1.1.8
 
 (define (sqrt x)
- (define (good-enough? guess)
-  (< (abs (- (square guess) x)) 0 .001))
- (define (improve guess)
-  (average guess (/ x guess)))
- (define (sqrt-iter guess)
-  (if (good-enough? guess)
-   guess
-   (sqrt-iter (improve guess))))
- (sqrt-iter 1 .0))
+  (define (good-enough? guess)
+    (< (abs (- (square guess) x)) 0.001))
+  (define (improve guess)
+    (average guess (/ x guess)))
+  (define (sqrt-iter guess)
+    (if (good-enough? guess)
+        guess
+        (sqrt-iter (improve guess))))
+  (sqrt-iter 1.0))
 (sqrt 9)
 ; expect 3.00009155413138
 
@@ -184,19 +184,19 @@ circumference
 
 (define (cube x) (* x x x))
 (define (sum term a next b)
- (if (> a b)
-  0
-  (+ (term a)
-   (sum term (next a) next b))))
+  (if (> a b)
+      0
+      (+ (term a)
+         (sum term (next a) next b))))
 (define (inc n) (+ n 1))
 (define (sum-cubes a b)
- (sum cube a inc b))
+  (sum cube a inc b))
 (sum-cubes 1 10)
 ; expect 3025
 
 (define (identity x) x)
 (define (sum-integers a b)
- (sum identity a inc b))
+  (sum identity a inc b))
 (sum-integers 1 10)
 ; expect 55
 
@@ -206,44 +206,44 @@ circumference
 ; expect 12
 
 (define (f x y)
- (let ((a (+ 1 (* x y)))
-       (b (- 1 y)))
-  (+ (* x (square a))
-   (* y b)
-   (* a b))))
+  (let ((a (+ 1 (* x y)))
+        (b (- 1 y)))
+    (+ (* x (square a))
+       (* y b)
+       (* a b))))
 (f 3 4)
 ; expect 456
 
 (define x 5)
 (+ (let ((x 3))
-    (+ x (* x 10)))
- x)
+     (+ x (* x 10)))
+   x)
 ; expect 38
 
 (let ((x 3)
       (y (+ x 2)))
- (* x y))
+  (* x y))
 ; expect 21
 
 ;;; 2.1.1
 
 (define (add-rat x y)
- (make-rat (+ (* (numer x) (denom y))
-            (* (numer y) (denom x)))
-  (* (denom x) (denom y))))
+  (make-rat (+ (* (numer x) (denom y))
+               (* (numer y) (denom x)))
+            (* (denom x) (denom y))))
 (define (sub-rat x y)
- (make-rat (- (* (numer x) (denom y))
-            (* (numer y) (denom x)))
-  (* (denom x) (denom y))))
+  (make-rat (- (* (numer x) (denom y))
+               (* (numer y) (denom x)))
+            (* (denom x) (denom y))))
 (define (mul-rat x y)
- (make-rat (* (numer x) (numer y))
-  (* (denom x) (denom y))))
+  (make-rat (* (numer x) (numer y))
+            (* (denom x) (denom y))))
 (define (div-rat x y)
- (make-rat (* (numer x) (denom y))
-  (* (denom x) (numer y))))
+  (make-rat (* (numer x) (denom y))
+            (* (denom x) (numer y))))
 (define (equal-rat? x y)
- (= (* (numer x) (denom y))
-  (* (numer y) (denom x))))
+  (= (* (numer x) (denom y))
+     (* (numer y) (denom x))))
 
 (define x (cons 1 2))
 (car x)
@@ -268,10 +268,10 @@ z
 (define (numer x) (car x))
 (define (denom x) (cdr x))
 (define (print-rat x)
- (display (numer x))
- (display '/)
- (display (denom x))
- (newline))
+  (display (numer x))
+  (display '/)
+  (display (denom x))
+  (newline))
 (define one-half (make-rat 1 2))
 (print-rat one-half)
 ; expect 1/2
@@ -287,12 +287,12 @@ z
 ; expect 6/9
 
 (define (gcd a b)
- (if (= b 0)
-  a
-  (gcd b (remainder a b))))
+  (if (= b 0)
+      a
+      (gcd b (remainder a b))))
 (define (make-rat n d)
- (let ((g (gcd n d)))
-  (cons (/ n g) (/ d g))))
+  (let ((g (gcd n d)))
+    (cons (/ n g) (/ d g))))
 (print-rat (add-rat one-third one-third))
 ; expect 2/3
 
@@ -316,28 +316,28 @@ one-through-four
 ; expect (5 1 2 3 4)
 
 (define (map proc items)
- (if (null? items)
-  nil
-  (cons (proc (car items))
-   (map proc (cdr items)))))
-(map abs (list -10 2 .5 -11 .6 17))
+  (if (null? items)
+      nil
+      (cons (proc (car items))
+            (map proc (cdr items)))))
+(map abs (list -10 2.5 -11.6 17))
 ; expect (10 2.5 11.6 17)
 
 (map (lambda (x) (* x x))
- (list 1 2 3 4))
+     (list 1 2 3 4))
 ; expect (1 4 9 16)
 
 (define (scale-list items factor)
- (map (lambda (x) (* x factor))
-  items))
+  (map (lambda (x) (* x factor))
+       items))
 (scale-list (list 1 2 3 4 5) 10)
 ; expect (10 20 30 40 50)
 
 (define (count-leaves x)
- (cond ((null? x) 0)
-  ((not (pair? x)) 1)
-  (else (+ (count-leaves (car x))
-         (count-leaves (cdr x))))))
+  (cond ((null? x) 0)
+        ((not (pair? x)) 1)
+        (else (+ (count-leaves (car x))
+                 (count-leaves (cdr x))))))
 (define x (cons (list 1 2) (list 3 4)))
 (count-leaves x)
 ; expect 4
@@ -349,19 +349,19 @@ one-through-four
 
 (define (odd? x) (= 1 (remainder x 2)))
 (define (filter predicate sequence)
- (cond ((null? sequence) nil)
-  ((predicate (car sequence))
-   (cons (car sequence)
-    (filter predicate (cdr sequence))))
-  (else (filter predicate (cdr sequence)))))
+  (cond ((null? sequence) nil)
+        ((predicate (car sequence))
+         (cons (car sequence)
+               (filter predicate (cdr sequence))))
+        (else (filter predicate (cdr sequence)))))
 (filter odd? (list 1 2 3 4 5))
 ; expect (1 3 5)
 
 (define (accumulate op initial sequence)
- (if (null? sequence)
-  initial
-  (op (car sequence)
-   (accumulate op initial (cdr sequence)))))
+  (if (null? sequence)
+      initial
+      (op (car sequence)
+          (accumulate op initial (cdr sequence)))))
 (accumulate + 0 (list 1 2 3 4 5))
 ; expect 15
 
@@ -372,17 +372,17 @@ one-through-four
 ; expect (1 2 3 4 5)
 
 (define (enumerate-interval low high)
- (if (> low high)
-  nil
-  (cons low (enumerate-interval (+ low 1) high))))
+  (if (> low high)
+      nil
+      (cons low (enumerate-interval (+ low 1) high))))
 (enumerate-interval 2 7)
 ; expect (2 3 4 5 6 7)
 
 (define (enumerate-tree tree)
- (cond ((null? tree) nil)
-  ((not (pair? tree)) (list tree))
-  (else (append (enumerate-tree (car tree))
-         (enumerate-tree (cdr tree))))))
+  (cond ((null? tree) nil)
+        ((not (pair? tree)) (list tree))
+        (else (append (enumerate-tree (car tree))
+                      (enumerate-tree (cdr tree))))))
 (enumerate-tree (list 1 (list 2 (list 3 4)) 5))
 ; expect (1 2 3 4 5)
 
@@ -408,9 +408,9 @@ one-through-four
 ; expect (b c)
 
 (define (memq item x)
- (cond ((null? x) # f)
-  ((equal? item (car x)) x)
-  (else (memq item (cdr x)))))
+  (cond ((null? x) #f)
+        ((equal? item (car x)) x)
+        (else (memq item (cdr x)))))
 (memq 'apple '(pear banana prune))
 ; expect #f
 
@@ -418,11 +418,11 @@ one-through-four
 ; expect (apple pear)
 
 (define (my-equal? x y)
- (cond ((pair? x) (and (pair? y)
-                   (my-equal? (car x) (car y))
-                   (my-equal? (cdr x) (cdr y))))
-  ((null? x) (null? y))
-  (else (equal? x y))))
+  (cond ((pair? x) (and (pair? y)
+                        (my-equal? (car x) (car y))
+                        (my-equal? (cdr x) (cdr y))))
+        ((null? x) (null? y))
+        (else (equal? x y))))
 (my-equal? '(1 2 (three)) '(1 2 (three)))
 ; expect #t
 
@@ -457,19 +457,19 @@ one-through-four
 ; expect 30414093201713378043612608166064768844377641568960512000000000000
 
 (define (combine f)
- (lambda (x y)
-  (if (null? x) nil
-   (f (list (car x) (car y))
-    ((combine f) (cdr x) (cdr y))))))
+  (lambda (x y)
+    (if (null? x) nil
+      (f (list (car x) (car y))
+         ((combine f) (cdr x) (cdr y))))))
 (define zip (combine cons))
 (zip (list 1 2 3 4) (list 5 6 7 8))
 ; expect ((1 5) (2 6) (3 7) (4 8))
 
 (define riff-shuffle (lambda (deck) (begin
-                                     (define take (lambda (n seq) (if (<= n 0) (quote ()) (cons (car seq) (take (- n 1) (cdr seq))))))
-                                     (define drop (lambda (n seq) (if (<= n 0) seq (drop (- n 1) (cdr seq)))))
-                                     (define mid (lambda (seq) (/ (length seq) 2)))
-                                     ((combine append) (take (mid deck) deck) (drop (mid deck) deck)))))
+    (define take (lambda (n seq) (if (<= n 0) (quote ()) (cons (car seq) (take (- n 1) (cdr seq))))))
+    (define drop (lambda (n seq) (if (<= n 0) seq (drop (- n 1) (cdr seq)))))
+    (define mid (lambda (seq) (/ (length seq) 2)))
+    ((combine append) (take (mid deck) deck) (drop (mid deck) deck)))))
 (riff-shuffle (list 1 2 3 4 5 6 7 8))
 ; expect (1 5 2 6 3 7 4 8)
 
@@ -487,7 +487,7 @@ one-through-four
 (apply + '(1 2 3 4))
 ; expect 10
 
-(apply (if # f + append) '((1 2) (3 4)))
+(apply (if #f + append) '((1 2) (3 4)))
 ; expect (1 2 3 4)
 
 (if 0 1 2)
@@ -496,7 +496,7 @@ one-through-four
 (if '() 1 2)
 ; expect 1
 
-(or # f # t)
+(or #f #t)
 ; expect #t
 
 (or)
@@ -511,16 +511,16 @@ one-through-four
 (and 1 2 3)
 ; expect 3
 
-(and # f (/ 1 0))
+(and #f (/ 1 0))
 ; expect #f
 
-(and # t (/ 1 0))
+(and #t (/ 1 0))
 ; expect Error
 
 (or 3 (/ 1 0))
 ; expect 3
 
-(or # f (/ 1 0))
+(or #f (/ 1 0))
 ; expect Error
 
 (or (quote hello) (quote world))
@@ -532,12 +532,12 @@ one-through-four
 (if 0 1 2)
 ; expect 1
 
-(if (or # f # f # f) 1 2)
+(if (or #f #f #f) 1 2)
 ; expect 2
 
 (define (loop) (loop))
-(cond (# f (loop))
- (12))
+(cond (#f (loop))
+      (12))
 ; expect 12
 
 ((lambda (x) (display x) (newline) x) 2)
@@ -545,14 +545,14 @@ one-through-four
 
 (define g (mu () x))
 (define (high f x)
- (f))
+  (f))
 
 (high g 2)
 ; expect 2
 
 (define (print-and-square x)
- (print x)
- (square x))
+  (print x)
+  (square x))
 (print-and-square 12)
 ; expect 12 ; 144
 
@@ -573,9 +573,9 @@ one-through-four
 
 ;; len outputs the length of list s
 (define (len s)
- (if (eq? s '())
-  0
-  (+ 1 (len (cdr s)))))
+  (if (eq? s '())
+    0
+    (+ 1 (len (cdr s)))))
 (len '(1 2 3 4))
 ; expect 4
 
@@ -589,25 +589,25 @@ one-through-four
 ; Tail call optimization tests
 
 (define (sum n total)
- (if (zero? n) total
-  (sum (- n 1) (+ n total))))
-(sum 1001 0)
-; expect 501501
-
-(define (sum n total)
- (cond ((zero? n) total)
-  (else (sum (- n 1) (+ n total)))))
-(sum 1001 0)
-; expect 501501
-
-(define (sum n total)
- (begin 2 3
   (if (zero? n) total
-   (and 2 3
-    (or # f
-     (begin 2 3
-      (let ((m n))
-       (sum (- m 1) (+ m total)))))))))
+    (sum (- n 1) (+ n total))))
+(sum 1001 0)
+; expect 501501
+
+(define (sum n total)
+  (cond ((zero? n) total)
+        (else (sum (- n 1) (+ n total)))))
+(sum 1001 0)
+; expect 501501
+
+(define (sum n total)
+  (begin 2 3
+    (if (zero? n) total
+      (and 2 3
+        (or #f
+          (begin 2 3
+            (let ((m n))
+              (sum (- m 1) (+ m total)))))))))
 (sum 1001 0)
 ; expect 501501
 
@@ -616,19 +616,19 @@ one-through-four
 ; macro tests
 
 (define (map f lst)
- (if (null? lst)
-  nil
-  (cons
-   (f (car lst))
-   (map f (cdr lst)))))
+    (if (null? lst)
+        nil
+        (cons
+            (f (car lst))
+            (map f (cdr lst)))))
 
 (define-macro (for formal iterable body)
- (list 'map (list 'lambda (list formal) body) iterable))
+         (list 'map (list 'lambda (list formal) body) iterable))
 
 (for i '(1 2 3)
- (if (= i 1)
-  0
-  i))
+    (if (= i 1)
+        0
+        i))
 ; expect (0 2 3)
 
 (define (cadr s) (car (cdr s)))
@@ -636,13 +636,13 @@ one-through-four
 (define (cadrs s) (map cadr s))
 
 (define-macro (leet bindings expr)
- (cons
-  (list 'lambda (cars bindings) expr)
-  (cadrs bindings)))
+    (cons
+        (list 'lambda (cars bindings) expr)
+        (cadrs bindings)))
 
 (define (square x) (* x x))
 (define (hyp a b)
- (leet ((a2 (square a)) (b2 (square b))) (sqrt (+ a2 b2))))
+  (leet ((a2 (square a)) (b2 (square b))) (sqrt (+ a2 b2))))
 
 (hyp 3 4)
 ; expect 5.000023178253949

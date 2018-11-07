@@ -151,8 +151,6 @@ class IsZero(SingleOperandPrimitive):
 @global_attr("not")
 class Not(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
-        if not isinstance(operand, Boolean):
-            raise NotImplementedError("Unable to negate non booleans (yet)!")
         return bools[operand is SingletonFalse]
 
 
