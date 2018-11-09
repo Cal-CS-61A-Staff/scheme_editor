@@ -70,13 +70,20 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder):
     elif isinstance(expr, Symbol):
         gui_holder.evaluate()
         out = frame.lookup(expr)
+        if isinstance(out, Callable) and not isinstance(out, Applicable):
+            raise SymbolLookupError(f"Variable not found in current environment: '{expr.value}'")
         visual_expression.value = out
         gui_holder.complete()
         return out
     elif isinstance(expr, Pair):
         gui_holder.evaluate()
         operator = expr.first
-        operator = evaluate(operator, frame, visual_expression.children[0])  # evaluating operator and storing it in visual_expression
+        if isinstance(operator, Symbol) \
+                and isinstance(frame.lookup(operator), Callable) \
+                and not isinstance(frame.lookup(operator), Applicable):
+            operator = frame.lookup(operator)
+        else:
+            operator = evaluate(operator, frame, visual_expression.children[0])  # evaluating operator and storing it in visual_expression
         operands = pair_to_list(expr.rest)
         out = apply(operator, operands, frame, gui_holder)
         visual_expression.value = out

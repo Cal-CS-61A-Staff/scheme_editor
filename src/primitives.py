@@ -33,3 +33,4 @@ def load_primitives():
     __import__("src.lists")
     __import__("src.type_checking")
     __import__("src.console")
+    __import__("src.graphics")

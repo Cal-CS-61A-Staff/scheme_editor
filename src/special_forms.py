@@ -1,7 +1,7 @@
 from typing import List
 
 from src.datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined
-import src.environment as environment
+from src.environment import global_attr
 from src.evaluate_apply import Frame, evaluate, Callable, evaluate_all, Applicable
 from src.gui import Holder, VisualExpression, return_symbol, logger
 from src.helper import pair_to_list, verify_exact_callable_length, verify_min_callable_length, \
@@ -50,7 +50,7 @@ class LambdaObject(Applicable):
         return f"#[{self.name}]"
 
 
-@environment.global_attr("lambda")
+@global_attr("lambda")
 class Lambda(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, name: str = "lambda"):
         verify_min_callable_length(self, 2, len(operands))
@@ -68,7 +68,7 @@ class Lambda(Callable):
         return LambdaObject(params, operands[1:], frame, name)
 
 
-@environment.global_attr("define")
+@global_attr("define")
 class Define(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -88,7 +88,7 @@ class Define(Callable):
             raise OperandDeduceError("Expected a Symbol or List (aka Pair) as first operand of define.")
 
 
-@environment.global_attr("if")
+@global_attr("if")
 class If(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -105,7 +105,7 @@ class If(Callable):
             return evaluate(operands[1], frame, gui_holder.expression.children[2])
 
 
-@environment.global_attr("begin")
+@global_attr("begin")
 class Begin(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 1, len(operands))
@@ -115,14 +115,14 @@ class Begin(Callable):
         return out
 
 
-@environment.global_attr("quote")
+@global_attr("quote")
 class Quote(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 1, len(operands))
         return operands[0]
 
 
-@environment.global_attr("eval")
+@global_attr("eval")
 class Eval(Applicable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, eval_operands=True):
         verify_exact_callable_length(self, 1, len(operands))
@@ -133,7 +133,7 @@ class Eval(Applicable):
         return evaluate(operand, frame, gui_holder.expression.children[0])
 
 
-@environment.global_attr("apply")
+@global_attr("apply")
 class Apply(Applicable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, eval_operands=True):
         verify_exact_callable_length(self, 2, len(operands))
@@ -149,7 +149,7 @@ class Apply(Applicable):
         return func.execute(args, frame, gui_holder.expression.children[0], False)
 
 
-@environment.global_attr("cond")
+@global_attr("cond")
 class Cond(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 1, len(operands))
@@ -171,7 +171,7 @@ class Cond(Callable):
         return Undefined
 
 
-@environment.global_attr("and")
+@global_attr("and")
 class And(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         value = None
@@ -182,7 +182,7 @@ class And(Callable):
         return value if operands else SingletonTrue
 
 
-@environment.global_attr("or")
+@global_attr("or")
 class Or(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         for i, expr in enumerate(operands):
@@ -192,7 +192,7 @@ class Or(Callable):
         return SingletonFalse
 
 
-@environment.global_attr("let")
+@global_attr("let")
 class Let(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -227,7 +227,7 @@ class Let(Callable):
         return operands[-1]
 
 
-@environment.global_attr("mu")
+@global_attr("mu")
 class Mu(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, name: str = "mu"):
         verify_min_callable_length(self, 2, len(operands))
@@ -249,7 +249,7 @@ class Mu(Callable):
             return MuObject(params, [Pair(Symbol("begin"), make_list(operands[1:]))], name)
 
 
-class MuObject(Callable):
+class MuObject(Applicable):
     def __init__(self, params: List[Symbol], body: List[Expression], name: str):
         self.params = params
         self.body = body
@@ -275,7 +275,7 @@ class MuObject(Callable):
 
     def __repr__(self):
         if logger.strict_mode:
-            return f"(lambda ({(' '.join(map(repr, self.params)))}) {' '.join(map(repr, self.body))})"
+            return f"(mu ({(' '.join(map(repr, self.params)))}) {' '.join(map(repr, self.body))})"
         return f"({self.name} {' '.join(map(repr, self.params))})"
 
     def __str__(self):
@@ -320,7 +320,7 @@ class MacroObject(Applicable):
         return f"#[{self.name}]"
 
 
-@environment.global_attr("define-macro")
+@global_attr("define-macro")
 class DefineMacro(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -339,7 +339,7 @@ class DefineMacro(Callable):
         return name
 
 
-@environment.global_attr("quasiquote")
+@global_attr("quasiquote")
 class Quasiquote(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 1, len(operands))
@@ -355,7 +355,7 @@ class Quasiquote(Callable):
             except OperandDeduceError:
                 pass
             else:
-                is_well_formed = not any(map(lambda x: isinstance(x, Symbol) and x.value == "unquote", lst))
+                is_well_formed = not any(map(lambda x: isinstance(x, Symbol) and x.value in ["unquote", "quasiquote"], lst))
 
         visual_expression = VisualExpression(expr)
         gui_holder.link_visual(visual_expression)
