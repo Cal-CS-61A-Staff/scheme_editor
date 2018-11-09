@@ -1,8 +1,8 @@
 ace.define("ace/mode/scheme_highlight_rules", ["require", "exports", "module", "ace/lib/oop", "ace/mode/text_highlight_rules"], function (e, t, n) {
     "use strict";
     var r = e("../lib/oop"), i = e("./text_highlight_rules").TextHighlightRules, s = function () {
-        var e = "case|do|let|loop|if|else|when", t = "eq?|eqv?|equal?|and|or|not|null?", n = "#t|#f",
-            r = "cons|car|cdr|cond|lambda|lambda*|syntax-rules|format|set!|quote|eval|append|list|list?|member?|load",
+        var e = "let|if|else", t = "eq?|equal?|and|or|not|null?", n = "#t|#f",
+            r = "define|define-macro|cons|car|cdr|cond|lambda|mu|set!|quote|eval|append|list|list?",
             i = this.createKeywordMapper({
                 "keyword.control": e,
                 "keyword.operator": t,
@@ -69,7 +69,7 @@ ace.define("ace/mode/scheme_highlight_rules", ["require", "exports", "module", "
             this.HighlightRules = s, this.$outdent = new o, this.$behaviour = this.$defaultBehaviour
         };
     r.inherits(u, i), function () {
-        this.lineCommentStart = ";", this.minorIndentFunctions = ["define", "lambda", "define-macro", "define-syntax", "syntax-rules", "define-record-type", "define-structure"], this.$toIndent = function (e) {
+        this.lineCommentStart = ";", this.minorIndentFunctions = ["define", "lambda", "define-macro"], this.$toIndent = function (e) {
             return e.split("").map(function (e) {
                 return /\s/.exec(e) ? e : " "
             }).join("")

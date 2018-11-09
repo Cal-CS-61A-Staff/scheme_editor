@@ -1,12 +1,12 @@
 import math
 from typing import List
 
-from datamodel import Expression, Number, Undefined, String
-from environment import global_attr
-from evaluate_apply import Frame
-from helper import verify_exact_callable_length, verify_min_callable_length
-from primitives import SingleOperandPrimitive, BuiltIn
-from scheme_exceptions import OperandDeduceError
+from src.datamodel import Expression, Number, Undefined, String
+from src.environment import global_attr
+from src.evaluate_apply import Frame
+from src.helper import verify_exact_callable_length, verify_min_callable_length
+from src.primitives import SingleOperandPrimitive, BuiltIn
+from src.scheme_exceptions import OperandDeduceError
 
 
 class Canvas:
@@ -69,6 +69,11 @@ class Canvas:
                 self.draw(i, j, color)
 
 
+def make_color(expression: Expression):
+    if not isinstance(expression, String):
+        raise OperandDeduceError(f"Unable to convert {expression} to a color.")
+
+
 @global_attr("bk")
 @global_attr("back")
 @global_attr("backward")
@@ -91,6 +96,7 @@ class BeginFill(BuiltIn):
 class BGColor(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression):
         canvas.bg_color = make_color(operand)
+        return Undefined
 
 
 @global_attr("circle")
@@ -114,6 +120,7 @@ class Clear(BuiltIn):
 class Color(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression):
         canvas.color = make_color(operand)
+        return Undefined
 
 
 @global_attr("end_fill")
@@ -135,19 +142,21 @@ class Forward(SingleOperandPrimitive):
 
 @global_attr("lt")
 @global_attr("left")
-class Left(BuiltIn)
+class Left(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
-        verify_exact_callable_length(self, 0, len(operands))
-        canvas.rotate(90)
+        if not isinstance(operand, Number):
+            raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
+        canvas.rotate(operand.value)
         return Undefined
 
 
 @global_attr("rt")
 @global_attr("right")
-class Right(BuiltIn)
+class Right(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
-        verify_exact_callable_length(self, 0, len(operands))
-        canvas.rotate(-90)
+        if not isinstance(operand, Number):
+            raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
+        canvas.rotate(-operand.value)
         return Undefined
 
 
@@ -158,11 +167,23 @@ class ScreenSize(BuiltIn):
         verify_exact_callable_length(self, 0, len(operands))
         return Number(canvas.size)
 
-@global_attr("rt")
-@global_attr("right")
-class Right(SingleOperandPrimitive)
+@global_attr("setheading")
+class SetHeading(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
-        canvas.abs_rotate(-operand)
+        if not isinstance(operand, Number):
+            raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
+        canvas.abs_rotate(-operand.value)
+        return Undefined
+
+
+@global_attr("setposition")
+class SetPosition(BuiltIn):
+    def execute_evaluated(self, operands: List[Expression], frame: Frame):
+        verify_exact_callable_length(self, 2, len(operands))
+        for operand in operands:
+            if not isinstance(operand, Number):
+                raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
+        canvas.move(operands[0].value, operands[1].value)
         return Undefined
 
 

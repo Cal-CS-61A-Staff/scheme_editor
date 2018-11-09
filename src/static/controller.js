@@ -279,6 +279,10 @@ function initializeEditor(editor) {
     editor.setOption("showLineNumbers", false);
     editor.setOption("showGutter", false);
 
+    editor.setOption("enableBasicAutocompletion", true);
+    // editor.setOption("enableSnippets", true);
+    editor.setOption("enableLiveAutocompletion", true);
+
     editor.container.style.background = "white";
 
     editor.focus();
