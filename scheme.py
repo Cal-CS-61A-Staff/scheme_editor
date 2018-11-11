@@ -29,7 +29,7 @@ def scheme_eval(expr, env, _=None): # Optional third argument is ignored
 
     if env.real_env is None:
         env.real_env = environment.build_global_frame()
-    gui.logger.new_query(False, True, strict_mode=True)
+    gui.logger.new_query(True, True, True, strict_mode=True)
     try:
         expr = parser.get_expression(lexer.TokenBuffer([str(expr)]))
         out = evaluate_apply.evaluate(expr, env.real_env, gui.Holder(expr))

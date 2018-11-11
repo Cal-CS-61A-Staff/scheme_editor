@@ -9,7 +9,7 @@ let tree_container = initializeTreeSvg();
 let environment_container = initializeEnvironmentSvg();
 
 let displayingStates = false;
-let displayingEnvs = true;
+let displayingEnvs = false;
 let displayingGraphics = false;
 
 let isFirst = true;
@@ -41,13 +41,13 @@ $("#editors").on("submit", ".code-form", function (e) {
 });
 
 $("#prev").click(function () {
-    if (environments.length === 0) return;
+    if (displayingEnvs && environments.length === 0) return;
     i = Math.max(i - 1, 0);
     display(i);
 });
 
 $("#next").click(function () {
-    if (environments.length === 0) return;
+    if (displayingEnvs && environments.length === 0) return;
     if (displayingStates) {
         i = Math.min(i + 1, states.length - 1);
     } else {
@@ -121,22 +121,22 @@ function display(i) {
         }
     }
     // Yeah I know copy + paste is bad but whatever
+    if (displayingEnvs) {
+        let svg = $("#environment_diagram > svg").get(0);
+        let zoom = svgPanZoom(svg).getZoom();
+        let pan = svgPanZoom(svg).getPan();
 
-    let svg = $("#environment_diagram > svg").get(0);
-    let zoom = svgPanZoom(svg).getZoom();
-    let pan = svgPanZoom(svg).getPan();
+        svgPanZoom(svg).destroy();
+        display_env(environments, environment_container, i);
+        svgPanZoom(svg, {fit: false, zoomEnabled: true, center: false});
 
-    svgPanZoom(svg).destroy();
-    display_env(environments, environment_container, i);
-    svgPanZoom(svg, {fit: false, zoomEnabled: true, center: false});
-
-    if (isFirst) {
-        svgPanZoom(svg).reset();
-    } else {
-        svgPanZoom(svg).zoom(zoom);
-        svgPanZoom(svg).pan(pan);
+        if (isFirst) {
+            svgPanZoom(svg).reset();
+        } else {
+            svgPanZoom(svg).zoom(zoom);
+            svgPanZoom(svg).pan(pan);
+        }
     }
-
     isFirst = false;
 }
 
@@ -157,6 +157,7 @@ function drawGraphics() {
         let rest = move.slice(1);
         if (name === "fillStyle") {
             ctx.fillStyle = rest[0];
+            ctx.strokeStyle = rest[0];
         } else if (name === "rect") {
             ctx.rect(T(rest[0]), T(rest[1]), T(rest[2]), T(rest[3]));
         } else if (name === "moveTo") {

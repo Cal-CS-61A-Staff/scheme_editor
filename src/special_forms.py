@@ -35,7 +35,7 @@ class LambdaObject(Applicable):
         gui_holder.expression.set_entries(
             [VisualExpression(expr, gui_holder.expression.display_value) for expr in body])
         for i, expression in enumerate(body):
-            out = evaluate(expression, new_frame, gui_holder.expression.children[i])
+            out = evaluate(expression, new_frame, gui_holder.expression.children[i], i == len(body) - 1)
         new_frame.assign(return_symbol, out)
         return out
 
@@ -99,10 +99,10 @@ class If(Callable):
                 return Undefined
             else:
                 # gui_holder.expression = gui_holder.expression.children[3].expression
-                return evaluate(operands[2], frame, gui_holder.expression.children[3])
+                return evaluate(operands[2], frame, gui_holder.expression.children[3], True)
         else:
             # gui_holder.expression = gui_holder.expression.children[1].expression
-            return evaluate(operands[1], frame, gui_holder.expression.children[2])
+            return evaluate(operands[1], frame, gui_holder.expression.children[2], True)
 
 
 @global_attr("begin")
@@ -110,8 +110,8 @@ class Begin(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 1, len(operands))
         out = None
-        for operand, holder in zip(operands, gui_holder.expression.children[1:]):
-            out = evaluate(operand, frame, holder)
+        for i, (operand, holder) in enumerate(zip(operands, gui_holder.expression.children[1:])):
+            out = evaluate(operand, frame, holder, i == len(operands) - 1)
         return out
 
 
@@ -130,7 +130,7 @@ class Eval(Applicable):
             operand = evaluate(operands[0], frame, gui_holder.expression.children[1])
         gui_holder.expression.set_entries([VisualExpression(operand, gui_holder.expression.display_value)])
         gui_holder.apply()
-        return evaluate(operand, frame, gui_holder.expression.children[0])
+        return evaluate(operand, frame, gui_holder.expression.children[0], True)
 
 
 @global_attr("apply")
@@ -166,7 +166,7 @@ class Cond(Callable):
                     or eval_condition is not SingletonFalse:
                 out = eval_condition
                 for i, expr in enumerate(expanded[1:]):
-                    out = evaluate(expr, frame, cond_holder.expression.children[i + 1])
+                    out = evaluate(expr, frame, cond_holder.expression.children[i + 1], i == len(expanded) - 2)
                 return out
         return Undefined
 
@@ -176,7 +176,7 @@ class And(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         value = None
         for i, expr in enumerate(operands):
-            value = evaluate(expr, frame, gui_holder.expression.children[i + 1])
+            value = evaluate(expr, frame, gui_holder.expression.children[i + 1], i == len(operands) - 1)
             if value is SingletonFalse:
                 return SingletonFalse
         return value if operands else SingletonTrue
@@ -186,7 +186,7 @@ class And(Callable):
 class Or(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         for i, expr in enumerate(operands):
-            value = evaluate(expr, frame, gui_holder.expression.children[i + 1])
+            value = evaluate(expr, frame, gui_holder.expression.children[i + 1], i == len(operands) - 1)
             if value is not SingletonFalse:
                 return value
         return SingletonFalse
@@ -221,10 +221,13 @@ class Let(Callable):
                 raise OperandDeduceError(f"Expected first element of binding to be a Symbol, not {name}.")
             new_frame.assign(name, evaluate(expr, frame, binding_holder.expression.children[1]))
 
-        operands = evaluate_all(operands[1:], new_frame, gui_holder.expression.children[2:])
+        value = None
 
-        new_frame.assign(return_symbol, operands[-1])
-        return operands[-1]
+        for i, (operand, holder) in enumerate(zip(operands[1:], gui_holder.expression.children[2:])):
+            value = evaluate(operand, new_frame, holder, i == len(operands) - 2)
+
+        new_frame.assign(return_symbol, value)
+        return value
 
 
 @global_attr("mu")
@@ -284,7 +287,7 @@ class MuObject(Applicable):
         return f"#[{self.name}]"
 
 
-class MacroObject(Applicable):
+class MacroObject(Callable):
     def __init__(self, params: List[Symbol], body: List[Expression], frame: Frame, name: str):
         self.params = params
         self.body = body
@@ -293,7 +296,6 @@ class MacroObject(Applicable):
 
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         new_frame = Frame(self.name, self.frame)
-        # operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
         verify_exact_callable_length(self, len(self.params), len(operands))
 
         for param, value in zip(self.params, operands):
@@ -306,8 +308,7 @@ class MacroObject(Applicable):
 
         gui_holder.expression.set_entries([VisualExpression(out, gui_holder.expression.display_value)])
         new_frame.assign(return_symbol, out)
-        out = evaluate(out, frame, gui_holder.expression.children[i])
-        return out
+        return evaluate(out, frame, gui_holder.expression.children[i], True)
 
     def __repr__(self):
         if logger.strict_mode:
