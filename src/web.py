@@ -29,23 +29,24 @@ def lookup(code):
 def receive():
     code = request.form.getlist("code[]")
     skip_tree = request.form.get("skip_tree") == "true"
+    skip_envs = request.form.get("skip_envs") == "true"
     hide_return_frames = request.form.get("hide_return_frames") == "true"
     print(request.form.get("hide_return_frames"))
-    return handle(code, skip_tree, hide_return_frames)
+    return handle(code, skip_tree, skip_envs, hide_return_frames)
 
 
-def handle(code, skip_tree, hide_return_frames):
+def handle(code, skip_tree, skip_envs, hide_return_frames):
     gui.logger.setID(database.save(code, skip_tree, hide_return_frames))
-    gui.logger.new_query(skip_tree, hide_return_frames)
+    gui.logger.new_query(skip_tree, skip_envs, hide_return_frames)
     try:
-        limiter(3, execution.string_exec, code, gui.logger.out)
+        execution.string_exec(code, gui.logger.out)
+        # limiter(3, execution.string_exec, code, gui.logger.out)
     except SchemeError as e:
         gui.logger.out(e)
     except TimeLimitException:
         gui.logger.out("Time limit exceeded. Try disabling the substitution visualizer (top checkbox) for increased "
                        "performance.")
     except Exception as e:
-        raise
         gui.logger.out(e)
 
     out = gui.logger.export()
