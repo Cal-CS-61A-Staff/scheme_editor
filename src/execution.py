@@ -51,8 +51,14 @@ def string_exec(strings, out, global_frame=None):
         from src.environment import build_global_frame
         global_frame = build_global_frame()
 
+    skip_tree = gui.logger.skip_tree
+
     gui.logger._out = []
-    for string in strings:
+    for i, string in enumerate(strings):
+        if not skip_tree and i == len(strings) - 1:
+            gui.logger.skip_tree = False
+        else:
+            gui.logger.skip_tree = True
         gui.logger.clear_diagram()
         if not string.strip():
             continue

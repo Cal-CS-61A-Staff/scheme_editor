@@ -24,13 +24,17 @@ global_attr = make_frame_decorator(defdict)
 
 
 class MathProcedure(SingleOperandPrimitive):
-    def __init__(self, func):
+    def __init__(self, func, name):
         self.func = func
+        self.name = name
 
     def execute_simple(self, operand: Expression):
         if not isinstance(operand, Number):
             raise MathError
         return Number(self.func(operand.value), force_float=True)
+
+    def __repr__(self):
+        return f"#[{self.name}]"
 
 
 def build_global_frame():
@@ -47,7 +51,7 @@ def build_global_frame():
                  "ceil", "copysign", "cos", "cosh", "degrees", "floor", "log",
                  "log10", "log1p", "log2", "radians", "sin", "sinh", "sqrt",
                  "tan", "tanh", "trunc"]:
-        frame.assign(Symbol(name), MathProcedure(getattr(math, name)))
+        frame.assign(Symbol(name), MathProcedure(getattr(math, name), name))
 
     with open("src/builtins.scm") as file:
         execution.string_exec([" ".join(file.readlines())], lambda *x, **y: None, frame)

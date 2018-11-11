@@ -1,6 +1,11 @@
 body {
-  padding-top: 5rem;
+    padding-top: 5rem;
 }
+
+.container-fluid {
+    background-color: white;
+}
+
 .starter-template {
     text-align: center;
     padding: 3rem 1.5rem 0;
@@ -34,6 +39,11 @@ body {
 
 #environment_diagram {
     width: 100%;
+    border: solid gray;
+    padding: 0;
+}
+
+#canvas {
     border: solid gray;
     padding: 0;
 }

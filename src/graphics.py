@@ -1,7 +1,7 @@
 import math
 from typing import List
 
-from src.datamodel import Expression, Number, Undefined, String
+from src.datamodel import Expression, Number, Undefined, String, Symbol
 from src.environment import global_attr
 from src.evaluate_apply import Frame
 from src.helper import verify_exact_callable_length, verify_min_callable_length
@@ -13,47 +13,31 @@ class Canvas:
     SIZE = 1000
 
     def __init__(self):
-        self.x = self.SIZE / 2
-        self.y = self.SIZE / 2
-        self.angle = 0  # w.r.t vertical
+        self.x = None
+        self.y = None
+        self.angle = None
+        self.bg_color = None
+        self.moves = None
+        self.pen_down = None
+        self.color = None
+        self.size = None
 
-        self.bg_color = [0, 0, 0]
+        self.reset()
 
-        self.board = self.reset_board()
-
-        self.pen_down = False
-        self.color = (0, 0, 0)
-
-        self.size = 1
-
-    def reset_board(self):
-        self.board = [[self.bg_color] * self.SIZE for _ in range(self.SIZE)]
-        return self.board
-
-    def draw(self, x, y, color):
-        if x < 0 or x >= self.size or y < 0 or y >= self.size:
-            return
-        self.board[x][y] = color
-
-    def move(self, x, y):
+    def move(self, x: float, y: float):
         if self.pen_down:
-            dist = ((x - self.x) ** 2 + (y - self.y) ** 2) ** 0.5
-            move_num = round(dist * 2 + 1)
-            for i in range(move_num):
-                curr_x, curr_y = (round(a * (1 - i / move_num) + b * (i / move_num))
-                                  for a, b in [[x, self.x], [y, self.y]])
-                self.draw(curr_x, curr_y, self.color)
+            self.moves.extend([["moveTo", self.x, self.y], ["lineTo", x, y]])
         self.x = x
         self.y = y
 
-    def rotate(self, theta):
+    def rotate(self, theta: float):
         self.angle += theta
         self.angle %= 360
 
-    def abs_rotate(self, theta):
+    def abs_rotate(self, theta: float):
         self.angle = theta % 360
 
-    def forward(self, dist):
+    def forward(self, dist: float):
         self.move(self.x + dist * math.cos(self.angle / 360 * 2 * math.pi),
                   self.y + dist * math.sin(self.angle / 360 * 2 * math.pi))
 
@@ -63,15 +47,34 @@ class Canvas:
     def penup(self):
         self.pen_down = False
 
-    def rect(self, x, y, color):
-        for i in range(x, x + self.size):
-            for j in range(y, y + self.size):
-                self.draw(i, j, color)
+    def rect(self, x: float, y: float, color: str):
+        old_color = self.color
+        self.moves.extend([
+            ["fillStyle", color],
+            ["rect", x, y, self.size, self.size],
+            ["fillStyle", old_color]
+        ])
+
+    def export(self):
+        out = self.moves
+        self.reset()
+        return out
+
+    def reset(self):
+        self.x = self.SIZE / 2
+        self.y = self.SIZE / 2
+        self.angle = 0
+        self.bg_color = "#fff"
+        self.moves = []
+        self.pen_down = True
+        self.color = "#000000"
+        self.size = 1
 
 
-def make_color(expression: Expression):
-    if not isinstance(expression, String):
+def make_color(expression: Expression) -> str:
+    if not isinstance(expression, String) and not isinstance(expression, Symbol):
         raise OperandDeduceError(f"Unable to convert {expression} to a color.")
+    return expression.value
 
 
 @global_attr("bk")
@@ -112,7 +115,7 @@ class Circle(BuiltIn):
 class Clear(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 0, len(operands))
-        canvas.reset_board()
+        canvas.moves = []
         return Undefined
 
 
@@ -150,6 +153,58 @@ class Left(SingleOperandPrimitive):
         return Undefined
 
 
+@global_attr("pd")
+@global_attr("pendown")
+class PenDown(BuiltIn):
+    def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
+        verify_exact_callable_length(self, 0, len(operands))
+        canvas.pendown()
+        return Undefined
+
+
+@global_attr("pu")
+@global_attr("penup")
+class PenUp(BuiltIn):
+    def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
+        verify_exact_callable_length(self, 0, len(operands))
+        canvas.penup()
+        return Undefined
+
+
+@global_attr("pixel")
+class Pixel(BuiltIn):
+    def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
+        verify_exact_callable_length(self, 3, len(operands))
+        x, y, c, = operands
+        for v in x, y:
+            if not isinstance(v, Number):
+                raise OperandDeduceError(f"Expected operand to be Number, not {v}")
+        canvas.rect(x.value, y.value, make_color(c))
+        return Undefined
+
+
+@global_attr("pixelsize")
+class PixelSize(SingleOperandPrimitive):
+    def execute_simple(self, operand: Expression) -> Expression:
+        if not isinstance(operand, Number):
+            raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
+        canvas.size = operand.value
+        return Undefined
+
+
+@global_attr("rgb")
+class RGB(BuiltIn):
+    def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
+        verify_exact_callable_length(self, 3, len(operands))
+        for operand in operands:
+            if not isinstance(operand, Number):
+                raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
+            if not 0 <= operand.value <= 1:
+                raise OperandDeduceError(f"RGB values must be between 0 and 1, not {operand}")
+        canvas.color = operands
+        return Undefined
+
+
 @global_attr("rt")
 @global_attr("right")
 class Right(SingleOperandPrimitive):
@@ -167,6 +222,8 @@ class ScreenSize(BuiltIn):
         verify_exact_callable_length(self, 0, len(operands))
         return Number(canvas.size)
 
+
+@global_attr("seth")
 @global_attr("setheading")
 class SetHeading(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
@@ -176,6 +233,8 @@ class SetHeading(SingleOperandPrimitive):
         return Undefined
 
 
+@global_attr("setpos")
+@global_attr("goto")
 @global_attr("setposition")
 class SetPosition(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame):

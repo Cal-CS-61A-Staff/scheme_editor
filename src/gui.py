@@ -101,9 +101,10 @@ class Logger:
         self.code = None
         self.hide_return_frames = False
         self.frame_cnt = None
-        self.strict_mode = None;
+        self.strict_mode = None
+        self.skip_envs = False
 
-        self.new_query(True, False)
+        self.new_query(True, True, False)
 
     def clear_diagram(self):
         self.states = []
@@ -112,13 +113,14 @@ class Logger:
         self.environments = []
         self.frame_store(None, None, None)
 
-    def new_query(self, skip_tree, hide_return_frames, strict_mode=False):
+    def new_query(self, skip_tree, skip_envs, hide_return_frames, strict_mode=False):
         self._out = []
         self.frames = []
         self.frame_lookup = {}
         self.clear_diagram()
         self._out = []
         self.skip_tree = skip_tree
+        self.skip_envs = skip_envs
         self.hide_return_frames = hide_return_frames
         self.frame_cnt = 0
         self.strict_mode = strict_mode
@@ -130,10 +132,12 @@ class Logger:
             # print("saving state")
 
     def export(self):
+        import src.graphics as graphics
         return {"states": [state.export() for state in self.states],
                 "out": [x.strip() for x in self._out],
                 "environments": [*zip(self.environment_indices, self.environments)],
                 "code": self.code,
+                "graphics": graphics.canvas.export(),
                 }
 
     def setID(self, code):
@@ -155,6 +159,8 @@ class Logger:
         self.frames.append(frame)
 
     def frame_store(self, frame, name, value):
+        if self.skip_envs:
+            return
         if self.states and self.environment_indices and self.environment_indices[-1] == len(self.states) - 1:
             self.environments.pop()
             self.environment_indices.pop()

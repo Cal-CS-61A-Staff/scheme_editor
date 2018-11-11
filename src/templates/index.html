@@ -56,36 +56,40 @@
     </div>
     <div class="row flex-fill d-flex">
 
-        <div class="col-6">
+        <div id="left-col" class="col-6">
         <div class="custom-control custom-checkbox">
-          <input type="checkbox" class="custom-control-input" id="hide_subs">
-          <label class="custom-control-label" for="hide_subs">Disable substititution visualizer for increased performance.</label>
+          <input type="checkbox" class="custom-control-input" id="show_subs">
+          <label class="custom-control-label" for="show_subs">Show substitution visualizer.</label>
         </div>
-{#        <div class="custom-control custom-checkbox">#}
-{#          <input type="checkbox" class="custom-control-input" id="hide_envs">#}
-{#          <label class="custom-control-label" for="hide_envs">Hide environment visualizer.</label>#}
-{#        </div>#}
-            <div class="custom-control custom-checkbox">
-                <input type="checkbox" class="custom-control-input" id="hide_ret_frames">
-                <label class="custom-control-label" for="hide_ret_frames">Hide frames after return.</label>
-            </div>
+        <div class="custom-control custom-checkbox">
+          <input type="checkbox" class="custom-control-input" id="show_envs">
+          <label class="custom-control-label" for="show_envs">Show environment diagrams.</label>
+        </div>
+        <div class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input" id="hide_ret_frames">
+            <label class="custom-control-label" for="hide_ret_frames">Hide frames after return.</label>
+        </div>
             <br>
 
             <div id="editors"></div>
         </div>
-        <div class="col-6">
+        <div id="right-col" class="col-6">
             <div class="prevnexts btn-group" role="group" id="sub_nav" aria-label="Navigation">
                 <button id="prev" type="button" class="btn btn-secondary">Prev</button>
                 <button id="next" type="button" class="btn btn-secondary">Next</button>
             </div>
-            <div class="prevnexts btn-group" role="group" aria-label="Navigation">
+            <div class="prevnexts btn-group" role="group" id="env_nav" aria-label="Navigation">
                 <button id="prev_fast" type="button" class="btn btn-secondary">Prev Assignment</button>
                 <button id="next_fast" type="button" class="btn btn-secondary">Next Assignment</button>
             </div>
             <br>
+            <br id="graph_br">
+            <div id="canvas_graphics" class="flex-grow-1">
+                <canvas id="canvas"></canvas>
+            </div>
             <br id="sub_br">
             <div id="substitution_tree" class="flex-grow-1"></div>
-            <br>
+            <br id="env_br">
             <div id="environment_diagram" class="flex-grow-1"></div>
         </div>
     </div>

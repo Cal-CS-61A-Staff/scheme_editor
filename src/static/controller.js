@@ -1,13 +1,16 @@
 let i = 0;
 let states = [];
 let environments = [];
+let moves = [];
 let starts = [0];
 
 let editors = [];
 let tree_container = initializeTreeSvg();
 let environment_container = initializeEnvironmentSvg();
 
-let displayingStates = true;
+let displayingStates = false;
+let displayingEnvs = true;
+let displayingGraphics = false;
 
 let isFirst = true;
 
@@ -135,6 +138,34 @@ function display(i) {
     }
 
     isFirst = false;
+}
+
+function drawGraphics() {
+    let ctx = $("#canvas").get(0).getContext("2d");
+    let full_size = 1000;
+    let real_size = Math.min(500, $(".starter-template").width() / 2);
+    let scale_factor = real_size / full_size;
+    ctx.canvas.height = real_size;
+    ctx.canvas.width = real_size;
+    displayingGraphics = true;
+
+    let T = function(rest) { return rest * scale_factor; };
+
+    for (let move of moves) {
+        console.log(move);
+        let name = move[0];
+        let rest = move.slice(1);
+        if (name === "fillStyle") {
+            ctx.fillStyle = rest[0];
+        } else if (name === "rect") {
+            ctx.rect(T(rest[0]), T(rest[1]), T(rest[2]), T(rest[3]));
+        } else if (name === "moveTo") {
+            ctx.moveTo(T(rest[0]), T(rest[1]));
+        } else if (name === "lineTo") {
+            ctx.lineTo(T(rest[0]), T(rest[1]));
+        }
+    }
+    ctx.stroke();
 }
 
 function get_curr_env(i) {
@@ -338,7 +369,62 @@ function addRow(isFirst) {
     editors.push(initializeEditor($(`#row-${i} .editor`).get(0)))
 }
 
+function make_viewers() {
+
+    if (displayingStates) {
+        $("#substitution_tree").show();
+        $("#sub_br").show();
+        $("#sub_nav").show();
+    } else {
+        $("#substitution_tree").hide();
+        $("#sub_br").hide();
+        $("#sub_nav").hide();
+    }
+
+    if (displayingEnvs) {
+        $("#environment_diagram").show();
+        $("#env_br").show();
+        $("#env_nav").show();
+
+    } else {
+        $("#environment_diagram").hide();
+        $("#env_br").hide();
+        $("#env_nav").hide();
+    }
+
+    if (displayingGraphics) {
+        $("#canvas_graphics").show();
+        $("#graph_br").show();
+    } else {
+        $("#canvas_graphics").hide();
+        $("#graph_br").hide();
+    }
+
+    let total = displayingStates + displayingEnvs + displayingGraphics;
+    let height = (total === 1) ? 600 : 300;
+
+    if (total === 0) {
+        $("#right-col").hide();
+        $("#left-col").addClass("offset-md-2");
+        $("#left-col").addClass("col-8");
+        $("#left-col").removeClass("col-6");
+    } else {
+        $("#right-col").show();
+        $("#left-col").removeClass("offset-md-2");
+        $("#left-col").removeClass("col-8");
+        $("#left-col").addClass("col-6");
+    }
+
+    $("#substitution_tree").height(height);
+    tree_container.height(height);
+
+    $("#environment_diagram").height(height);
+    environment_container.height(height);
+}
+
 function init() {
+    make_viewers();
+
     let decoded = $.parseJSON(start_data);
     if ($.isEmptyObject(decoded)) {
         return;
@@ -351,8 +437,8 @@ function init() {
         editors[i].setValue(decoded["code"][i]);
         editors[i].clearSelection();
     }
-    if (decoded["skip_tree"]) {
-        $("#hide_subs").prop("checked", true);
+    if (!decoded["skip_tree"]) {
+        $("#show_subs").prop("checked", true);
     }
     if (decoded["hide_return_frames"]) {
         $("#hide_return_frames").prop("checked", true);
@@ -368,30 +454,29 @@ function submit() {
     for (let j = 0; j !== editors.length; ++j) {
         out.push(editors[j].getValue());
     }
-    displayingStates = !$("#hide_subs").is(':checked');
+    displayingStates = $("#show_subs").is(':checked');
+    displayingEnvs = $("#show_envs").is(':checked');
     let hideReturnFrames = $("#hide_ret_frames").is(':checked');
 
-    if (!displayingStates) {
-        $("#substitution_tree").hide();
-        $("#sub_br").hide();
-        $("#sub_nav").hide();
-        $("#environment_diagram").height(600);
-        environment_container.height(600);
-    } else {
-        $("#substitution_tree").show();
-        $("#sub_br").show();
-        $("#sub_nav").show();
-    }
+    make_viewers();
 
     $.post("./process2", {
         code: out,
-        skip_tree: $("#hide_subs").is(':checked'),
+        skip_tree: !$("#show_subs").is(':checked'),
+        skip_envs: !$("#show_envs").is(':checked'),
         hide_return_frames: hideReturnFrames
     }).done(function (data) {
         i = 0;
         states = data["states"];
         environments = data["environments"];
-        console.log(data["code"]);
+        moves = data["graphics"];
+        if (moves.length !== 0) {
+            drawGraphics();
+            make_viewers();
+        } else {
+            displayingGraphics = false;
+            make_viewers();
+        }
         if ((displayingStates && states.length > 0) || (!displayingStates && environments.length > 0)) {
             isFirst = true;
             display(i);
