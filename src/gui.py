@@ -114,9 +114,9 @@ class Logger:
         self.frame_store(None, None, None)
 
     def new_query(self, skip_tree, skip_envs, hide_return_frames, strict_mode=False):
-        self._out = []
         self.frames = []
         self.frame_lookup = {}
+        self._out = []
         self.clear_diagram()
         self._out = []
         self.skip_tree = skip_tree

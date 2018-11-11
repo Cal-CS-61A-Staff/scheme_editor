@@ -220,7 +220,7 @@ class Right(SingleOperandPrimitive):
 class ScreenSize(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 0, len(operands))
-        return Number(canvas.size)
+        return Number(canvas.SIZE)
 
 
 @global_attr("seth")
