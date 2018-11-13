@@ -108,7 +108,7 @@ class Logger:
 
     def clear_diagram(self):
         self.states = []
-        self._out.append("")
+        self._out.append([])
         self.environment_indices = []
         self.environments = []
         self.frame_store(None, None, None)
@@ -134,7 +134,7 @@ class Logger:
     def export(self):
         import src.graphics as graphics
         return {"states": [state.export() for state in self.states],
-                "out": [x.strip() for x in self._out],
+                "out": ["".join(x).strip() for x in self._out],
                 "environments": [*zip(self.environment_indices, self.environments)],
                 "code": self.code,
                 "graphics": graphics.canvas.export(),
@@ -148,7 +148,7 @@ class Logger:
 
     def raw_out(self, val):
         if self._out:
-            self._out[-1] += val
+            self._out[-1].append(val)
         else:
             print(val, end="")
 
