@@ -159,7 +159,7 @@ function drawGraphics() {
             ctx.fillStyle = rest[0];
             ctx.strokeStyle = rest[0];
         } else if (name === "rect") {
-            ctx.rect(T(rest[0]), T(rest[1]), T(rest[2]), T(rest[3]));
+            ctx.fillRect(T(rest[0]), T(rest[1]), T(rest[2]), T(rest[3]));
         } else if (name === "moveTo") {
             ctx.moveTo(T(rest[0]), T(rest[1]));
         } else if (name === "lineTo") {

@@ -30,6 +30,9 @@ class Canvas:
         self.x = x
         self.y = y
 
+    def set_bg(self, color):
+        self.bg_color = color
+
     def rotate(self, theta: float):
         self.angle += theta
         self.angle %= 360
@@ -56,7 +59,9 @@ class Canvas:
         ])
 
     def export(self):
-        out = self.moves
+        out = [["fillStyle", self.bg_color],
+               ["rect", 0, 0, self.SIZE, self.SIZE]
+               ] + self.moves
         self.reset()
         return out
 
@@ -64,7 +69,7 @@ class Canvas:
         self.x = self.SIZE / 2
         self.y = self.SIZE / 2
         self.angle = 0
-        self.bg_color = "#fff"
+        self.bg_color = "#ffffff"
         self.moves = []
         self.pen_down = True
         self.color = "#000000"
@@ -98,7 +103,7 @@ class BeginFill(BuiltIn):
 @global_attr("bgcolor")
 class BGColor(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression):
-        canvas.bg_color = make_color(operand)
+        canvas.set_bg(make_color(operand))
         return Undefined
 
 
@@ -201,8 +206,7 @@ class RGB(BuiltIn):
                 raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
             if not 0 <= operand.value <= 1:
                 raise OperandDeduceError(f"RGB values must be between 0 and 1, not {operand}")
-        canvas.color = operands
-        return Undefined
+        return String("#" + "".join('{:02X}'.format(round(x.value * 255)) for x in operands))
 
 
 @global_attr("rt")
