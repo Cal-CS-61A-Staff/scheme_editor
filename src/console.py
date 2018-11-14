@@ -13,7 +13,6 @@ from src.primitives import SingleOperandPrimitive, BuiltIn
 class Print(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         gui.logger.out(operand)
-        print(operand)
         return Undefined
 
 
