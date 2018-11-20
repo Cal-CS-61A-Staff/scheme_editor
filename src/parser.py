@@ -43,7 +43,11 @@ def get_expression(buffer: TokenBuffer) -> Expression:
         else:
             raise ParseError(f"Unexpected token: '{token}'")
     elif is_number(token):
-        return Number(float(token))
+        intval = int(token)
+        if intval == round(intval):
+            return Number(intval)
+        else:
+            return Number(float(token))
     elif token == "#t" or token.lower() == "true":
         return SingletonTrue
     elif token == "#f" or token.lower() == "false":

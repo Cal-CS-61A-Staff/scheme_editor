@@ -59,9 +59,12 @@ class Canvas:
         ])
 
     def export(self):
-        out = [["fillStyle", self.bg_color],
-               ["rect", 0, 0, self.SIZE, self.SIZE]
-               ] + self.moves
+        if self.moves:
+            out = [["fillStyle", self.bg_color],
+                   ["rect", 0, 0, self.SIZE, self.SIZE]
+                   ] + self.moves
+        else:
+            out = []
         self.reset()
         return out
 
