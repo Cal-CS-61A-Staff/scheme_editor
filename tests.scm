@@ -10,7 +10,337 @@
 ;;; *** Add your own tests here! ***
 ;;; ********************************
 ; BEGIN PROBLEM 0
-'replace-this-line
+'(1 . (2 3 . (4 5 . 6)))
+; expect (1 2 3 4 5 . 6)
+
+'(1. 2)
+; expect (1 2)
+
+'(1 . 2)
+; expect (1 . 2)
+
++
+; expect #[+]
+
+cat
+; expect Error
+
+floor
+; expect #[floor]
+
+(print "cat")
+; expect "cat"
+
+(display "cat")
+(newline)
+; expect cat
+
+nil
+; expect ()
+
+'()
+; expect ()
+
+begin
+; expect Error
+
+(sqrt 9)
+; expect 3.0
+
+3
+; expect 3
+
+(= 3 3.0)
+; expect #t
+
+'#f
+; expect #f
+
+'false
+; expect #f
+
+(if '#f (print "err") (print "success"))
+; expect "success"
+
+(= (sqrt 9) 3)
+; expect #t
+
+(= (sqrt 9) 3.0)
+; expect #t
+
+(/ 1 0)
+; expect Error
+
+(cat dog)
+; expect Error
+
+()
+; expect ()
+
+(sqrt -1)
+; expect Error
+
+(* (+) (*))
+; expect 0
+
+(+ (*) (*) (*))
+; expect 3
+
+(/)
+; expect Error
+
+(/ 2)
+; expect 0.5
+
+(odd? #f)
+; expect Error
+
+(-)
+; expect Error
+
+(floor 2.5)
+; expect 2
+
+(define cat dog)
+; expect Error
+
+(define cat cat)
+; expect Error
+
+(define a b c)
+; expect Error
+
+(define (a) b c)
+; expect a
+
+(a)
+; expect Error
+
+(define a)
+; expect Error
+
+(define)
+; expect Error
+
+define
+; expect Error
+
+(define (scope) (define define 5) (+ define define))
+(scope)
+; expect 10
+
+(define (scope) (define ,cat 5) ,6)
+(scope)
+; expect 5
+
+(unquote cat)
+
+(define cat 'cat)
+; expect cat
+
+(eval cat)
+; expect cat
+
+(eval (eval (eval cat)))
+; expect cat
+
+(eval eval)
+; expect #[eval]
+
+(define (id x) x)
+(define dog 5)
+
+(apply id '('dog))
+; expect (quote dog)
+
+(apply id '(dog))
+; expect dog
+
+(apply eval '(''(dog)))
+; expect (quote (dog))
+
+(apply eval (list ''(dog)))
+; expect (dog)
+
+(apply eval '(''dog))
+; expect (quote dog)
+
+(apply eval '(dog))
+; expect 5
+
+(define (x a b c) (+ a b c))
+(define y +)
+(= (x 4 66 1) (y 4 66 1))
+; expect #t
+
+(eq? x y)
+; expect #f
+
+(define z +)
+(eq? y z)
+; expect #t
+
+((begin (print "cat") +) 2 3 4)
+; expect "cat" ; 9
+
+((print "1") (print "2"))
+; expect "1"; Error
+
+(define x 1)
+(define x (+ 1 x))
+x
+; expect 2
+
+(define 2 x)
+; expect Error
+
+(define true false)
+; expect Error
+
+(define cat 5)
+cAt
+; expect 5
+cAT
+; expect 5
+
+'(car 5)
+; expect (car 5)
+
+'(print "cat")
+; expect (print "cat")
+
+''(print 'cat)
+; expect (quote (print (quote cat)))
+
+(eval '(print "cat"))
+; expect "cat"
+
+(eval '((print "cat")))
+; expect "cat"; Error
+
+`(+ 1 2 3 4)
+; expect (+ 1 2 3 4)
+
+`(1 2 3 ,(+ 4 5))
+; expect (1 2 3 9)
+
+`(1 2 3 unquote (+ 4 5))
+; expect (1 2 3 . 9)
+
+`(1 2 3 unquote . (+ 4 5))
+; expect Error
+
+`(1 2 3 `(4 5 ,(+ 6 7 8)))
+; expect (1 2 3 (quasiquote (4 5 (unquote (+ 6 7 8)))))
+
+`(1 2 3 `(4 5 unquote . (+ 6 7 8)))
+; expect (1 2 3 (quasiquote (4 5 unquote + 6 7 8)))
+
+(begin)
+; Error
+
+((lambda (x) (* x x)) 2)
+; expect 4
+
+(define x 6)
+((lambda (y) (print y) (* x y)) 2)
+; expect 12
+(define x 7)
+((lambda (y) (print y) (* x y)) 2)
+; expect 14
+(lambda (y))
+; expect Error
+(define (f x) (+ a b c))
+f
+; expect (lambda (x) (+ a b c))
+
+(define (f x) (define (g y) (+ x y)) g)
+g
+; expect Error
+(f 5)
+; expect (lambda (y) (+ x y))
+
+(and)
+; expect #t
+(or)
+; expect #f
+
+(and 1 2 3)
+; expect 3
+(and 1 2 false 4)
+; expect #f
+
+(or #f #f 5)
+; expect 5
+(or #f #f)
+; expect #f
+
+(and (print 5) (print 6) (print 7))
+; expect 5; 6; 7
+
+(or (print 5) (print 6) (print 7))
+; expect 5
+
+(cond ((+ 5 6)))
+; expect 11
+
+(cond (else))
+; expect #t
+
+(cond (else 5 6 7))
+; expect 7
+
+(cond ((else 5 6 7)))
+; expect Error
+
+(cond (#t (print "5")) (#t (print "6")) (else (print "7")))
+; expect "5"
+
+(cond (#f) ((print "5")) ((print "6")))
+; expect "5"
+
+(let
+    ((cat 1) (dog 2) (elephant 3))
+    (+ cat dog elephant))
+; expect 6
+
+elephant
+; expect Error
+
+(define cat 1)
+(let ((cat 2)) (+ 1 cat))
+; expect 3
+cat
+; returns 1
+
+(define cat 1)
+(let
+    ((cat 2) (dog (+ 1 cat)))
+    dog)
+; expect 2
+
+(define f
+    (mu (x)
+        (print x)
+        (if (> x 0)
+            (begin y (define y x) (f (- x 1)))
+            1)))
+(define y 5)
+(f y)
+; expect 5; 4; 3; 2; 1; 0; 1
+
+(define (tailcall x) (if (> x 0) (tailcall (- x 1)) (print "wow")))
+(tailcall 10000)
+; expect "wow"
+
+(define-macro (dotwice expr) (list 'begin expr expr))
+(dotwice (print 5))
+; expect 5; 5
+
+(define-macro (alwaysprint5 expr) (list print 5))
+(alwaysprint5 (print (/ 1 0)))
+; expect 5
+
 ; END PROBLEM 0
 
 ;;; These are examples from several sections of "The Structure
@@ -582,8 +912,6 @@ one-through-four
 ;;;;;;;;;;;;;;;;;;;;
 ;;; Extra credit ;;;
 ;;;;;;;;;;;;;;;;;;;;
-
-(exit)
 
 ; Tail call optimization tests
 

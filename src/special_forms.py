@@ -128,6 +128,8 @@ class Eval(Applicable):
         verify_exact_callable_length(self, 1, len(operands))
         if eval_operands:
             operand = evaluate(operands[0], frame, gui_holder.expression.children[1])
+        else:
+            operand = operands[0]
         gui_holder.expression.set_entries([VisualExpression(operand, gui_holder.expression.display_value)])
         gui_holder.apply()
         return evaluate(operand, frame, gui_holder.expression.children[0], True)
