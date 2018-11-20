@@ -1,3 +1,5 @@
+import sys
+
 from src.datamodel import Expression, Symbol, Number, Nil, SingletonTrue, SingletonFalse, String
 from src.helper import make_list
 from src.scheme_exceptions import ParseError
@@ -43,10 +45,10 @@ def get_expression(buffer: TokenBuffer) -> Expression:
         else:
             raise ParseError(f"Unexpected token: '{token}'")
     elif is_number(token):
-        intval = int(token)
-        if intval == round(intval):
-            return Number(intval)
-        else:
+        token = str(token)  # for okpy tests
+        try:
+            return Number(int(token))
+        except ValueError:
             return Number(float(token))
     elif token == "#t" or token.lower() == "true":
         return SingletonTrue

@@ -27,6 +27,8 @@ def scheme_eval(expr, env, _=None): # Optional third argument is ignored
     4
     """
 
+    print(expr, file=sys.stderr)
+
     if env.real_env is None:
         env.real_env = environment.build_global_frame()
     gui.logger.new_query(True, True, True, strict_mode=True)
@@ -34,7 +36,9 @@ def scheme_eval(expr, env, _=None): # Optional third argument is ignored
         expr = parser.get_expression(lexer.TokenBuffer([str(expr)]))
         out = evaluate_apply.evaluate(expr, env.real_env, gui.Holder(expr))
     except (ZeroDivisionError, scheme_exceptions.SchemeError) as e:
+        print("; expect SchemeError", "\n", file=sys.stderr)
         raise SchemeError(e)
+    print("; expect", out, "\n", file=sys.stderr)
     return out
 
 
