@@ -19,17 +19,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="../../../../favicon.ico">
+    <!-- <link rel="icon" href="../../../../favicon.ico"> -!>
 
     <title>Scheme-o-matic</title>
 
     <link href="https://fonts.googleapis.com/css?family=Anonymous+Pro" rel="stylesheet">
 
     <!-- Bootstrap core CSS -->
-    <link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet">
+    <link href="/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="{{ url_for('static', filename='starter-template.css') }}" rel="stylesheet">
+    <link href="/starter-template.css" rel="stylesheet">
 </head>
 
 <body>
@@ -103,13 +103,13 @@
         crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/2.6.6/svg.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.0/dist/svg-pan-zoom.js"></script>
-<script src="{{ url_for('static', filename='popper.min.js') }}"></script>
-<script src="{{ url_for('static', filename='bootstrap.min.js') }}"></script>
-<script src="{{ url_for('static', filename='ace/src-min-noconflict/ace.js') }}"></script>
-<script src="{{ url_for('static', filename='ace/src-min-noconflict/ext-language_tools.js') }}"></script>
+<script src="popper.min.js"></script>
+<script src="bootstrap.min.js"></script>
+<script src="ace/src-min-noconflict/ace.js"></script>
+<script src="ace/src-min-noconflict/ext-language_tools.js"></script>
 <script>
-    start_data = {{ start_data | safe }};
+    start_data = "<START_DATA>";
 </script>
-<script src="{{ url_for('static', filename='controller.js') }}"></script>
+<script src="/controller.js"></script>
 </body>
 </html>

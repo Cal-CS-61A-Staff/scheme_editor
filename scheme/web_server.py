@@ -39,8 +39,8 @@ def handle(code, skip_tree, skip_envs, hide_return_frames):
     gui.logger.setID(database.save(code, skip_tree, hide_return_frames))
     gui.logger.new_query(skip_tree, skip_envs, hide_return_frames)
     try:
-        execution.string_exec(code, gui.logger.out)
-        # limiter(3, execution.string_exec, code, gui.logger.out)
+        # execution.string_exec(code, gui.logger.out)
+        limiter(3, execution.string_exec, code, gui.logger.out)
     except SchemeError as e:
         gui.logger.out(e)
     except TimeLimitException:

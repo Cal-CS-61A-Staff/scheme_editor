@@ -79,22 +79,6 @@ $("#next_fast").click(function () {
     display(i);
 });
 
-$("#share_btn").click(function (e) {
-    console.log(e.target.childNodes[0]);
-    let selection = window.getSelection();
-    selection.removeAllRanges();
-    const el = document.createElement('textarea');
-    el.value = e.target.innerHTML;
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-});
-
-$(function () {
-    $('[data-toggle="tooltip"]').tooltip()
-});
-
 addRow(true);
 window.scrollTo(0, 0);
 
@@ -467,6 +451,7 @@ function submit() {
         skip_envs: !$("#show_envs").is(':checked'),
         hide_return_frames: hideReturnFrames
     }).done(function (data) {
+        data = $.parseJSON(data);
         i = 0;
         states = data["states"];
         environments = data["environments"];
@@ -486,8 +471,6 @@ function submit() {
         for (let j = 0; j !== editors.length; ++j) {
             $(`#output-${j}`).html(data["out"][j]);
         }
-        $("#share_btn").text("scheme.pythonanywhere.com/" + data["code"]).show();
-        window.history.replaceState(null, null, '/' + data["code"]);
     });
 }
 

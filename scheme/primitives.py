@@ -29,8 +29,8 @@ class SingleOperandPrimitive(BuiltIn):
 
 
 def load_primitives():
-    __import__("src.arithmetic")
-    __import__("src.lists")
-    __import__("src.type_checking")
-    __import__("src.console")
-    __import__("src.graphics")
+    __import__("scheme.arithmetic")
+    __import__("scheme.lists")
+    __import__("scheme.type_checking")
+    __import__("scheme.console")
+    __import__("scheme.graphics")
