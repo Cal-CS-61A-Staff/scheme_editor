@@ -1,0 +1,49 @@
+body {
+    padding-top: 5rem;
+}
+
+.container-fluid {
+    background-color: white;
+}
+
+.starter-template {
+    text-align: center;
+    padding: 3rem 1.5rem 0;
+}
+
+.code-row {
+  padding: 0;
+  text-align: center;
+}
+
+.editor {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.editor-wrapper {
+    border: solid gray;
+    padding: 5px;
+    font-family: Monaco, monospace;
+    font-size: 16px;
+    text-align: left;
+}
+
+#substitution_tree {
+    width: 100%;
+    border: solid gray;
+    padding: 0;
+}
+
+#environment_diagram {
+    width: 100%;
+    border: solid gray;
+    padding: 0;
+}
+
+#canvas {
+    border: solid gray;
+    padding: 0;
+}
