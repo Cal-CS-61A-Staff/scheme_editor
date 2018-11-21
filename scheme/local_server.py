@@ -12,6 +12,8 @@ from scheme.scheme_exceptions import SchemeError
 
 PORT = 8000
 
+file = None
+
 
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
@@ -33,18 +35,34 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if path[-4:] == ".css":
             self.send_header("Content-type", "text/css")
         self.end_headers()
+        code = [""]
         if path == "scheme/static/":
             path = "scheme/static/index.html"
+            if file is not None:
+                file.seek(0)
+                code = ["".join(file)]
+                print(code, file)
         try:
             with open(path, "rb") as f:  # lol better make sure that port is closed
-                self.wfile.write(f.read().replace(b"<START_DATA>", b"{}"))
+                self.wfile.write(f.read()
+                                 .replace(b"<START_DATA>",
+                                          bytes(repr(json.dumps({"code": code,
+                                                            "skip_tree": True,
+                                                            "hide_return_frames": True})),
+                                                "utf-8")))
         except Exception as e:
             print(e)
 
+    def log_message(self, *args, **kwargs):
+        pass
+
 
 def handle(code, skip_tree, skip_envs, hide_return_frames):
+    file.truncate(0)
+    file.seek(0)
+    file.write("\n".join(code))
+    file.flush()
     gui.logger.new_query(skip_tree, skip_envs, hide_return_frames)
-    print("cat")
     try:
         execution.string_exec(code, gui.logger.out)
         # limiter(3, execution.string_exec, code, gui.logger.out)
@@ -63,13 +81,17 @@ def handle(code, skip_tree, skip_envs, hide_return_frames):
 def exit_handler(signal, frame):
     print(" - Ctrl+C pressed")
     print("Shutting down server - all unsaved work will be lost")
+    file.close()
     sys.exit(0)
 
 
 signal.signal(signal.SIGINT, exit_handler)
 
 
-def start():
+def start(file_arg=None):
+    global file
+    file = file_arg
+    print(file)
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("localhost", PORT), Handler) as httpd:
         httpd.serve_forever()
