@@ -1,4 +1,5 @@
 import argparse
+import scheme.local_server as local_server
 
 parser = argparse.ArgumentParser(description="Rahul's Scheme IDE!")
 parser.add_argument("file",
@@ -11,4 +12,5 @@ parser.add_argument("-d", "--debug",
                     action="store_true")
 parser.add_argument("-t", "--terminal")
 args = parser.parse_args()
-print(args.file)
+
+local_server.start()
