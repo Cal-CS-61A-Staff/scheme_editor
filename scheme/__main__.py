@@ -3,9 +3,7 @@ import scheme.local_server as local_server
 
 parser = argparse.ArgumentParser(description="Rahul's Scheme IDE!")
 parser.add_argument("file",
-                    nargs="?",
-                    type=argparse.FileType('rw'),
-                    default=None,
+                    type=argparse.FileType('r+'),
                     help="Scheme file to open")
 parser.add_argument("-d", "--debug",
                     help="Enable debug mode",
@@ -13,4 +11,4 @@ parser.add_argument("-d", "--debug",
 parser.add_argument("-t", "--terminal")
 args = parser.parse_args()
 
-local_server.start()
+local_server.start(args.file)
