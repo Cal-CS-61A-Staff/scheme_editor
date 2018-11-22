@@ -31,7 +31,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(bytes(handle(code, skip_tree, skip_envs, hide_return_frames), "utf-8"))
         else:
             code = [x.decode("utf-8") for x in data[b"code[]"]]
-            print("thing")
             file.truncate(0)
             file.seek(0)
             file.write("\n".join(code))

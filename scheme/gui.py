@@ -19,7 +19,6 @@ class HolderState(Enum):
 
 class VisualExpression:
     def __init__(self, base_expr: Expression = None, true_base_expr: Expression = None):
-        self.children = None
         self.display_value = base_expr
         self.base_expr = base_expr if true_base_expr is None else true_base_expr
         self.value: Expression = None
@@ -189,7 +188,6 @@ class StateTree:
 
         if isinstance(expr, VisualExpression):
             self.base_str = repr(expr.base_expr)
-            # self.id = expr.id
         else:
             self.base_str = repr(expr)
         self.str = repr(expr)
@@ -201,7 +199,6 @@ class StateTree:
         return {
             "transition_type": self.transition_type.name,
             "str": self.str,
-            # "id": self.id,
             "parent_str": self.base_str,
             "children": [x.export() for x in self.children]
         }
