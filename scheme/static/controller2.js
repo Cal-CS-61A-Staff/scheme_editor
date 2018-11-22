@@ -44,9 +44,14 @@ myLayout.registerComponent('editor', function (container, componentState) {
     container.getElement().html(`
         <div class="content">
             <div class="header">        
-                <button type="button" class="btn btn-sm btn-success toolbar-btn run-btn">Run</button>
-                <button type="button" class="btn btn-sm btn-info toolbar-btn sub-btn">Subs</button>          
-                <button type="button" class="btn btn-sm btn-info toolbar-btn env-btn">Envs</button>          
+                <button type="button" class="btn-default save-btn" aria-label="Save">
+                    <span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>
+                    <span class="text"> Save </span>
+                </button>
+                <button type="button" class="btn-success toolbar-btn run-btn">Run</button>
+
+                <button type="button" class="btn-info toolbar-btn sub-btn">Subs</button>          
+                <button type="button" class="btn-info toolbar-btn env-btn">Envs</button>          
             </div>
             <div class="editor-wrapper">
                 <div class="editor"></div>
@@ -101,12 +106,33 @@ myLayout.registerComponent('editor', function (container, componentState) {
                     myLayout.root.contentItems[0].addChild(config)
                 }
 
+                states[componentState.id].index = 0;
+                $("*").trigger("reset");
+
                 $("*").trigger("update");
             });
         });
 
+        container.getElement().find(".save-btn").on("click", function (e) {
+            container.getElement().find(".save-btn > .text").text("Saving...");
+            let code = [editor.getValue()];
+            $.post("./save", {
+                code: code,
+            }).done(function (data) {
+                if (data === "success") {
+                    container.getElement().find(".save-btn > .text").text("Saved");
+                } else {
+                    alert("Save error - try copying code from editor to a file manually");
+                }
+            });
+        });
+
+        editor.getSession().on("change", function () {
+            container.getElement().find(".save-btn > .text").text("Save");
+        });
+
         container.getElement().find(".sub-btn").on("click", function () {
-            if (subs_open[componentState.id]) {
+            if (states[componentState.id].sub_open) {
 
             } else {
                 let config = {
@@ -143,7 +169,7 @@ myLayout.registerComponent('editor', function (container, componentState) {
 myLayout.registerComponent('output', function (container, componentState) {
     container.getElement().html('<div class="output"> [click Run to start!] </div>');
     container.getElement().find(".output").on("update", function (e) {
-        $(e.target).html(states[componentState.id].out);
+        container.getElement().find(".output").html(states[componentState.id].out);
     });
     container.on("destroy", function () {
         states[componentState.id].out_open = false;
@@ -152,9 +178,18 @@ myLayout.registerComponent('output', function (container, componentState) {
 
 myLayout.registerComponent('substitution_tree', function (container, componentState) {
     container.getElement().html(`
-    <div class="tree" id="cat">
-        <svg></svg>
-    </div>
+        <div class="content">
+            <div class="header">
+            <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-secondary prev">Prev</button>          
+                <button type="button" class="btn btn-sm btn-secondary next">Next</button>
+            </div>
+            </div>
+            <div class="tree" id="cat">
+                <svg></svg>
+            </div>
+        </div>
+
     `);
 
     let rawSVG = container.getElement().find(".tree > svg").get(0);
@@ -168,6 +203,16 @@ myLayout.registerComponent('substitution_tree', function (container, componentSt
         svg.clear();
         display_tree(states[componentState.id].states[states[componentState.id].index], svg, 10, 10, 0, [0]);
         svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
+        if (isNaN(zoom)) {
+            svgPanZoom(rawSVG).reset();
+        } else {
+            svgPanZoom(rawSVG).zoom(zoom);
+            svgPanZoom(rawSVG).pan(pan);
+        }
+    });
+
+    container.getElement().find(".tree").on("reset", function (e) {
+        svgPanZoom(rawSVG).reset();
     });
 
     container.on("resize", function () {
@@ -176,11 +221,27 @@ myLayout.registerComponent('substitution_tree', function (container, componentSt
         svgPanZoom(rawSVG).destroy();
         svg.size(container.width, container.height);
         svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
-
+        if (isNaN(zoom)) {
+            svgPanZoom(rawSVG).reset();
+        } else {
+            svgPanZoom(rawSVG).zoom(zoom);
+            svgPanZoom(rawSVG).pan(pan);
+        }
     });
 
     container.on("destroy", function () {
         states[componentState.id].sub_open = false;
+    });
+
+    container.getElement().find(".prev").click(function () {
+        states[componentState.id].index = Math.max(states[componentState.id].index - 1, 0);
+        $("*").trigger("update");
+    });
+
+    container.getElement().find(".next").click(function () {
+        states[componentState.id].index =
+            Math.min(states[componentState.id].index + 1, states[componentState.id].states.length - 1);
+        $("*").trigger("update");
     });
 });
 
@@ -202,6 +263,16 @@ myLayout.registerComponent('env_diagram', function (container, componentState) {
         svg.clear();
         display_env(states[componentState.id].environments, svg, states[componentState.id].index);
         svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
+        if (isNaN(zoom)) {
+            svgPanZoom(rawSVG).reset();
+        } else {
+            svgPanZoom(rawSVG).zoom(zoom);
+            svgPanZoom(rawSVG).pan(pan);
+        }
+    });
+
+    container.getElement().find(".envs").on("reset", function (e) {
+        svgPanZoom(rawSVG).reset();
     });
 
     container.on("resize", function () {
@@ -210,7 +281,12 @@ myLayout.registerComponent('env_diagram', function (container, componentState) {
         svgPanZoom(rawSVG).destroy();
         svg.size(container.width, container.height);
         svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
-
+        if (isNaN(zoom)) {
+            svgPanZoom(rawSVG).reset();
+        } else {
+            svgPanZoom(rawSVG).zoom(zoom);
+            svgPanZoom(rawSVG).pan(pan);
+        }
     });
 
     container.on("destroy", function () {
@@ -298,7 +374,6 @@ function display_tree(data, container, x, y, level, starts) {
     for (let child of data["children"]) {
         if (starts.length === level + 1) {
             starts.push([10]);
-            console.log(starts);
         }
         let parent_len = child["parent_str"].length * charWidth;
         container.line(x + xDelta + parent_len / 2, y + charHeight + 5,

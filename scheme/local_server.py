@@ -20,14 +20,26 @@ class Handler(http.server.BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])
         raw_data = self.rfile.read(content_length)
         data = urllib.parse.parse_qs(raw_data)
-        code = [x.decode("utf-8") for x in data[b"code[]"]]
-        skip_tree = data[b"skip_tree"] == b"true"
-        skip_envs = data[b"skip_envs"][0] == b"true"
-        hide_return_frames = data[b"hide_return_frames"][0] == b"true"
-        self.send_response(HTTPStatus.OK, 'test')
-        self.send_header("Content-type", "application/JSON")
-        self.end_headers()
-        self.wfile.write(bytes(handle(code, skip_tree, skip_envs, hide_return_frames), "utf-8"))
+        if urllib.parse.unquote(self.path) == "/process2":
+            code = [x.decode("utf-8") for x in data[b"code[]"]]
+            skip_tree = data[b"skip_tree"] == b"true"
+            skip_envs = data[b"skip_envs"][0] == b"true"
+            hide_return_frames = data[b"hide_return_frames"][0] == b"true"
+            self.send_response(HTTPStatus.OK, 'test')
+            self.send_header("Content-type", "application/JSON")
+            self.end_headers()
+            self.wfile.write(bytes(handle(code, skip_tree, skip_envs, hide_return_frames), "utf-8"))
+        else:
+            code = [x.decode("utf-8") for x in data[b"code[]"]]
+            print("thing")
+            file.truncate(0)
+            file.seek(0)
+            file.write("\n".join(code))
+            file.flush()
+            self.send_response(HTTPStatus.OK, 'test')
+            self.send_header("Content-type", "application/JSON")
+            self.end_headers()
+            self.wfile.write(bytes("success", "utf-8"))
 
     def do_GET(self):
         self.send_response(HTTPStatus.OK, 'test')

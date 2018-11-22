@@ -1,6 +1,6 @@
 .content {
     display: grid;
-    grid-template-rows: 31px;
+    grid-template-rows: 25px;
     min-height: 100%;
 }
 
