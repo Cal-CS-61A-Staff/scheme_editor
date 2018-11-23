@@ -73,7 +73,7 @@ def handle(code, skip_tree, skip_envs, hide_return_frames):
     file.seek(0)
     file.write("\n".join(code))
     file.flush()
-    gui.logger.new_query(skip_tree, skip_envs, hide_return_frames)
+    gui.logger.new_query()
     try:
         execution.string_exec(code, gui.logger.out)
         # limiter(3, execution.string_exec, code, gui.logger.out)

@@ -51,21 +51,15 @@ def string_exec(strings, out, global_frame=None):
         from scheme.environment import build_global_frame
         global_frame = build_global_frame()
 
-    skip_tree = gui.logger.skip_tree
-
     gui.logger._out = []
     for i, string in enumerate(strings):
-        if not skip_tree and i == len(strings) - 1:
-            gui.logger.skip_tree = False
-        else:
-            gui.logger.skip_tree = True
-        gui.logger.clear_diagram()
         if not string.strip():
             continue
         buff = TokenBuffer([string])
         while not buff.done:
+            gui.logger.clear_diagram()
             expr = get_expression(buff)
-            holder = Holder(expr)
+            holder = Holder(expr, None)
             Root.setroot(holder)
             res = evaluate(expr, global_frame, holder)
             if res is not Undefined:

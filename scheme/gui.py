@@ -39,7 +39,9 @@ class VisualExpression:
 
     def set_entries(self, expressions: List[Expression]):
         self.value = None
-        self.children = [Holder(expression) for expression in expressions]
+        self.children = [Holder(expression, self) for expression in expressions]
+        if expressions and isinstance(expressions[0], VisualExpression):
+            logger.node_cache[self.id].modify(self, HolderState.EVALUATING)
         return self
 
     def __repr__(self):
@@ -49,12 +51,15 @@ class VisualExpression:
 
 
 class Holder:
-    def __init__(self, expr: Expression):
-        self.expression = expr
+    def __init__(self, expr: Expression, parent: VisualExpression):
+        self.expression: Union[Expression, VisualExpression] = expr
         self.state = HolderState.UNEVALUATED
+        self.parent = parent
 
     def link_visual(self, expr: VisualExpression):
         self.expression = expr
+        if self.parent is not None:
+            logger.node_cache[self.parent.id].modify(self.parent, HolderState.EVALUATING)
         return expr
 
     def evaluate(self):
@@ -90,57 +95,37 @@ def print_announce(message, local, root):
 
 class Logger:
     def __init__(self):
-        self.states = None
         self._out = None
-        self.frames = None
-        self.frame_lookup = None
-        self.environments = None
-        self.environment_indices = None
-        self.skip_tree = None
-        self.code = None
-        self.hide_return_frames = False
-        self.frame_cnt = None
-        self.strict_mode = None
-        self.skip_envs = False
-
-        self.new_query(True, True, False)
+        self.i = 0
+        self.node_cache = {}
+        self.strict_mode = False
 
     def clear_diagram(self):
-        self.states = []
-        self._out.append([])
-        self.environment_indices = []
-        self.environments = []
-        self.frame_store(None, None, None)
+        self.node_cache = {}
+        self.i = 0
+        print()
 
-    def new_query(self, skip_tree, skip_envs, hide_return_frames, strict_mode=False):
-        self.frames = []
-        self.frame_lookup = {}
-        self._out = []
-        self.clear_diagram()
-        self._out = []
-        self.skip_tree = skip_tree
-        self.skip_envs = skip_envs
-        self.hide_return_frames = hide_return_frames
-        self.frame_cnt = 0
-        self.strict_mode = strict_mode
+    def new_query(self):
+        self.node_cache = {}
+        self.i = 0
 
-    def log(self, message, local, root):
-        if not self.skip_tree:
-            new_state = freeze_state(root)
-            self.states.append(new_state)
-            # print("saving state")
+    def log(self, message: str, local: Holder, root: Holder):
+        print(message, local, type(local.expression))
+        self.new_node(local.expression, local.state)
+        self.i += 1
 
     def export(self):
-        import scheme.graphics as graphics
-        return {"states": [state.export() for state in self.states],
-                "out": ["".join(x).strip() for x in self._out],
-                "environments": [*zip(self.environment_indices, self.environments)],
-                "code": self.code,
-                "graphics": graphics.canvas.export(),
-                }
-
-    def setID(self, code):
-        self.code = code
+        print("exporting...")
+        states = {i.hex: v.export() for i, v in self.node_cache.items()}
+        print("almost...")
+        return {
+            "root": Root.root.expression.id.hex,
+            "states": states,
+            "out": ["".join(x).strip() for x in self._out],
+            "environments": [],
+            "graphics": [],
+            "end": self.i
+        }
 
     def out(self, val, end="\n"):
         self.raw_out(repr(val) + end)
@@ -152,60 +137,85 @@ class Logger:
             print(val, end="")
 
     def frame_create(self, frame):
-        self.frame_lookup[frame] = len(self.frames)
-        frame.id = self.frame_cnt
-        self.frame_cnt += 1
-        self.frames.append(frame)
+        pass
 
     def frame_store(self, frame, name, value):
-        if self.skip_envs:
-            return
-        if self.states and self.environment_indices and self.environment_indices[-1] == len(self.states) - 1:
-            self.environments.pop()
-            self.environment_indices.pop()
-        self.environments.append([])
-        for frame in self.frames:
-            self.environments[-1].append(
-                [[frame.id, frame.parent.id if frame.parent is not None else "Global", frame.name],
-                 [[k, repr(v)] for k, v in frame.vars.items()]])
-        self.environment_indices.append(len(self.states) - 1)
-        if self.hide_return_frames:
-            self.frames = [f for f in self.frames if return_symbol.value not in f.vars]
-        if self.hide_return_frames and name is return_symbol.value:
-            self.frame_store(frame, None, None)
+        pass
+
+    def new_node(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
+        if isinstance(expr, Expression):
+            key = uuid4()
+            self.node_cache[key] = StaticNode(expr, transition_type)
+            return key
+        if expr.id in self.node_cache:
+            return self.node_cache[expr.id].modify(expr, transition_type)
+        print("new node")
+        node = FatNode(expr, transition_type)
+        self.node_cache[node.id] = node
+        return node.id
 
 
 print_delta = 0
 
 
-class StateTree:
-    def __init__(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
+class StaticNode:
+    def __init__(self, expr: Expression, transition_type: HolderState):
+        self.expr = expr
         self.transition_type = transition_type
-        self.children = []
-        if isinstance(expr, VisualExpression) and expr.value is None:
-            for child in expr.children:
-                self.children.append(StateTree(child.expression, child.state))
-
-        if isinstance(expr, VisualExpression):
-            self.base_str = repr(expr.base_expr)
-        else:
-            self.base_str = repr(expr)
-        self.str = repr(expr)
-
-    def __repr__(self):
-        return self.transition_type.name + " " + self.str + " " + repr(self.children)
 
     def export(self):
         return {
-            "transition_type": self.transition_type.name,
-            "str": self.str,
-            "parent_str": self.base_str,
-            "children": [x.export() for x in self.children]
+            "transitions": [(0, self.transition_type.name)],
+            "strs": [(0, repr(self.expr))],
+            "parent_strs": [(0, repr(self.expr))],
+            "children": [(0, [])],
+            "static": True
         }
 
 
-def freeze_state(state: Holder) -> StateTree:
-    return StateTree(state.expression, state.state)
+class FatNode:
+    def __init__(self, expr: VisualExpression, transition_type: HolderState=HolderState.UNEVALUATED):
+        self.transitions = []
+        self.str = []
+        self.base_str = []
+        self.children = []
+        self.id = expr.id
+        self.modify(expr, transition_type)
+
+    def modify(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
+        if not self.transitions or self.transitions[-1][1] != transition_type.name:
+            self.transitions.append((logger.i, transition_type.name))
+        if not self.str or self.str[-1][1] != repr(expr):
+            self.str.append((logger.i, repr(expr)))
+
+        if self.children and self.children[-1][0] == logger.i:
+            self.children.pop()
+
+        if isinstance(expr, VisualExpression) and expr.value is None:
+            print("Modifying children", expr.children)
+            self.children.append(
+                (logger.i,
+                 [logger.new_node(child.expression, child.state) for child in expr.children]))
+        else:
+            self.children.append((logger.i, []))
+
+        if isinstance(expr, VisualExpression):
+            new_base_str = repr(expr.base_expr)
+        else:
+            new_base_str = expr
+
+        if not self.base_str or self.base_str[-1][1] != new_base_str:
+            self.base_str.append((logger.i, new_base_str))
+
+        return self.id
+
+    def export(self):
+        return {
+            "transitions": self.transitions,
+            "strs": self.str,
+            "parent_strs": self.base_str,
+            "children": [(i, [x.hex for x in y]) for i, y in self.children]
+        }
 
 
 return_symbol = Symbol("Return Value")
