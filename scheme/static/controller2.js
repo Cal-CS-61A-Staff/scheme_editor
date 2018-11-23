@@ -9,7 +9,9 @@ let states = [
         sub_open: true,
         env_open: false,
         turtle_open: false,
-        out_open: true
+        out_open: true,
+
+        root: "demo"
     }
 ];
 
@@ -89,12 +91,15 @@ myLayout.registerComponent('editor', function (container, componentState) {
                 skip_envs: "false",
                 hide_return_frames: "false"
             }).done(function (data) {
+                console.log(data);
                 data = $.parseJSON(data);
                 i = 0;
                 states[componentState.id].states = data.states;
                 states[componentState.id].environments = data.environments;
                 states[componentState.id].moves = data.graphics;
                 states[componentState.id].out = data.out[0];
+                states[componentState.id].end = data.end;
+                states[componentState.id].root = data.root;
 
                 if (!states[componentState.id].out_open) {
                     let config = {
@@ -201,7 +206,7 @@ myLayout.registerComponent('substitution_tree', function (container, componentSt
         let pan = svgPanZoom(rawSVG).getPan();
         svgPanZoom(rawSVG).destroy();
         svg.clear();
-        display_tree(states[componentState.id].states[states[componentState.id].index], svg, 10, 10, 0, [0]);
+        display_tree(get_i(states[componentState.id].states, states[componentState.id].root, states[componentState.id].index), svg, 10, 10, 0, [0]);
         svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
         if (isNaN(zoom)) {
             svgPanZoom(rawSVG).reset();
@@ -240,7 +245,7 @@ myLayout.registerComponent('substitution_tree', function (container, componentSt
 
     container.getElement().find(".next").click(function () {
         states[componentState.id].index =
-            Math.min(states[componentState.id].index + 1, states[componentState.id].states.length - 1);
+            Math.min(states[componentState.id].index + 1, states[componentState.id].end - 1);
         $("*").trigger("update");
     });
 });
@@ -339,6 +344,36 @@ function display_env(environments, container, i) {
 
         curr_y += charHeight * (frame[1].length + 1) + 20;
     }
+}
+
+
+function get_i(all_data, curr, i) {
+    let labels = [
+        ["transitions", "transition_type"],
+        ["strs", "str"],
+        ["parent_strs", "parent_str"],
+    ];
+    let data = {};
+    for (let label of labels) {
+        for (let val of all_data[curr][label[0]]) {
+            if (val[0] > i) {
+                break;
+            }
+            data[label[1]] = val[1];
+        }
+    }
+
+    for (j = 0; j < all_data[curr]["children"].length - 1; ++j) {
+        if (all_data[curr]["children"][j + 1][0] > i) {
+            break;
+        }
+    }
+
+    data["children"] = [];
+    for (let child of all_data[curr]["children"][j][1]) {
+        data["children"].push(get_i(all_data, child, i));
+    }
+    return data;
 }
 
 function display_tree(data, container, x, y, level, starts) {

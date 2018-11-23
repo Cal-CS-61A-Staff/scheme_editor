@@ -66,8 +66,6 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder, tail_contex
     >>> __import__("gui").silent = False
     """
     while True:
-        if gui_holder is None:
-            gui_holder = gui.Holder(expr)  # dummy holder
         if isinstance(gui_holder.expression, Expression):
             visual_expression = gui.VisualExpression(expr)
             gui_holder.link_visual(visual_expression)
@@ -91,7 +89,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder, tail_contex
             gui_holder.complete()
             return out
         elif isinstance(expr, Pair):
-            if gui.logger.skip_tree and gui.logger.skip_envs and tail_context:
+            if gui.logger.strict_mode and tail_context:
                 return Thunk(expr, frame)
             gui_holder.evaluate()
             operator = expr.first
