@@ -1,8 +1,14 @@
-(define (fact n)
-    (if (= n 1)
-        1
-        (*
-            (fact (- n 1))
-            n)))
-        
-(fact 80)
+(define (pop lst index)
+    (define (helper left right index)
+        (cond
+            ((null? right) left)
+            ((> index 0)
+                (helper 
+                    (append left (list (car right)))
+                    (cdr right)
+                    (- index 1)))
+            (else
+                (append left (cdr right)))))
+    (helper nil lst index))
+
+(pop nil 8)
