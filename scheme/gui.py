@@ -95,7 +95,7 @@ def print_announce(message, local, root):
 
 class Logger:
     def __init__(self):
-        self._out = None
+        self._out = [[]]
         self.i = 0
         self.node_cache = {}
         self.strict_mode = False
@@ -103,14 +103,14 @@ class Logger:
     def clear_diagram(self):
         self.node_cache = {}
         self.i = 0
-        print()
+        self._out.append([])
 
     def new_query(self):
         self.node_cache = {}
         self.i = 0
+        self._out = []
 
     def log(self, message: str, local: Holder, root: Holder):
-        print(message, local, type(local.expression))
         self.new_node(local.expression, local.state)
         self.i += 1
 
@@ -121,7 +121,7 @@ class Logger:
         return {
             "root": Root.root.expression.id.hex,
             "states": states,
-            "out": ["".join(x).strip() for x in self._out],
+            "out": ["\n".join(["".join(x).strip() for x in self._out])],
             "environments": [],
             "graphics": [],
             "end": self.i
@@ -149,7 +149,6 @@ class Logger:
             return key
         if expr.id in self.node_cache:
             return self.node_cache[expr.id].modify(expr, transition_type)
-        print("new node")
         node = FatNode(expr, transition_type)
         self.node_cache[node.id] = node
         return node.id
@@ -192,7 +191,6 @@ class FatNode:
             self.children.pop()
 
         if isinstance(expr, VisualExpression) and expr.value is None:
-            print("Modifying children", expr.children)
             self.children.append(
                 (logger.i,
                  [logger.new_node(child.expression, child.state) for child in expr.children]))
