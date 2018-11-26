@@ -79,6 +79,7 @@ def handle(code, skip_tree, skip_envs, hide_return_frames):
         # limiter(3, execution.string_exec, code, gui.logger.out)
     except SchemeError as e:
         gui.logger.out(e)
+        raise e
     except TimeLimitException:
         gui.logger.out("Time limit exceeded. Try disabling the substitution visualizer (top checkbox) for increased "
                        "performance.")

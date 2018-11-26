@@ -3,7 +3,7 @@ from scheme.environment import global_attr
 from scheme.helper import pair_to_list
 from scheme.primitives import SingleOperandPrimitive
 from scheme.scheme_exceptions import OperandDeduceError
-from scheme.special_forms import LambdaObject, MuObject
+from scheme.special_forms import LambdaObject, MuObject, MacroObject
 
 
 @global_attr("atom?")
@@ -62,7 +62,9 @@ class IsPair(SingleOperandPrimitive):
 @global_attr("procedure?")
 class IsProcedure(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression):
-        return bools[isinstance(operand, LambdaObject) or isinstance(operand, MuObject)]
+        return bools[isinstance(operand, LambdaObject) or
+                     isinstance(operand, MuObject) or
+                     isinstance(operand, MacroObject)]
 
 
 @global_attr("string?")
