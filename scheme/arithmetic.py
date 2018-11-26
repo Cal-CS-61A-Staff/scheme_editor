@@ -76,7 +76,9 @@ class Quotient(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 2, len(operands))
         assert_all_numbers(operands)
-        return Number(operands[0].value // operands[1].value)
+        negate = (operands[0].value < 0) != (operands[1].value < 0)
+        negate = -1 if negate else 1
+        return Number(negate * operands[0].value // operands[1].value)
 
 
 @global_attr("remainder")

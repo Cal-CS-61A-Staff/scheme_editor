@@ -40,7 +40,7 @@ class VisualExpression:
     def set_entries(self, expressions: List[Expression]):
         self.value = None
         self.children = [Holder(expression, self) for expression in expressions]
-        if expressions and isinstance(expressions[0], VisualExpression):
+        if expressions and isinstance(expressions[0], VisualExpression) and False:
             logger.node_cache[self.id].modify(self, HolderState.EVALUATING)
         return self
 
@@ -58,7 +58,7 @@ class Holder:
 
     def link_visual(self, expr: VisualExpression):
         self.expression = expr
-        if self.parent is not None:
+        if self.parent is not None and False:
             logger.node_cache[self.parent.id].modify(self.parent, HolderState.EVALUATING)
         return expr
 
@@ -111,12 +111,13 @@ class Logger:
         self._out = []
 
     def log(self, message: str, local: Holder, root: Holder):
-        self.new_node(local.expression, local.state)
+        # self.new_node(local.expression, local.state)
         self.i += 1
 
     def export(self):
         print("exporting...")
-        states = {i.hex: v.export() for i, v in self.node_cache.items()}
+        # states = {i.hex: v.export() for i, v in self.node_cache.items()}
+        states = {}
         print("almost...")
         return {
             "root": Root.root.expression.id.hex,
