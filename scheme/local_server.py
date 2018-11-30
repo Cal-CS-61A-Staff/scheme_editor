@@ -20,7 +20,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])
         raw_data = self.rfile.read(content_length)
         data = urllib.parse.parse_qs(raw_data)
-        if urllib.parse.unquote(self.path) == "/process2":
+        path = urllib.parse.unquote(self.path)
+        if path == "/process2":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
             skip_tree = data[b"skip_tree"] == b"true"
             skip_envs = data[b"skip_envs"][0] == b"true"
@@ -29,7 +30,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
             self.wfile.write(bytes(handle(code, skip_tree, skip_envs, hide_return_frames), "utf-8"))
-        else:
+        elif path == "/code":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
             file.truncate(0)
             file.seek(0)
@@ -39,6 +40,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
             self.wfile.write(bytes("success", "utf-8"))
+        elif path == "/console":
+            ...
 
     def do_GET(self):
         self.send_response(HTTPStatus.OK, 'test')
@@ -102,7 +105,7 @@ signal.signal(signal.SIGINT, exit_handler)
 def start(file_arg=None):
     global file
     file = file_arg
-    print(file)
+    print(f"http://localhost:{PORT}")
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("localhost", PORT), Handler) as httpd:
         httpd.serve_forever()

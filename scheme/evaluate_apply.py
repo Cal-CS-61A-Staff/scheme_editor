@@ -89,7 +89,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder, tail_contex
             gui_holder.complete()
             return out
         elif isinstance(expr, Pair):
-            if tail_context:
+            if tail_context and False:
                 return Thunk(expr, frame)
             gui_holder.evaluate()
             operator = expr.first

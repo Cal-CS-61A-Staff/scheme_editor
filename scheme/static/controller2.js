@@ -172,13 +172,39 @@ myLayout.registerComponent('editor', function (container, componentState) {
 });
 
 myLayout.registerComponent('output', function (container, componentState) {
-    container.getElement().html('<div class="output"> [click Run to start!] </div>');
+    container.getElement().html(`
+<div class="output-wrapper">
+    <div class="output">
+    [click Run to start!]
+    </div>
+    <div class="console-wrapper">
+        <div class="console-input"></div>
+    </div>
+</div>
+`);
     container.getElement().find(".output").on("update", function (e) {
         container.getElement().find(".output").html(states[componentState.id].out);
     });
     container.on("destroy", function () {
         states[componentState.id].out_open = false;
-    })
+    });
+    let editorDiv;
+    let editor;
+    container.on("open", function () {
+        editorDiv = container.getElement().find(".console-input").get(0);
+        editor = ace.edit(editorDiv);
+        ace.config.set("packaged", true);
+        ace.config.set("basePath", "/ace");
+        editor.session.setMode("ace/mode/scheme");
+        editor.setOption("fontSize", 16);
+        editor.setOption("enableBasicAutocompletion", true);
+        editor.setOption("enableLiveAutocompletion", true);
+        editor.setOption("minLines", 1);
+        editor.setOption("maxLines", 1);
+        editor.renderer.setShowGutter(false);
+        editor.container.style.background = "white";
+        editor.focus();
+    });
 });
 
 myLayout.registerComponent('substitution_tree', function (container, componentState) {
