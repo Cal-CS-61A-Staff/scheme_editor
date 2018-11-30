@@ -20,4 +20,17 @@
     font-size: 16px;
     text-align: left;
     white-space: pre-line;
+    overflow-y: scroll;
+}
+
+.output-wrapper {
+    height: 100%;
+}
+
+.console-wrapper {
+    position: absolute;
+    height: 22px;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
