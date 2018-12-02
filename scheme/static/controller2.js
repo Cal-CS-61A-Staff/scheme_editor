@@ -4,7 +4,9 @@ let states = [
         environments: [],
         moves: [],
         out: "",
+        minIndex: 0,
         index: 0,
+        globalFrameID: -1,
 
         sub_open: true,
         env_open: false,
@@ -87,19 +89,18 @@ myLayout.registerComponent('editor', function (container, componentState) {
             let code = [editor.getValue()];
             $.post("./process2", {
                 code: code,
-                skip_tree: "false",
-                skip_envs: "false",
-                hide_return_frames: "false"
+                globalFrameID: -1,
             }).done(function (data) {
                 console.log(data);
                 data = $.parseJSON(data);
-                i = 0;
                 states[componentState.id].states = data.states;
                 states[componentState.id].environments = data.environments;
                 states[componentState.id].moves = data.graphics;
                 states[componentState.id].out = data.out[0];
+                states[componentState.id].start = data.start;
                 states[componentState.id].end = data.end;
                 states[componentState.id].root = data.root;
+                states[componentState.id].globalFrameID = data.globalFrameID;
 
                 if (!states[componentState.id].out_open) {
                     let config = {
@@ -111,7 +112,7 @@ myLayout.registerComponent('editor', function (container, componentState) {
                     myLayout.root.contentItems[0].addChild(config)
                 }
 
-                states[componentState.id].index = 0;
+                states[componentState.id].index = data.start;
                 $("*").trigger("reset");
 
                 $("*").trigger("update");
@@ -174,17 +175,19 @@ myLayout.registerComponent('editor', function (container, componentState) {
 myLayout.registerComponent('output', function (container, componentState) {
     container.getElement().html(`
 <div class="output-wrapper">
-    <div class="output">
-    [click Run to start!]
-    </div>
+    <div class="output">[click Run to start!]</div>
     <div class="console-wrapper">
         <div class="console-input"></div>
     </div>
 </div>
 `);
+
     container.getElement().find(".output").on("update", function (e) {
         container.getElement().find(".output").html(states[componentState.id].out);
+        editor.focus();
     });
+    container.getElement().on("click", function() { editor.focus(); });
+
     container.on("destroy", function () {
         states[componentState.id].out_open = false;
     });
@@ -201,9 +204,31 @@ myLayout.registerComponent('output', function (container, componentState) {
         editor.setOption("enableLiveAutocompletion", true);
         editor.setOption("minLines", 1);
         editor.setOption("maxLines", 1);
+        editor.setOption("highlightActiveLine", false);
         editor.renderer.setShowGutter(false);
         editor.container.style.background = "white";
-        editor.focus();
+
+        editor.getSession().on("change", function() {
+            let val = editor.getValue();
+            val = val.replace("\r", "");
+            let firstTerminator = val.indexOf("\n");
+            if (firstTerminator !== -1) {
+                editor.setReadOnly(true);
+                editor.setValue("");
+                $.post("./process2", {
+                    code: [val],
+                    globalFrameID: states[componentState.id].globalFrameID,
+                }).done(function (data) {
+                    // editor.setValue(val.slice(firstTerminator + 1));
+                    data = $.parseJSON(data);
+                    i = 0;
+                    states[componentState.id].out += "\n" + data.out[0];
+                    $("*").trigger("update");
+                    editor.setReadOnly(false);
+                    editor.focus();
+                });
+            }
+        });
     });
 });
 
@@ -265,7 +290,7 @@ myLayout.registerComponent('substitution_tree', function (container, componentSt
     });
 
     container.getElement().find(".prev").click(function () {
-        states[componentState.id].index = Math.max(states[componentState.id].index - 1, 0);
+        states[componentState.id].index = Math.max(states[componentState.id].index - 1, states[componentState.id].start);
         $("*").trigger("update");
     });
 
@@ -325,50 +350,34 @@ myLayout.registerComponent('env_diagram', function (container, componentState) {
     });
 });
 
-function get_curr_env(i, environments) {
-    let j;
-    for (j = 0; j !== environments.length; ++j) {
-        if (environments[j][0] >= i) {
-            break;
-        }
-    }
-    --j;
-    return j;
-}
-
 function display_env(environments, container, i) {
-    let j;
-    if (true) {  // TODO: displaying states or something?
-        j = get_curr_env(i, environments);
-    } else {
-        j = i;
-    }
     container.clear();
 
     let curr_y = 10;
 
-    for (let frame of environments[j][1].slice(1)) {
-        for (let i = 0; i !== 2; ++i) {
-            if (typeof frame[0][i] !== "string") {
-                console.log(frame[0][0]);
-                frame[0][i] = 'f' + frame[0][i];
-            }
-        }
-        let out = "Frame " + frame[0][0] + ": " + frame[0][2] + " [parent = " + frame[0][1] + "]\n";
+    for (let frame of environments) {
+        let out = "Frame " + frame.name + " [parent = " + frame.parent + "]\n";
         let maxlen = out.length;
-        for (let k = 0; k !== frame[1].length; ++k) {
-            let line = "   " + frame[1][k][0] + ": " + frame[1][k][1] + "\n";
+        let k;
+        for (k = 0; k !== frame["bindings"].length; ++k) {
+            if (frame["bindings"][k][0] > i) {
+                break;
+            }
+            let line = "   " + frame["bindings"][k][1][0] + ": " + frame["bindings"][k][1][1] + "\n";
             maxlen = Math.max(maxlen, line.length);
             out += line;
         }
+        if (k === 0) {
+            continue;
+        }
         let text = container.text(out).font("family", "Monaco, monospace").font("size", 16).dx(25).dy(curr_y);
-        let rect = container.rect(maxlen * charWidth + 10, charHeight * (frame[1].length + 1) + 10)
+        let rect = container.rect(maxlen * charWidth + 10, charHeight * (k + 1) + 10)
             .dx(15).dy(curr_y)
             .stroke({color: "#000000", width: 2})
             .fill({color: "#FFFFFF"})
             .radius(10).back();
 
-        curr_y += charHeight * (frame[1].length + 1) + 20;
+        curr_y += charHeight * (k + 1) + 20;
     }
 }
 

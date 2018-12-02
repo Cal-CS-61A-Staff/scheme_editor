@@ -43,7 +43,7 @@ def string_exec(strings, out, global_frame=None):
     #t
     >>> string_exec(["(begin (define (f b) (if (= b 0) 0 (+ 1 (f (- b 1))))) (f 3))"])
     3
-    """
+    """''
 
     from scheme import gui
 

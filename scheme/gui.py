@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum, auto
-from typing import List, Union
+from typing import List, Union, Dict
 from uuid import uuid4
 
 from scheme.datamodel import Expression, ValueHolder, Pair, Nil, Symbol, Undefined
@@ -97,18 +97,24 @@ class Logger:
     def __init__(self):
         self._out = [[]]
         self.i = 0
+        self.start = 0
         self.node_cache = {}
+        self.frame_lookup: Dict[int, StoredFrame] = {}
+        self.active_frames: List[StoredFrame] = []
         self.strict_mode = False
 
     def clear_diagram(self):
         self.node_cache = {}
-        self.i = 0
+        # self.i = 0
         self._out.append([])
+        self.start = self.i
 
     def new_query(self):
         self.node_cache = {}
         self.i = 0
+        self.start = 0
         self._out = []
+        self.active_frames = []
 
     def log(self, message: str, local: Holder, root: Holder):
         self.new_node(local.expression, local.state)
@@ -120,9 +126,11 @@ class Logger:
             "root": Root.root.expression.id.hex,
             "states": states,
             "out": ["\n".join(["".join(x).strip() for x in self._out])],
-            "environments": [],
+            "environments": [f.export() for f in self.active_frames[1:]],
             "graphics": [],
-            "end": self.i
+            "start": self.start,
+            "end": self.i,
+            "globalFrameID": id(self.active_frames[1].base)
         }
 
     def out(self, val, end="\n"):
@@ -134,11 +142,13 @@ class Logger:
         else:
             print(val, end="")
 
-    def frame_create(self, frame):
-        pass
+    def frame_create(self, frame: evaluate_apply.Frame):
+        self.frame_lookup[id(frame)] = stored = StoredFrame(len(self.active_frames), frame, frame.parent)
+        self.active_frames.append(stored)
+        frame.id = stored.name
 
-    def frame_store(self, frame, name, value):
-        pass
+    def frame_store(self, frame: evaluate_apply.Frame, name: str, value: Expression):
+        self.frame_lookup[id(frame)].bind(name, value)
 
     def new_node(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
         if isinstance(expr, Expression):
@@ -152,7 +162,24 @@ class Logger:
         return node.id
 
 
-print_delta = 0
+class StoredFrame:
+    def __init__(self, i, base: evaluate_apply.Frame, parent: evaluate_apply.Frame=None):
+        if i == 0:
+            name = "Builtins"
+        elif i == 1:
+            name = "Global"
+        else:
+            name = f"f{i}"
+        self.parent = parent
+        self.name = name
+        self.bindings = []
+        self.base = base
+
+    def bind(self, name: str, value: Expression):
+        self.bindings.append((logger.i, (name, str(value))))
+
+    def export(self):
+        return {"name": self.name, "parent": logger.frame_lookup[id(self.parent)].name, "bindings": self.bindings}
 
 
 class StaticNode:

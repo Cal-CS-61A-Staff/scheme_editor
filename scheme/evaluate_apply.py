@@ -14,7 +14,7 @@ class Frame:
         self.parent = parent
         self.name = name
         self.vars: Dict[str, Expression] = {}
-        self.id = "unknown (error)"
+        self.id = "unknown - an error has occurred"
         gui.logger.frame_create(self)
 
     def assign(self, varname: Symbol, varval: Expression):
