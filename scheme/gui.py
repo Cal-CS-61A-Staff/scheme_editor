@@ -143,7 +143,7 @@ class Logger:
             print(val, end="")
 
     def frame_create(self, frame: evaluate_apply.Frame):
-        self.frame_lookup[id(frame)] = stored = StoredFrame(len(self.active_frames), frame, frame.parent)
+        self.frame_lookup[id(frame)] = stored = StoredFrame(len(self.active_frames), frame)
         self.active_frames.append(stored)
         frame.id = stored.name
 
@@ -163,15 +163,16 @@ class Logger:
 
 
 class StoredFrame:
-    def __init__(self, i, base: evaluate_apply.Frame, parent: evaluate_apply.Frame=None):
+    def __init__(self, i, base: evaluate_apply.Frame):
         if i == 0:
             name = "Builtins"
         elif i == 1:
             name = "Global"
         else:
             name = f"f{i}"
-        self.parent = parent
         self.name = name
+        self.label = base.name
+        self.parent = base.parent
         self.bindings = []
         self.base = base
 
@@ -179,7 +180,10 @@ class StoredFrame:
         self.bindings.append((logger.i, (name, str(value))))
 
     def export(self):
-        return {"name": self.name, "parent": logger.frame_lookup[id(self.parent)].name, "bindings": self.bindings}
+        return {"name": self.name,
+                "label": self.label,
+                "parent": logger.frame_lookup[id(self.parent)].name,
+                "bindings": self.bindings}
 
 
 class StaticNode:

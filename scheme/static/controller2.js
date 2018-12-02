@@ -8,10 +8,10 @@ let states = [
         index: 0,
         globalFrameID: -1,
 
-        sub_open: true,
+        sub_open: false,
         env_open: false,
         turtle_open: false,
-        out_open: true,
+        out_open: false,
 
         root: "demo"
     }
@@ -27,22 +27,17 @@ let config = {
             type: 'component',
             componentName: 'editor',
             componentState: {id: 0}
-        }, {
-            type: 'column',
-            content: [{
-                type: 'component',
-                componentName: 'output',
-                componentState: {id: 0}
-            }, {
-                type: 'component',
-                componentName: 'substitution_tree',
-                componentState: {id: 0}
-            }]
         }]
     }]
 };
 
-let myLayout = new GoldenLayout(config);
+let myLayout;
+savedLayout = localStorage.getItem('savedLayout');
+if (savedLayout !== null) {
+    myLayout = new GoldenLayout(JSON.parse(savedLayout));
+} else {
+    myLayout = new GoldenLayout(config);
+}
 
 myLayout.registerComponent('editor', function (container, componentState) {
     container.getElement().html(`
@@ -121,6 +116,11 @@ myLayout.registerComponent('editor', function (container, componentState) {
 
         container.getElement().find(".save-btn").on("click", function (e) {
             container.getElement().find(".save-btn > .text").text("Saving...");
+
+            localStorage.setItem('savedLayout', JSON.stringify(myLayout.toConfig()));
+
+            localStorage.setItem('savedState', JSON.stringify(states));
+
             let code = [editor.getValue()];
             $.post("./save", {
                 code: code,
@@ -154,19 +154,19 @@ myLayout.registerComponent('editor', function (container, componentState) {
         });
 
         container.getElement().find(".env-btn").on("click", function () {
-        if (states[componentState.id].env_open) {
+            if (states[componentState.id].env_open) {
 
-        } else {
-            let config = {
-                type: "component",
-                componentName: "env_diagram",
-                componentState: {id: componentState.id}
-            };
-            states[componentState.id].sub_open = true;
-            myLayout.root.contentItems[0].addChild(config)
-        }
+            } else {
+                let config = {
+                    type: "component",
+                    componentName: "env_diagram",
+                    componentState: {id: componentState.id}
+                };
+                states[componentState.id].env_open = true;
+                myLayout.root.contentItems[0].addChild(config)
+            }
 
-        $("*").trigger("update");
+            $("*").trigger("update");
         })
     });
 
@@ -182,11 +182,16 @@ myLayout.registerComponent('output', function (container, componentState) {
 </div>
 `);
 
+    let preview = "";
+
     container.getElement().find(".output").on("update", function (e) {
-        container.getElement().find(".output").html(states[componentState.id].out);
+        container.getElement().find(".output").html(states[componentState.id].out + "\n" + preview);
+        editor.focus();
+        container.getElement().find(".output").scrollTop(container.getElement().find(".output")[0].scrollHeight);
+    });
+    container.getElement().on("click", function () {
         editor.focus();
     });
-    container.getElement().on("click", function() { editor.focus(); });
 
     container.on("destroy", function () {
         states[componentState.id].out_open = false;
@@ -205,16 +210,31 @@ myLayout.registerComponent('output', function (container, componentState) {
         editor.setOption("minLines", 1);
         editor.setOption("maxLines", 1);
         editor.setOption("highlightActiveLine", false);
-        editor.renderer.setShowGutter(false);
         editor.container.style.background = "white";
+        editor.session.gutterRenderer =  {
+            getWidth: function(session, lastLineNumber, config) {
+                return 3 * config.characterWidth;
+            },
+            getText: function(session, row) {
+                return "scm> ";
+            }
+        };
 
-        editor.getSession().on("change", function() {
+        editor.getSession().on("change", function () {
             let val = editor.getValue();
             val = val.replace("\r", "");
             let firstTerminator = val.indexOf("\n");
             if (firstTerminator !== -1) {
+                val = val.replace("\n", "");
                 editor.setReadOnly(true);
-                editor.setValue("");
+                editor.setReadOnly(false);
+                editor.setValue("", 0);
+                editor.focus();
+                setTimeout(function () {
+                    editor.setValue("", 0);
+                }, 10);
+                states[componentState.id].out += "\nscm> " + val;
+                $("*").trigger("update");
                 $.post("./process2", {
                     code: [val],
                     globalFrameID: states[componentState.id].globalFrameID,
@@ -224,9 +244,9 @@ myLayout.registerComponent('output', function (container, componentState) {
                     i = 0;
                     states[componentState.id].out += "\n" + data.out[0];
                     $("*").trigger("update");
-                    editor.setReadOnly(false);
-                    editor.focus();
                 });
+            } else {
+
             }
         });
     });
@@ -356,7 +376,7 @@ function display_env(environments, container, i) {
     let curr_y = 10;
 
     for (let frame of environments) {
-        let out = "Frame " + frame.name + " [parent = " + frame.parent + "]\n";
+        let out = "Frame " + frame.name + ": " + frame.label + " [parent = " + frame.parent + "]\n";
         let maxlen = out.length;
         let k;
         for (k = 0; k !== frame["bindings"].length; ++k) {
@@ -437,10 +457,11 @@ function display_tree(data, container, x, y, level, starts) {
     let parent = container.text(data["str"]).font("family", "Monaco, monospace").font("size", 16).dx(x).dy(y);
     let xDelta = charWidth;
 
-    charWidth = parent.length() / data["str"].length;
+    if (parent.length() !== 0) {
+        charWidth = parent.length() / data["str"].length;
+    }
 
-    starts[level] = x + parent.length() + charWidth;
-
+    starts[level] = x + charWidth * (data["str"].length + 1);
     for (let child of data["children"]) {
         if (starts.length === level + 1) {
             starts.push([10]);
@@ -456,3 +477,8 @@ function display_tree(data, container, x, y, level, starts) {
 }
 
 myLayout.init();
+savedState = localStorage.getItem("savedState");
+if (savedState !== null) {
+    states = JSON.parse(savedState);
+    $("*").trigger("update");
+}
