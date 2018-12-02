@@ -23,14 +23,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
         path = urllib.parse.unquote(self.path)
         if path == "/process2":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
-            skip_tree = data[b"skip_tree"] == b"true"
-            skip_envs = data[b"skip_envs"][0] == b"true"
-            hide_return_frames = data[b"hide_return_frames"][0] == b"true"
+            global_frame_id = int(data[b"globalFrameID"][0])
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
-            self.wfile.write(bytes(handle(code, skip_tree, skip_envs, hide_return_frames), "utf-8"))
-        elif path == "/code":
+            self.wfile.write(bytes(handle(code, global_frame_id), "utf-8"))
+        elif path == "/save":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
             file.truncate(0)
             file.seek(0)
@@ -71,14 +69,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
         pass
 
 
-def handle(code, skip_tree, skip_envs, hide_return_frames):
-    file.truncate(0)
-    file.seek(0)
-    file.write("\n".join(code))
-    file.flush()
-    gui.logger.new_query()
+def handle(code, global_frame_id):
+    # file.truncate(0)
+    # file.seek(0)
+    # file.write("\n".join(code))
+    # file.flush()
     try:
-        execution.string_exec(code, gui.logger.out)
+        if global_frame_id == -1:
+            gui.logger.new_query()
+            execution.string_exec(code, gui.logger.out)
+        else:
+            gui.logger.clear_diagram()
+            execution.string_exec(code, gui.logger.out, gui.logger.frame_lookup[global_frame_id].base)
         # limiter(3, execution.string_exec, code, gui.logger.out)
     except SchemeError as e:
         gui.logger.out(e)
