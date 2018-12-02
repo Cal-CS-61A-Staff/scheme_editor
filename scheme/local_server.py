@@ -38,7 +38,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
             self.wfile.write(bytes("success", "utf-8"))
-        elif path == "/console":
+        elif path == "/instant":
             ...
 
     def do_GET(self):

@@ -23,7 +23,7 @@
     overflow-y: scroll;
     overflow-x: hidden;
     word-wrap: normal;
-    height: 900%;
+    height: calc(100% - 27px);
     background: white;
 }
 
@@ -33,8 +33,9 @@
 
 .console-wrapper {
     position: absolute;
-    height: 10%;
-    bottom: 0;
+    height: 27px;
+    bottom: 0px;
     left: 0;
-    right: 0;
+    right: 1em;
+    border-top: solid medium black;
 }
