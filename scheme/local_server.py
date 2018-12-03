@@ -7,7 +7,7 @@ import urllib.parse
 from http import HTTPStatus
 
 from scheme import execution, gui
-from scheme.runtime_limiter import TimeLimitException
+from scheme.runtime_limiter import TimeLimitException, limiter
 from scheme.scheme_exceptions import SchemeError
 
 PORT = 8000
@@ -21,6 +21,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         raw_data = self.rfile.read(content_length)
         data = urllib.parse.parse_qs(raw_data)
         path = urllib.parse.unquote(self.path)
+        if b"code[]" not in data:
+            data[b"code[]"] = [b""]
         if path == "/process2":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
             global_frame_id = int(data[b"globalFrameID"][0])
@@ -39,7 +41,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(bytes("success", "utf-8"))
         elif path == "/instant":
-            ...
+            code = [x.decode("utf-8") for x in data[b"code[]"]]
+            global_frame_id = int(data[b"globalFrameID"][0])
+            self.send_response(HTTPStatus.OK, 'test')
+            self.send_header("Content-type", "application/JSON")
+            self.end_headers()
+            self.wfile.write(bytes(instant(code, global_frame_id), "utf-8"))
 
     def do_GET(self):
         self.send_response(HTTPStatus.OK, 'test')
@@ -82,7 +89,7 @@ def handle(code, global_frame_id):
             gui.logger.clear_diagram()
             execution.string_exec(code, gui.logger.out, gui.logger.frame_lookup[global_frame_id].base)
         # limiter(3, execution.string_exec, code, gui.logger.out)
-    except SchemeError as e:
+    except (SchemeError, ZeroDivisionError) as e:
         gui.logger.out(e)
     except TimeLimitException:
         gui.logger.out("Time limit exceeded. Try disabling the substitution visualizer (top checkbox) for increased "
@@ -92,6 +99,22 @@ def handle(code, global_frame_id):
 
     out = gui.logger.export()
     return json.dumps(out)
+
+
+def instant(code, global_frame_id):
+    gui.logger.clear_diagram()
+    try:
+        gui.logger.preview_mode(True)
+        limiter(0.1, execution.string_exec, code, gui.logger.out, gui.logger.frame_lookup[global_frame_id].base)
+    except (SchemeError, ZeroDivisionError) as e:
+        gui.logger.out(e)
+    except TimeLimitException:
+        pass
+    except Exception as e:
+        raise
+    finally:
+        gui.logger.preview_mode(False)
+    return json.dumps({"success": True, "content": gui.logger.export()["out"]})
 
 
 def exit_handler(signal, frame):

@@ -17,8 +17,30 @@ let states = [
     }
 ];
 
-let charHeight = 32 * 2 / 3;
-let charWidth = 14.4 * 2 / 3;
+function getDims(parentElement) {
+    parentElement = parentElement || document.body;
+    let div = document.createElement('div');
+    div.style.width = "1000em";
+    $(div).css("white-space", "pre-line");
+    $(div).css("font-family", "Monaco, monospace");
+    $(div).css("font-size", "16px");
+
+    div.innerHTML = "x\n".repeat(1000);
+    parentElement.appendChild(div);
+    let w = div.offsetWidth / 1000;
+    let h = div.offsetHeight / 1000;
+    parentElement.removeChild(div);
+    return [w, h];
+}
+
+function countLines(elem) {
+   let divHeight = elem.offsetHeight;
+   let lineHeight = parseInt(elem.style.lineHeight);
+   return divHeight / lineHeight;
+}
+
+let charHeight = getDims()[1];
+let charWidth = getDims()[0];
 
 let config = {
     content: [{
@@ -68,6 +90,7 @@ myLayout.registerComponent('editor', function (container, componentState) {
         editor.setOption("fontSize", 16);
         editor.setOption("enableBasicAutocompletion", true);
         editor.setOption("enableLiveAutocompletion", true);
+        editor.getSession().setUseSoftTabs(true);
         editor.container.style.background = "white";
         editor.focus();
 
@@ -188,6 +211,9 @@ myLayout.registerComponent('output', function (container, componentState) {
         container.getElement().find(".output").html(states[componentState.id].out + "\n" + preview);
         editor.focus();
         container.getElement().find(".output").scrollTop(container.getElement().find(".output")[0].scrollHeight);
+        let lines = states[componentState.id].out.split("\n").length;
+        container.getElement().find(".console-wrapper").css("top",
+            Math.min(5 + lines * charHeight, container.getElement().height()));
     });
     container.getElement().on("click", function () {
         editor.focus();
@@ -222,10 +248,10 @@ myLayout.registerComponent('output', function (container, componentState) {
 
         editor.getSession().on("change", function () {
             let val = editor.getValue();
-            val = val.replace("\r", "");
+            val = val.replace(/\r/g, "");
             let firstTerminator = val.indexOf("\n");
             if (firstTerminator !== -1) {
-                val = val.replace("\n", "");
+                val = val.trim();
                 editor.setReadOnly(true);
                 editor.setReadOnly(false);
                 editor.setValue("", 0);
@@ -233,6 +259,7 @@ myLayout.registerComponent('output', function (container, componentState) {
                 setTimeout(function () {
                     editor.setValue("", 0);
                 }, 10);
+                val = val.replace(/\n/g, "");
                 states[componentState.id].out += "\nscm> " + val;
                 $("*").trigger("update");
                 $.post("./process2", {
@@ -242,11 +269,24 @@ myLayout.registerComponent('output', function (container, componentState) {
                     // editor.setValue(val.slice(firstTerminator + 1));
                     data = $.parseJSON(data);
                     i = 0;
-                    states[componentState.id].out += "\n" + data.out[0];
+                    if (data.out[0].trim() !== "") {
+                        states[componentState.id].out += "\n" + data.out[0];
+                    }
                     $("*").trigger("update");
                 });
             } else {
-
+                $.post("./instant", {
+                    code: [editor.getValue()],
+                    globalFrameID: states[componentState.id].globalFrameID,
+                }).done(function (data) {
+                    data = $.parseJSON(data);
+                    if (data.success) {
+                        preview = "scm> " + editor.getValue() + "\n" + data.content;
+                    } else {
+                        preview = "";
+                    }
+                    $("*").trigger("update");
+                })
             }
         });
     });
@@ -400,7 +440,6 @@ function display_env(environments, container, i) {
         curr_y += charHeight * (k + 1) + 20;
     }
 }
-
 
 function get_i(all_data, curr, i) {
     let labels = [

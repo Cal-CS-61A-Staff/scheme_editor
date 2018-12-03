@@ -102,6 +102,7 @@ class Logger:
         self.frame_lookup: Dict[int, StoredFrame] = {}
         self.active_frames: List[StoredFrame] = []
         self.strict_mode = False
+        self.fragile = False
 
     def clear_diagram(self):
         self.node_cache = {}
@@ -115,6 +116,9 @@ class Logger:
         self.start = 0
         self._out = []
         self.active_frames = []
+
+    def preview_mode(self, val):
+        self.fragile = val
 
     def log(self, message: str, local: Holder, root: Holder):
         self.new_node(local.expression, local.state)

@@ -23,19 +23,21 @@
     overflow-y: scroll;
     overflow-x: hidden;
     word-wrap: normal;
-    height: calc(100% - 27px);
+    height: 100%;
     background: white;
 }
 
 .output-wrapper {
     height: 100%;
+    position: absolute;
+    width: 100%;
+    bottom: 0;
 }
 
 .console-wrapper {
     position: absolute;
     height: 27px;
-    bottom: 0px;
     left: 0;
     right: 1em;
-    border-top: solid medium black;
+    /*border-top: solid medium black;*/
 }
