@@ -56,9 +56,9 @@ let config = {
 let myLayout;
 savedLayout = localStorage.getItem('savedLayout');
 if (savedLayout !== null) {
-    myLayout = new GoldenLayout(JSON.parse(savedLayout));
+    myLayout = new GoldenLayout(JSON.parse(savedLayout), $("#body"));
 } else {
-    myLayout = new GoldenLayout(config);
+    myLayout = new GoldenLayout(config, $("#body"));
 }
 
 myLayout.registerComponent('editor', function (container, componentState) {
@@ -90,9 +90,14 @@ myLayout.registerComponent('editor', function (container, componentState) {
         editor.setOption("fontSize", 16);
         editor.setOption("enableBasicAutocompletion", true);
         editor.setOption("enableLiveAutocompletion", true);
+        editor.setAutoScrollEditorIntoView(true);
         editor.getSession().setUseSoftTabs(true);
         editor.container.style.background = "white";
         editor.focus();
+
+        container.on("resize", function () {
+            editor.resize();
+        });
 
         let decoded = $.parseJSON(start_data);
         if (componentState.id !== 0 || $.isEmptyObject(decoded)) {
@@ -192,7 +197,6 @@ myLayout.registerComponent('editor', function (container, componentState) {
             $("*").trigger("update");
         })
     });
-
 });
 
 myLayout.registerComponent('output', function (container, componentState) {
@@ -519,6 +523,11 @@ function display_tree(data, container, x, y, level, starts) {
 }
 
 myLayout.init();
+
+$(window).resize(function () {
+    myLayout.updateSize($("#body").width(), $("#body").height());
+});
+
 savedState = localStorage.getItem("savedState");
 if (savedState !== null) {
     states = JSON.parse(savedState);
