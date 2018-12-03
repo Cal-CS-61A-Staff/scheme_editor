@@ -1,6 +1,7 @@
 (define (factorial n)
     (if (= n 1) 1
-        (let ((ans (factorial (- n 1))))
-            (* n ans))))
+        (* n (factorial (- n 1)))))
     
 (factorial 2)
+
+(/ 0 0)

@@ -5,7 +5,7 @@ from typing import Dict, List, Union
 
 from scheme.datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean, String
 from scheme import gui
-from scheme.scheme_exceptions import SymbolLookupError, CallableResolutionError
+from scheme.scheme_exceptions import SymbolLookupError, CallableResolutionError, IrreversibleOperationError
 from scheme.helper import pair_to_list
 
 
@@ -15,9 +15,12 @@ class Frame:
         self.name = name
         self.vars: Dict[str, Expression] = {}
         self.id = "unknown - an error has occurred"
+        self.temp = gui.logger.fragile
         gui.logger.frame_create(self)
 
     def assign(self, varname: Symbol, varval: Expression):
+        if gui.logger.fragile and not self.temp:
+            raise IrreversibleOperationError()
         self.vars[varname.value] = varval
         gui.logger.frame_store(self, varname.value, varval)
 

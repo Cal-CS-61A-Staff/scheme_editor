@@ -22,3 +22,6 @@ class ComparisonError(SchemeError): pass
 
 
 class TypeMismatchError(SchemeError): pass
+
+
+class IrreversibleOperationError(SchemeError): pass
