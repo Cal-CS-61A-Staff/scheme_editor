@@ -198,22 +198,25 @@ myLayout.registerComponent('editor', function (container, componentState) {
 myLayout.registerComponent('output', function (container, componentState) {
     container.getElement().html(`
 <div class="output-wrapper">
-    <div class="output">[click Run to start!]</div>
+    <div class="output-holder">
+        <div class="output">[click Run to start!]</div>
+    </div>
     <div class="console-wrapper">
         <div class="console-input"></div>
     </div>
+    <div class="preview"></div>
 </div>
 `);
 
     let preview = "";
 
     container.getElement().find(".output").on("update", function (e) {
-        container.getElement().find(".output").html(states[componentState.id].out + "\n" + preview);
+        container.getElement().find(".output").html(states[componentState.id].out);
+        container.getElement().find(".preview").html(preview);
         editor.focus();
-        container.getElement().find(".output").scrollTop(container.getElement().find(".output")[0].scrollHeight);
+        container.getElement().find(".output-wrapper").scrollTop(
+            container.getElement().find(".output-wrapper")[0].scrollHeight);
         let lines = states[componentState.id].out.split("\n").length;
-        container.getElement().find(".console-wrapper").css("top",
-            Math.min(5 + lines * charHeight, container.getElement().height()));
     });
     container.getElement().on("click", function () {
         editor.focus();
@@ -281,7 +284,7 @@ myLayout.registerComponent('output', function (container, componentState) {
                 }).done(function (data) {
                     data = $.parseJSON(data);
                     if (data.success) {
-                        preview = "scm> " + editor.getValue() + "\n" + data.content;
+                        preview = "<i>" + data.content + "</i>";
                     } else {
                         preview = "";
                     }

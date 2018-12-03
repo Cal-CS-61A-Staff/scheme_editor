@@ -14,29 +14,31 @@
     float: right;
 }
 
-.output {
-    padding: 5px;
+.output, .preview {
+    padding: 0 5px;
     font-family: Monaco, monospace;
     font-size: 16px;
     text-align: left;
     white-space: pre-line;
-    overflow-y: scroll;
-    overflow-x: hidden;
     word-wrap: normal;
-    height: 100%;
-    background: white;
 }
 
-.output-wrapper {
+.preview {
+    min-height: 100px;
+}
+
+.output-wrapper{
+    padding-top: 5px;
     height: 100%;
     position: absolute;
     width: 100%;
     bottom: 0;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    background: white;
 }
 
 .console-wrapper {
-    position: absolute;
-    height: 27px;
     left: 0;
     right: 1em;
     /*border-top: solid medium black;*/
