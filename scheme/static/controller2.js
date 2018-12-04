@@ -4,8 +4,14 @@ let states = [
         environments: [],
         moves: [],
         out: "",
-        minIndex: 0,
+
         index: 0,
+        expr_i: 0,
+
+        start: 0,
+        end: 0,
+        roots: ["demo"],
+
         globalFrameID: -1,
 
         sub_open: false,
@@ -13,7 +19,6 @@ let states = [
         turtle_open: false,
         out_open: false,
 
-        root: "demo"
     }
 ];
 
@@ -34,9 +39,9 @@ function getDims(parentElement) {
 }
 
 function countLines(elem) {
-   let divHeight = elem.offsetHeight;
-   let lineHeight = parseInt(elem.style.lineHeight);
-   return divHeight / lineHeight;
+    let divHeight = elem.offsetHeight;
+    let lineHeight = parseInt(elem.style.lineHeight);
+    return divHeight / lineHeight;
 }
 
 let charHeight = getDims()[1];
@@ -59,6 +64,11 @@ if (savedLayout !== null) {
     myLayout = new GoldenLayout(JSON.parse(savedLayout), $("#body"));
 } else {
     myLayout = new GoldenLayout(config, $("#body"));
+}
+
+savedState = localStorage.getItem("savedState");
+if (savedState !== null) {
+    states = JSON.parse(savedState);
 }
 
 $(window).resize(function () {
@@ -125,9 +135,11 @@ myLayout.registerComponent('editor', function (container, componentState) {
                 states[componentState.id].environments = data.environments;
                 states[componentState.id].moves = data.graphics;
                 states[componentState.id].out = data.out[0];
-                states[componentState.id].start = data.start;
-                states[componentState.id].end = data.end;
-                states[componentState.id].root = data.root;
+                states[componentState.id].start = data.states[0][0];
+                states[componentState.id].end = data.states[0][1];
+                states[componentState.id].index = data.states[0][0];
+                states[componentState.id].expr_i = 0;
+                states[componentState.id].roots = data.roots;
                 states[componentState.id].globalFrameID = data.globalFrameID;
 
                 if (!states[componentState.id].out_open) {
@@ -140,7 +152,6 @@ myLayout.registerComponent('editor', function (container, componentState) {
                     myLayout.root.contentItems[0].addChild(config)
                 }
 
-                states[componentState.id].index = data.start;
                 $("*").trigger("reset");
 
                 $("*").trigger("update");
@@ -234,12 +245,11 @@ myLayout.registerComponent('output', function (container, componentState) {
     let preview = "";
 
     container.getElement().find(".output").on("update", function (e) {
-        container.getElement().find(".output").html(states[componentState.id].out);
+        container.getElement().find(".output").html(states[componentState.id].out.trim());
         container.getElement().find(".preview").html(preview);
         editor.focus();
         container.getElement().find(".output-wrapper").scrollTop(
             container.getElement().find(".output-wrapper")[0].scrollHeight);
-        let lines = states[componentState.id].out.split("\n").length;
     });
     container.getElement().on("click", function () {
         editor.focus();
@@ -263,14 +273,18 @@ myLayout.registerComponent('output', function (container, componentState) {
         editor.setOption("maxLines", 1);
         editor.setOption("highlightActiveLine", false);
         editor.container.style.background = "white";
-        editor.session.gutterRenderer =  {
-            getWidth: function(session, lastLineNumber, config) {
+        editor.session.gutterRenderer = {
+            getWidth: function (session, lastLineNumber, config) {
                 return 3 * config.characterWidth;
             },
-            getText: function(session, row) {
+            getText: function (session, row) {
                 return "scm> ";
             }
         };
+
+        container.on("resize", function () {
+            editor.resize();
+        });
 
         editor.getSession().on("change", function () {
             let val = editor.getValue();
@@ -296,7 +310,7 @@ myLayout.registerComponent('output', function (container, componentState) {
                     data = $.parseJSON(data);
                     i = 0;
                     if (data.out[0].trim() !== "") {
-                        states[componentState.id].out += "\n" + data.out[0];
+                        states[componentState.id].out += "\n" + data.out[0].trim();
                     }
                     $("*").trigger("update");
                 });
@@ -325,9 +339,13 @@ myLayout.registerComponent('substitution_tree', function (container, componentSt
             <div class="btn-group">
                 <button type="button" class="btn btn-sm btn-secondary prev">Prev</button>          
                 <button type="button" class="btn btn-sm btn-secondary next">Next</button>
+            </div>            
+            <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-secondary prev-expr">Prev Expr</button>          
+                <button type="button" class="btn btn-sm btn-secondary next-expr">Next Expr</button>
             </div>
             </div>
-            <div class="tree" id="cat">
+            <div class="tree">
                 <svg></svg>
             </div>
         </div>
@@ -343,7 +361,11 @@ myLayout.registerComponent('substitution_tree', function (container, componentSt
         let pan = svgPanZoom(rawSVG).getPan();
         svgPanZoom(rawSVG).destroy();
         svg.clear();
-        display_tree(get_i(states[componentState.id].states, states[componentState.id].root, states[componentState.id].index), svg, 10, 10, 0, [0]);
+        display_tree(get_i(
+            states[componentState.id].states[states[componentState.id].expr_i][2],
+            states[componentState.id].roots[states[componentState.id].expr_i],
+            states[componentState.id].index),
+            svg, 10, 10, 0, [0]);
         svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
         if (isNaN(zoom)) {
             svgPanZoom(rawSVG).reset();
@@ -376,21 +398,38 @@ myLayout.registerComponent('substitution_tree', function (container, componentSt
     });
 
     container.getElement().find(".prev").click(function () {
-        states[componentState.id].index = Math.max(states[componentState.id].index - 1, states[componentState.id].start);
-        $("*").trigger("update");
+        prev_i(componentState.id);
     });
 
     container.getElement().find(".next").click(function () {
-        states[componentState.id].index =
-            Math.min(states[componentState.id].index + 1, states[componentState.id].end - 1);
-        $("*").trigger("update");
+        next_i(componentState.id);
+    });
+
+    container.getElement().find(".prev-expr").click(function () {
+        prev_expr(componentState.id);
+    });
+
+    container.getElement().find(".next-expr").click(function () {
+        next_expr(componentState.id);
     });
 });
 
 myLayout.registerComponent('env_diagram', function (container, componentState) {
     container.getElement().html(`
-    <div class="envs" id="cat">
-        <svg></svg>
+    <div class="content">
+        <div class="header">
+        <div class="btn-group">
+            <button type="button" class="btn btn-sm btn-secondary prev">Prev</button>          
+            <button type="button" class="btn btn-sm btn-secondary next">Next</button>
+        </div>            
+        <div class="btn-group">
+            <button type="button" class="btn btn-sm btn-secondary prev-expr">Prev Expr</button>          
+            <button type="button" class="btn btn-sm btn-secondary next-expr">Next Expr</button>
+        </div>
+        </div>
+        <div class="envs">
+            <svg></svg>
+        </div>
     </div>
     `);
 
@@ -541,10 +580,44 @@ function display_tree(data, container, x, y, level, starts) {
     }
 }
 
-myLayout.init();
-
-savedState = localStorage.getItem("savedState");
-if (savedState !== null) {
-    states = JSON.parse(savedState);
+function next_expr(i) {
+    states[i].expr_i = Math.min(states[i].expr_i + 1, states[i].states.length - 1);
+    states[i].start = states[i].states[states[i].expr_i][0];
+    states[i].end = states[i].states[states[i].expr_i][1];
+    states[i].index = states[i].start;
     $("*").trigger("update");
 }
+
+function prev_expr(i) {
+    states[i].expr_i = Math.max(states[i].expr_i - 1, 0);
+    states[i].start = states[i].states[states[i].expr_i][0];
+    states[i].end = states[i].states[states[i].expr_i][1];
+    states[i].index = states[i].start;
+    $("*").trigger("update");
+}
+
+function next_i(i) {
+    states[i].index += 1;
+    if (states[i].index === states[i].end && states[i].expr_i !== states[i].states.length - 1) {
+        next_expr(i);
+    } else {
+        states[i].index = Math.min(states[i].index, states[i].end - 1);
+    }
+    $("*").trigger("update");
+}
+
+function prev_i(i) {
+    states[i].index -= 1;
+    if (states[i].index === states[i].start - 1 && states[i].expr_i !== 0) {
+        prev_expr(i);
+        states[i].index = states[i].end - 1;
+    } else {
+        states[i].index = Math.max(states[i].index, states[i].start);
+    }
+    $("*").trigger("update");
+}
+
+
+myLayout.init();
+
+$("*").trigger("update");

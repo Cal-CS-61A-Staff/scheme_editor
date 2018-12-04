@@ -51,6 +51,9 @@ def string_exec(strings, out, global_frame=None):
         from scheme.environment import build_global_frame
         global_frame = build_global_frame()
 
+    gui.logger.export_states = []
+    gui.logger.roots = []
+
     gui.logger._out = []
     for i, string in enumerate(strings):
         if not string.strip():
@@ -64,3 +67,4 @@ def string_exec(strings, out, global_frame=None):
             res = evaluate(expr, global_frame, holder)
             if res is not Undefined:
                 out(res)
+        gui.logger.clear_diagram()

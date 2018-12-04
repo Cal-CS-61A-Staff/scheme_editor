@@ -89,11 +89,10 @@ def handle(code, global_frame_id):
     # file.write("\n".join(code))
     # file.flush()
     try:
+        gui.logger.new_query()
         if global_frame_id == -1:
-            gui.logger.new_query()
             execution.string_exec(code, gui.logger.out)
         else:
-            gui.logger.clear_diagram()
             execution.string_exec(code, gui.logger.out, gui.logger.frame_lookup[global_frame_id].base)
         # limiter(3, execution.string_exec, code, gui.logger.out)
     except (SchemeError, ZeroDivisionError) as e:
@@ -109,7 +108,7 @@ def handle(code, global_frame_id):
 
 
 def instant(code, global_frame_id):
-    gui.logger.clear_diagram()
+    gui.logger.new_query()
     try:
         gui.logger.preview_mode(True)
         limiter(0.3, execution.string_exec, code, gui.logger.out, gui.logger.frame_lookup[global_frame_id].base)

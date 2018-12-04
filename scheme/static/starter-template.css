@@ -35,10 +35,6 @@ html, body{
 
 .navbar { margin-bottom: 0 }
 
-.preview {
-    min-height: 100px;
-}
-
 .output-wrapper{
     padding-top: 5px;
     height: 100%;
