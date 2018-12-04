@@ -61,6 +61,10 @@ if (savedLayout !== null) {
     myLayout = new GoldenLayout(config, $("#body"));
 }
 
+$(window).resize(function () {
+    myLayout.updateSize($("#body").width(), $("#body").height());
+});
+
 myLayout.registerComponent('editor', function (container, componentState) {
     container.getElement().html(`
         <div class="content">
@@ -73,6 +77,7 @@ myLayout.registerComponent('editor', function (container, componentState) {
 
                 <button type="button" class="btn-info toolbar-btn sub-btn">Subs</button>          
                 <button type="button" class="btn-info toolbar-btn env-btn">Envs</button>          
+                <button type="button" class="btn-info toolbar-btn reformat-btn">Reformat</button>          
             </div>
             <div class="editor-wrapper">
                 <div class="editor"></div>
@@ -157,6 +162,20 @@ myLayout.registerComponent('editor', function (container, componentState) {
                     container.getElement().find(".save-btn > .text").text("Saved");
                 } else {
                     alert("Save error - try copying code from editor to a file manually");
+                }
+            });
+        });
+
+        container.getElement().find(".reformat-btn").on("click", function (e) {
+            let code = [editor.getValue()];
+            $.post("./reformat", {
+                code: code,
+            }).done(function (data) {
+                data = $.parseJSON(data);
+                if (data["result"] === "success") {
+                    editor.setValue(data["formatted"]);
+                } else {
+                    alert("An error occurred!");
                 }
             });
         });
@@ -523,10 +542,6 @@ function display_tree(data, container, x, y, level, starts) {
 }
 
 myLayout.init();
-
-$(window).resize(function () {
-    myLayout.updateSize($("#body").width(), $("#body").height());
-});
 
 savedState = localStorage.getItem("savedState");
 if (savedState !== null) {

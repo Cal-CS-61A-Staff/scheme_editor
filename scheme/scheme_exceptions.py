@@ -25,3 +25,6 @@ class TypeMismatchError(SchemeError): pass
 
 
 class IrreversibleOperationError(SchemeError): pass
+
+
+class FormatError(SchemeError): pass

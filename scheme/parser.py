@@ -35,7 +35,11 @@ def get_expression(buffer: TokenBuffer) -> Expression:
         elif token == "'":
             return make_list([Symbol("quote"), get_expression(buffer)])
         elif token == ",":
-            return make_list([Symbol("unquote"), get_expression(buffer)])
+            if buffer.get_next_token() == "@":
+                buffer.pop_next_token()
+                return make_list([Symbol("unquote-splicing"), get_expression(buffer)])
+            else:
+                return make_list([Symbol("unquote"), get_expression(buffer)])
         elif token == "`":
             return make_list([Symbol("quasiquote"), get_expression(buffer)])
         elif token == "\"":
