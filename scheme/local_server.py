@@ -6,6 +6,7 @@ import sys
 import urllib.parse
 from http import HTTPStatus
 
+from formatter import prettify
 from scheme import execution, gui
 from scheme.runtime_limiter import TimeLimitException, limiter
 from scheme.scheme_exceptions import SchemeError
@@ -47,6 +48,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
             self.wfile.write(bytes(instant(code, global_frame_id), "utf-8"))
+        elif path == "/reformat":
+            code = [x.decode("utf-8") for x in data[b"code[]"]]
+            self.send_response(HTTPStatus.OK, 'test')
+            self.send_header("Content-type", "application/JSON")
+            self.end_headers()
+            self.wfile.write(bytes(json.dumps({"result": "success", "formatted": prettify(code)}), "utf-8"))
 
     def do_GET(self):
         self.send_response(HTTPStatus.OK, 'test')
@@ -105,7 +112,7 @@ def instant(code, global_frame_id):
     gui.logger.clear_diagram()
     try:
         gui.logger.preview_mode(True)
-        limiter(0.1, execution.string_exec, code, gui.logger.out, gui.logger.frame_lookup[global_frame_id].base)
+        limiter(0.3, execution.string_exec, code, gui.logger.out, gui.logger.frame_lookup[global_frame_id].base)
     except (SchemeError, ZeroDivisionError) as e:
         gui.logger.out(e)
     except TimeLimitException:

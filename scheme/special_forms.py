@@ -42,7 +42,7 @@ class LambdaObject(Applicable):
     def __repr__(self):
         if logger.strict_mode:
             return f"(lambda ({(' '.join(map(repr, self.params)))}) {' '.join(map(repr, self.body))})"
-        return f"({self.name} {' '.join(map(repr, self.params))}) [parent = f{self.frame.id}]"
+        return f"({self.name} {' '.join(map(repr, self.params))}) [parent = {self.frame.id}]"
 
     def __str__(self):
         if logger.strict_mode:
@@ -315,7 +315,7 @@ class MacroObject(Callable):
     def __repr__(self):
         if logger.strict_mode:
             return f"(lambda ({(' '.join(map(repr, self.params)))}) {' '.join(map(repr, self.body))})"
-        return f"({self.name} {' '.join(map(repr, self.params))}) [parent = f{self.frame.id}]"
+        return f"({self.name} {' '.join(map(repr, self.params))}) [parent = {self.frame.id}]"
 
     def __str__(self):
         if logger.strict_mode:
