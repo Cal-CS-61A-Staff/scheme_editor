@@ -26,7 +26,7 @@ class VisualExpression:
         self.id = uuid4()
         if base_expr is None:
             return
-        if isinstance(base_expr, ValueHolder) or isinstance(base_expr,evaluate_apply.Callable) \
+        if isinstance(base_expr, ValueHolder) or isinstance(base_expr, evaluate_apply.Callable) \
                 or base_expr == Nil or base_expr == Undefined:
             self.value = base_expr
         elif isinstance(base_expr, Pair):
@@ -80,6 +80,7 @@ class Holder:
 
 class Root:
     root: Holder
+    set: bool = False
 
     @classmethod
     def setroot(cls, root: Holder):
@@ -103,12 +104,19 @@ class Logger:
         self.active_frames: List[StoredFrame] = []
         self.strict_mode = False
         self.fragile = False
+        self.export_states = []
+        self.roots = []
+        self.active_expr = []
 
     def clear_diagram(self):
-        self.node_cache = {}
         # self.i = 0
         self._out.append([])
+        if Root.set and self.start != self.i:
+            self.export_states.append((self.start, self.i, {i.hex: v.export() for i, v in self.node_cache.items()}))
+            self.roots.append(Root.root.expression.id.hex)
         self.start = self.i
+        self.node_cache = {}
+        Root.set = True
 
     def new_query(self):
         self.node_cache = {}
@@ -116,6 +124,9 @@ class Logger:
         self.start = 0
         self._out = []
         self.active_frames = []
+        self.roots = []
+        self.export_states = []
+        self.active_expr = []
 
     def preview_mode(self, val):
         self.fragile = val
@@ -125,16 +136,14 @@ class Logger:
         self.i += 1
 
     def export(self):
-        states = {i.hex: v.export() for i, v in self.node_cache.items()}
         return {
-            "root": Root.root.expression.id.hex,
-            "states": states,
+            "roots": self.roots,
+            "states": self.export_states,
             "out": ["\n".join(["".join(x).strip() for x in self._out])],
-            "environments": [f.export() for f in self.active_frames[1:]],
+            "environment_seq": [id(f.parent) for f in self.active_frames],
+            "environment_vals": {id(f.parent): f.export() for f in self.active_frames},
             "graphics": [],
-            "start": self.start,
-            "end": self.i,
-            "globalFrameID": id(self.active_frames[1].base)
+            "globalFrameID": id(self.active_frames[1].base) if len(self.active_frames) > 1 else -1
         }
 
     def out(self, val, end="\n"):
@@ -206,7 +215,7 @@ class StaticNode:
 
 
 class FatNode:
-    def __init__(self, expr: VisualExpression, transition_type: HolderState=HolderState.UNEVALUATED):
+    def __init__(self, expr: VisualExpression, transition_type: HolderState):
         self.transitions = []
         self.str = []
         self.base_str = []
@@ -220,7 +229,7 @@ class FatNode:
         if not self.str or self.str[-1][1] != repr(expr):
             self.str.append((logger.i, repr(expr)))
 
-        if self.children and self.children[-1][0] == logger.i:
+        while self.children and self.children[-1][0] == logger.i:
             self.children.pop()
 
         if isinstance(expr, VisualExpression) and expr.value is None:
