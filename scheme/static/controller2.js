@@ -122,10 +122,11 @@ myLayout.registerComponent('editor', function (container, componentState) {
             $.post("./process2", {
                 code: code,
                 globalFrameID: -1,
-                curr_i: i,
+                curr_i: 0,
                 curr_f: 0,
             }).done(function (data) {
                 data = $.parseJSON(data);
+                console.log(data);
                 states[componentState.id].states = data.states;
                 states[componentState.id].environments = [];
                 for (let key of data.active_frames) {
@@ -266,9 +267,8 @@ myLayout.registerComponent('output', function (container, componentState) {
         editor.session.setMode("ace/mode/scheme");
         editor.setOption("fontSize", 16);
         editor.setOption("enableBasicAutocompletion", true);
-        editor.setOption("enableLiveAutocompletion", true);
         editor.setOption("minLines", 1);
-        editor.setOption("maxLines", 1);
+        editor.setOption("maxLines", 100);
         editor.setOption("highlightActiveLine", false);
         editor.container.style.background = "white";
         editor.session.gutterRenderer = {
@@ -287,8 +287,7 @@ myLayout.registerComponent('output', function (container, componentState) {
         editor.getSession().on("change", function () {
             let val = editor.getValue();
             val = val.replace(/\r/g, "");
-            let firstTerminator = val.indexOf("\n");
-            if (firstTerminator !== -1) {
+            if (val.slice(-1) === "\n") {
                 val = val.trim();
                 editor.setReadOnly(true);
                 editor.setReadOnly(false);

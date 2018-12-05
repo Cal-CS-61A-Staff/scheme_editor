@@ -97,11 +97,6 @@ def handle(code, curr_i, curr_f, global_frame_id):
         else:
             execution.string_exec(code, gui.logger.out, gui.logger.frame_lookup[global_frame_id].base)
         # limiter(3, execution.string_exec, code, gui.logger.out)
-    except (SchemeError, ZeroDivisionError) as e:
-        gui.logger.out(e)
-    except TimeLimitException:
-        gui.logger.out("Time limit exceeded. Try disabling the substitution visualizer (top checkbox) for increased "
-                       "performance.")
     except Exception as e:
         raise
 
