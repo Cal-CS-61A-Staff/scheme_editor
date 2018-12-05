@@ -5,6 +5,8 @@ from scheme.evaluate_apply import evaluate
 from scheme.gui import Holder, Root
 from scheme.parser import get_expression
 from scheme.lexer import TokenBuffer
+from scheme.runtime_limiter import TimeLimitException
+from scheme.scheme_exceptions import SchemeError
 
 
 def string_exec(strings, out, global_frame=None):
@@ -65,7 +67,13 @@ def string_exec(strings, out, global_frame=None):
             expr = get_expression(buff)
             holder = Holder(expr, None)
             Root.setroot(holder)
-            res = evaluate(expr, global_frame, holder)
-            if res is not Undefined:
-                out(res)
+            try:
+                res = evaluate(expr, global_frame, holder)
+                if res is not Undefined:
+                    out(res)
+            except (SchemeError, ZeroDivisionError) as e:
+                gui.logger.out(e)
+            except TimeLimitException:
+                if not gui.logger.fragile:
+                    gui.logger.out("Time limit exceeded.")
         gui.logger.clear_diagram()

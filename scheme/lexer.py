@@ -57,7 +57,7 @@ class TokenBuffer:
         for i, line in enumerate(lines):
             out = ""
             for real_line in line.split("\n"):
-                out += real_line.split(";")[0]
+                out += real_line.split(";")[0] + " "
             lines[i] = out
         self.string = " ".join(lines).strip()
         self.done = False
@@ -114,5 +114,4 @@ class TokenBuffer:
 
         if self.i == len(self.string):
             self.done = True
-
         return out
