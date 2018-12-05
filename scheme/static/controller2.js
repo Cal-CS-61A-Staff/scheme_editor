@@ -25,23 +25,17 @@ let states = [
 function getDims(parentElement) {
     parentElement = parentElement || document.body;
     let div = document.createElement('div');
-    div.style.width = "1000em";
+    $(div).css("position", "absolute");
     $(div).css("white-space", "pre-line");
     $(div).css("font-family", "Monaco, monospace");
     $(div).css("font-size", "16px");
 
-    div.innerHTML = "x\n".repeat(1000);
+    div.innerHTML = "x".repeat(999) + "x\n".repeat(1000);
     parentElement.appendChild(div);
     let w = div.offsetWidth / 1000;
     let h = div.offsetHeight / 1000;
     parentElement.removeChild(div);
     return [w, h];
-}
-
-function countLines(elem) {
-    let divHeight = elem.offsetHeight;
-    let lineHeight = parseInt(elem.style.lineHeight);
-    return divHeight / lineHeight;
 }
 
 let charHeight = getDims()[1];
@@ -573,9 +567,9 @@ function display_tree(data, container, x, y, level, starts) {
     let parent = container.text(data["str"]).font("family", "Monaco, monospace").font("size", 16).dx(x).dy(y);
     let xDelta = charWidth;
 
-    if (parent.length() !== 0) {
-        charWidth = parent.length() / data["str"].length;
-    }
+    // if (parent.length() !== 0) {
+    //     charWidth = parent.length() / data["str"].length;
+    // }
 
     starts[level] = x + charWidth * (data["str"].length + 1);
     for (let child of data["children"]) {
