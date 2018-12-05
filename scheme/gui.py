@@ -107,8 +107,9 @@ class Logger:
         self.fragile = False
         self.export_states = []
         self.roots = []
+        self.eval_stack = []
 
-    def clear_diagram(self):
+    def new_expr(self):
         # self.i = 0
         self._out.append([])
         if Root.set and self.start != self.i:
@@ -117,6 +118,7 @@ class Logger:
         self.start = self.i
         self.node_cache = {}
         Root.set = True
+        self.eval_stack = []
 
     def new_query(self, curr_i=0, curr_f=0):
         self.node_cache = {}
@@ -177,7 +179,7 @@ class Logger:
 
 class StoredFrame:
     def __init__(self, i, base: evaluate_apply.Frame):
-        i += logger.f_delta
+        i += logger.f_delta + 1
         if i == 0:
             name = "Builtins"
         elif i == 1:

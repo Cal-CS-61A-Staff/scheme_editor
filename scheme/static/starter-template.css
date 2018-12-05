@@ -27,10 +27,14 @@ html, body{
 .output, .preview {
     padding: 0 5px;
     font-family: Monaco, monospace;
-    font-size: 16px;
+    font-size: 14px;
     text-align: left;
     white-space: pre-wrap;
     word-break: break-all;
+}
+
+.preview {
+    min-height: 75px;
 }
 
 .navbar { margin-bottom: 0 }

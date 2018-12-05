@@ -28,7 +28,7 @@ function getDims(parentElement) {
     $(div).css("position", "absolute");
     $(div).css("white-space", "pre-line");
     $(div).css("font-family", "Monaco, monospace");
-    $(div).css("font-size", "16px");
+    $(div).css("font-size", "14px");
 
     div.innerHTML = "x".repeat(999) + "x\n".repeat(1000);
     parentElement.appendChild(div);
@@ -96,7 +96,7 @@ myLayout.registerComponent('editor', function (container, componentState) {
         ace.config.set("packaged", true);
         ace.config.set("basePath", "/ace");
         editor.session.setMode("ace/mode/scheme");
-        editor.setOption("fontSize", 16);
+        editor.setOption("fontSize", 14);
         editor.setOption("enableBasicAutocompletion", true);
         editor.setOption("enableLiveAutocompletion", true);
         editor.setAutoScrollEditorIntoView(true);
@@ -265,7 +265,7 @@ myLayout.registerComponent('output', function (container, componentState) {
         ace.config.set("packaged", true);
         ace.config.set("basePath", "/ace");
         editor.session.setMode("ace/mode/scheme");
-        editor.setOption("fontSize", 16);
+        editor.setOption("fontSize", 14);
         editor.setOption("enableBasicAutocompletion", true);
         editor.setOption("minLines", 1);
         editor.setOption("maxLines", 100);
@@ -500,7 +500,7 @@ function display_env(environments, container, i) {
         if (k === 0) {
             continue;
         }
-        let text = container.text(out).font("family", "Monaco, monospace").font("size", 16).dx(25).dy(curr_y);
+        let text = container.text(out).font("family", "Monaco, monospace").font("size", 14).dx(25).dy(curr_y);
         let rect = container.rect(maxlen * charWidth + 10, charHeight * (k + 1) + 10)
             .dx(15).dy(curr_y)
             .stroke({color: "#000000", width: 2})
@@ -563,7 +563,7 @@ function display_tree(data, container, x, y, level, starts) {
         .fill({color: "#FFFFFF"})
         .radius(10);
 
-    let parent = container.text(data["str"]).font("family", "Monaco, monospace").font("size", 16).dx(x).dy(y);
+    let parent = container.text(data["str"]).font("family", "Monaco, monospace").font("size", 14).dx(x).dy(y);
     let xDelta = charWidth;
 
     // if (parent.length() !== 0) {

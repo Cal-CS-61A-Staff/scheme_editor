@@ -63,7 +63,7 @@ def string_exec(strings, out, global_frame=None):
             continue
         buff = TokenBuffer([string])
         while not buff.done:
-            gui.logger.clear_diagram()
+            gui.logger.new_expr()
             expr = get_expression(buff)
             holder = Holder(expr, None)
             Root.setroot(holder)
@@ -72,8 +72,12 @@ def string_exec(strings, out, global_frame=None):
                 if res is not Undefined:
                     out(res)
             except (SchemeError, ZeroDivisionError) as e:
+                if not gui.logger.fragile:
+                    gui.logger.raw_out("Traceback (most recent call last)\n")
+                    for i, expr in enumerate(gui.logger.eval_stack):
+                        gui.logger.raw_out(str(i).ljust(3) + " " + expr + "\n")
                 gui.logger.out(e)
             except TimeLimitException:
                 if not gui.logger.fragile:
                     gui.logger.out("Time limit exceeded.")
-        gui.logger.clear_diagram()
+        gui.logger.new_expr()

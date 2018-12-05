@@ -39,16 +39,17 @@ class Frame:
 
 
 class Thunk:
-    def __init__(self, expr: Expression, frame: Frame):
+    def __init__(self, expr: Expression, frame: Frame, log_stack: bool = True):
         self.expr = expr
         self.frame = frame
+        self.log_stack = log_stack
 
     def __repr__(self):
         return "thunk"
 
 
-def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder, tail_context: bool = False)\
-        -> Union[Expression, Thunk]:
+def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder,
+             tail_context: bool = False, *, log_stack: bool=True) -> Union[Expression, Thunk]:
     """
     >>> global_frame = __import__("special_forms").build_global_frame()
     >>> gui_holder = __import__("gui").Holder(None)
@@ -68,6 +69,8 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder, tail_contex
     60
     >>> __import__("gui").silent = False
     """
+
+    depth = 0
     while True:
         if isinstance(gui_holder.expression, Expression):
             visual_expression = gui.VisualExpression(expr)
@@ -75,13 +78,17 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder, tail_contex
         else:
             visual_expression = gui_holder.expression
 
+        if log_stack:
+            gui.logger.eval_stack.append(f"{repr(expr)} [frame = {frame.id}]")
+            depth += 1
+
         if isinstance(expr, Number) \
                 or isinstance(expr, Callable) \
                 or isinstance(expr, Boolean) \
                 or isinstance(expr, String):
             gui_holder.complete()
             visual_expression.value = expr
-            return expr
+            ret = expr
         elif isinstance(expr, Symbol):
             gui_holder.evaluate()
             out = frame.lookup(expr)
@@ -90,34 +97,40 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder, tail_contex
                 raise SymbolLookupError(f"Variable not found in current environment: '{expr.value}'")
             visual_expression.value = out
             gui_holder.complete()
-            return out
+            ret = out
         elif isinstance(expr, Pair):
             if tail_context and False:
-                return Thunk(expr, frame)
-            gui_holder.evaluate()
-            operator = expr.first
-            if isinstance(operator, Symbol) \
-                    and isinstance(frame.lookup(operator), Callable) \
-                    and not isinstance(frame.lookup(operator), Applicable):
-                operator = frame.lookup(operator)
+                ret = Thunk(expr, frame, log_stack)
             else:
-                operator = evaluate(operator, frame, visual_expression.children[
-                    0])  # evaluating operator and storing it in visual_expression
-            operands = pair_to_list(expr.rest)
-            out = apply(operator, operands, frame, gui_holder)
-            if isinstance(out, Thunk):
-                expr, frame = out.expr, out.frame
-                gui_holder.expression = expr
-                continue
-            visual_expression.value = out
-            gui_holder.complete()
-            return out
+                gui_holder.evaluate()
+                operator = expr.first
+                if isinstance(operator, Symbol) \
+                        and isinstance(frame.lookup(operator), Callable) \
+                        and not isinstance(frame.lookup(operator), Applicable):
+                    operator = frame.lookup(operator)
+                else:
+                    operator = evaluate(operator, frame, visual_expression.children[
+                        0])  # evaluating operator and storing it in visual_expression
+                operands = pair_to_list(expr.rest)
+                out = apply(operator, operands, frame, gui_holder)
+                if isinstance(out, Thunk):
+                    expr, frame = out.expr, out.frame
+                    gui_holder.expression = expr
+                    continue
+                visual_expression.value = out
+                gui_holder.complete()
+                ret = out
         elif expr is Nil or expr is Undefined:
             visual_expression.value = expr
             gui_holder.complete()
-            return expr
+            ret = expr
         else:
             raise Exception("Internal error. Please report to maintainer!")
+
+        for _ in range(depth):
+            gui.logger.eval_stack.pop()
+
+        return ret
 
 
 def apply(operator: Expression, operands: List[Expression], frame: Frame, gui_holder: gui.Holder):

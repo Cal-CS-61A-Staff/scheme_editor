@@ -35,7 +35,8 @@ class LambdaObject(Applicable):
         gui_holder.expression.set_entries(
             [VisualExpression(expr, gui_holder.expression.display_value) for expr in body])
         for i, expression in enumerate(body):
-            out = evaluate(expression, new_frame, gui_holder.expression.children[i], i == len(body) - 1)
+            out = evaluate(expression, new_frame, gui_holder.expression.children[i],
+                           i == len(body) - 1, log_stack=len(self.body) == 1)
         new_frame.assign(return_symbol, out)
         return out
 
@@ -247,12 +248,8 @@ class Mu(Callable):
         for param in params:
             if not isinstance(param, Symbol):
                 raise OperandDeduceError(f"{param} is not a Symbol.")
-        if len(operands) == 2:
-            # noinspection PyTypeChecker
-            return MuObject(params, operands[1:], name)
-        else:
-            # noinspection PyTypeChecker
-            return MuObject(params, [Pair(Symbol("begin"), make_list(operands[1:]))], name)
+        # noinspection PyTypeChecker
+        return MuObject(params, operands[1:], name)
 
 
 class MuObject(Applicable):
@@ -269,13 +266,19 @@ class MuObject(Applicable):
 
         gui_holder.apply()
 
+        if len(self.body) > 1:
+            body = [Pair(Symbol("begin"), make_list(self.body))]
+        else:
+            body = self.body
+
         for param, value in zip(self.params, operands):
             new_frame.assign(param, value)
         out = None
         gui_holder.expression.set_entries(
-            [VisualExpression(expr, gui_holder.expression.display_value) for expr in self.body])
-        for i, expression in enumerate(self.body):
-            out = evaluate(expression, new_frame, gui_holder.expression.children[i])
+            [VisualExpression(expr, gui_holder.expression.display_value) for expr in body])
+        for i, expression in enumerate(body):
+            out = evaluate(expression, new_frame, gui_holder.expression.children[i],
+                           i == len(body) - 1, log_stack=len(self.body) == 1)
         new_frame.assign(return_symbol, out)
         return out
 
@@ -301,13 +304,19 @@ class MacroObject(Callable):
         new_frame = Frame(self.name, self.frame)
         verify_exact_callable_length(self, len(self.params), len(operands))
 
+        if len(self.body) > 1:
+            body = [Pair(Symbol("begin"), make_list(self.body))]
+        else:
+            body = self.body
+
         for param, value in zip(self.params, operands):
             new_frame.assign(param, value)
         out = None
         gui_holder.expression.set_entries(
             [VisualExpression(expr, gui_holder.expression.display_value) for expr in self.body])
         for i, expression in enumerate(self.body):
-            out = evaluate(expression, new_frame, gui_holder.expression.children[i])
+            out = evaluate(expression, new_frame, gui_holder.expression.children[i],
+                           i == len(body) - 1, log_stack=len(self.body) == 1)
 
         gui_holder.expression.set_entries([VisualExpression(out, gui_holder.expression.display_value)])
         new_frame.assign(return_symbol, out)
@@ -336,10 +345,7 @@ class DefineMacro(Callable):
             if not isinstance(param, Symbol):
                 raise OperandDeduceError(f"{param} is not a Symbol.")
         name, *params = params
-        if len(operands) == 2:
-            frame.assign(name, MacroObject(params, operands[1:], frame, name.value))
-        else:
-            frame.assign(name, MacroObject(params, [Pair(Symbol("begin"), make_list(operands[1:]))], frame, name.value))
+        frame.assign(name, MacroObject(params, operands[1:], frame, name.value))
         return name
 
 
