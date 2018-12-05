@@ -62,11 +62,21 @@ class TokenBuffer:
         self.string = " ".join(lines).strip()
         self.done = False
         self.next_token = None
+        self.in_string = False
 
     def get_next_token(self) -> str:
         if self.next_token is not None:
             return self.next_token
         curr = ""
+
+        if self.in_string and self.get_next_char() != "\"":
+            while self.get_next_char() != "\n" and self.get_next_char() != "\"":
+                curr += self.pop_next_char()
+            if self.get_next_char() == "\n":
+                raise ParseError("Multiline strings are not supported!")
+            self.next_token = curr
+            return curr
+
         while not self.done and self.get_next_char().isspace():
             self.pop_next_char()
 
@@ -82,6 +92,8 @@ class TokenBuffer:
             # print(f"curr = '{curr}'")
             if curr in SPECIALS or self.done:
                 self.next_token = curr
+                if curr == "\"":
+                    self.in_string ^= True
                 return curr
 
     def pop_next_token(self):
@@ -91,7 +103,7 @@ class TokenBuffer:
 
     def get_next_char(self) -> str:
         if self.done:
-            raise ParseError("Incomplete expression, probably due to unmatched parentheses.")
+            raise ParseError("Incomplete expression, probably due to unmatched parentheses or quotes.")
         return self.string[self.i]
 
     def pop_next_char(self) -> str:

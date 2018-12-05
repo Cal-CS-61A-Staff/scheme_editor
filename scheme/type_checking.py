@@ -1,4 +1,5 @@
-from scheme.datamodel import Expression, Boolean, Number, Symbol, Nil, SingletonTrue, SingletonFalse, Pair, bools
+from scheme.datamodel import Expression, Boolean, Number, Symbol, Nil, SingletonTrue, SingletonFalse, Pair, bools, \
+    String
 from scheme.environment import global_attr
 from scheme.helper import pair_to_list
 from scheme.primitives import SingleOperandPrimitive
@@ -70,7 +71,7 @@ class IsProcedure(SingleOperandPrimitive):
 @global_attr("string?")
 class IsString(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
-        raise NotImplementedError("Strings are not (yet) supported!")
+        return bools[isinstance(operand, String)]
 
 
 @global_attr("symbol?")
