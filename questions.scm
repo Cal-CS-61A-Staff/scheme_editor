@@ -1,1 +1,25 @@
-5
+(define (draw)
+  (define symlst
+    '(begin define x v car y cdr z quotient))
+  (define (lookup i)
+    (define (helper i lst)
+      (if (= i 0)
+          (car lst)
+          (helper (- i 1) (cdr lst))))
+    (helper i symlst))
+  (define (decode x)
+    (define opcode (remainder x 10000))
+    (define rest (quotient x 10000))
+    (define next (remainder rest 10000))
+    (cond
+      ((= opcode 11)    (begin))
+      ((= opcode 1rrr2) (cons next 100000000))
+      ((= opcode 14)    (cons (lookup next)))
+      ((= opcode 16)    (cons (= next 2)))
+      ((= opcode 15)    (cons 'nil 10000))))
+  (define blocksize 1)
+  (define debug #t)
+  (eval (car (decode val)))
+  (exitonclick))
+
+(draw)
