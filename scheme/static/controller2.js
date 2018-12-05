@@ -128,11 +128,15 @@ myLayout.registerComponent('editor', function (container, componentState) {
             $.post("./process2", {
                 code: code,
                 globalFrameID: -1,
+                curr_i: i,
+                curr_f: 0,
             }).done(function (data) {
-                console.log(data);
                 data = $.parseJSON(data);
                 states[componentState.id].states = data.states;
-                states[componentState.id].environments = data.environments;
+                states[componentState.id].environments = [];
+                for (let key of data.active_frames) {
+                    states[componentState.id].environments.push(data.frame_lookup[key]);
+                }
                 states[componentState.id].moves = data.graphics;
                 states[componentState.id].out = data.out[0];
                 states[componentState.id].start = data.states[0][0];
@@ -305,13 +309,21 @@ myLayout.registerComponent('output', function (container, componentState) {
                 $.post("./process2", {
                     code: [val],
                     globalFrameID: states[componentState.id].globalFrameID,
+                    curr_i: states[componentState.id].states.slice(-1)[0][1],
+                    curr_f: states[componentState.id].environments.length
                 }).done(function (data) {
                     // editor.setValue(val.slice(firstTerminator + 1));
                     data = $.parseJSON(data);
-                    i = 0;
                     if (data.out[0].trim() !== "") {
                         states[componentState.id].out += "\n" + data.out[0].trim();
                     }
+                    for (let key of data.active_frames) {
+                        states[componentState.id].environments.push(data.frame_lookup[key]);
+                    }
+                    states[componentState.id].environments[0] =
+                        data.frame_lookup[states[componentState.id].globalFrameID];
+                    states[componentState.id].states.push(...data.states);
+                    states[componentState.id].roots.push(...data.roots);
                     $("*").trigger("update");
                 });
             } else {

@@ -6,7 +6,7 @@ import sys
 import urllib.parse
 from http import HTTPStatus
 
-from formatter import prettify
+from scheme.formatter import prettify
 from scheme import execution, gui
 from scheme.runtime_limiter import TimeLimitException, limiter
 from scheme.scheme_exceptions import SchemeError
@@ -26,11 +26,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
             data[b"code[]"] = [b""]
         if path == "/process2":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
+            curr_i = int(data[b"curr_i"][0])
+            curr_f = int(data[b"curr_f"][0])
             global_frame_id = int(data[b"globalFrameID"][0])
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
-            self.wfile.write(bytes(handle(code, global_frame_id), "utf-8"))
+            self.wfile.write(bytes(handle(code, curr_i, curr_f, global_frame_id), "utf-8"))
         elif path == "/save":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
             file.truncate(0)
@@ -83,13 +85,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
         pass
 
 
-def handle(code, global_frame_id):
+def handle(code, curr_i, curr_f, global_frame_id):
     # file.truncate(0)
     # file.seek(0)
     # file.write("\n".join(code))
     # file.flush()
     try:
-        gui.logger.new_query()
+        gui.logger.new_query(curr_i, curr_f)
         if global_frame_id == -1:
             execution.string_exec(code, gui.logger.out)
         else:

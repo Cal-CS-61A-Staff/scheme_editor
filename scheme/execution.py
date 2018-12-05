@@ -50,6 +50,7 @@ def string_exec(strings, out, global_frame=None):
     if global_frame is None:
         from scheme.environment import build_global_frame
         global_frame = build_global_frame()
+        gui.logger.active_frames.pop(0)  # clear builtin frame
 
     gui.logger.export_states = []
     gui.logger.roots = []

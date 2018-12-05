@@ -100,13 +100,13 @@ class Logger:
         self.i = 0
         self.start = 0
         self.node_cache = {}
+        self.f_delta = 0
         self.frame_lookup: Dict[int, StoredFrame] = {}
         self.active_frames: List[StoredFrame] = []
         self.strict_mode = False
         self.fragile = False
         self.export_states = []
         self.roots = []
-        self.active_expr = []
 
     def clear_diagram(self):
         # self.i = 0
@@ -118,15 +118,15 @@ class Logger:
         self.node_cache = {}
         Root.set = True
 
-    def new_query(self):
+    def new_query(self, curr_i=0, curr_f=0):
         self.node_cache = {}
-        self.i = 0
-        self.start = 0
+        self.i = curr_i
+        self.f_delta = curr_f
+        self.start = curr_i
         self._out = []
         self.active_frames = []
         self.roots = []
         self.export_states = []
-        self.active_expr = []
 
     def preview_mode(self, val):
         self.fragile = val
@@ -140,10 +140,10 @@ class Logger:
             "roots": self.roots,
             "states": self.export_states,
             "out": ["\n".join(["".join(x).strip() for x in self._out])],
-            "environment_seq": [id(f.parent) for f in self.active_frames],
-            "environment_vals": {id(f.parent): f.export() for f in self.active_frames},
+            "active_frames": [id(f.base) for f in self.active_frames],
+            "frame_lookup": {f: self.frame_lookup[f].export() for f in self.frame_lookup},
             "graphics": [],
-            "globalFrameID": id(self.active_frames[1].base) if len(self.active_frames) > 1 else -1
+            "globalFrameID": id(self.active_frames[0].base) if self.active_frames else -1
         }
 
     def out(self, val, end="\n"):
@@ -177,6 +177,7 @@ class Logger:
 
 class StoredFrame:
     def __init__(self, i, base: evaluate_apply.Frame):
+        i += logger.f_delta
         if i == 0:
             name = "Builtins"
         elif i == 1:
@@ -193,6 +194,8 @@ class StoredFrame:
         self.bindings.append((logger.i, (name, str(value))))
 
     def export(self):
+        if id(self.parent) not in logger.frame_lookup:
+            return None
         return {"name": self.name,
                 "label": self.label,
                 "parent": logger.frame_lookup[id(self.parent)].name,
