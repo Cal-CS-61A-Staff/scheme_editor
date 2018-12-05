@@ -62,16 +62,15 @@ def prettify_expr(expr: Expression, remaining: int) -> Tuple[str, bool]:
                         out.append(" " * (depth - len(str(pred))))
                         out.append(str(expr) + ")")
                     return "".join(out) + ")", True
-            else:
-                out = ["(cond"]
-                for pred, *exprs in clause_list:
-                    out.append("\n" + " " * (INDENT // 2) + "(" +
-                               indent(prettify_expr(pred, remaining - INDENT // 2 - 1)[0], INDENT // 2).lstrip())
-                    for expr in exprs:
-                        out.append("\n")
-                        out.append(indent(prettify_expr(expr, remaining - INDENT // 2 - 1)[0], INDENT // 2 + 1))
-                    out.append(")")
-                return "".join(out) + ")", True
+            out = ["(cond"]
+            for pred, *exprs in clause_list:
+                out.append("\n" + " " * (INDENT // 2) + "(" +
+                           indent(prettify_expr(pred, remaining - INDENT // 2 - 1)[0], INDENT // 2).lstrip())
+                for expr in exprs:
+                    out.append("\n")
+                    out.append(indent(prettify_expr(expr, remaining - INDENT // 2 - 1)[0], INDENT // 2 + 1))
+                out.append(")")
+            return "".join(out) + ")", True
 
         elif first.value == "let":
             bindings = rest.first
