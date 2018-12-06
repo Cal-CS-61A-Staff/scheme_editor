@@ -59,13 +59,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
         self.send_response(HTTPStatus.OK, 'test')
-        path = "scheme/static/" + urllib.parse.unquote(self.path)[1:]
+        path = "editor/static/" + urllib.parse.unquote(self.path)[1:]
         if path[-4:] == ".css":
             self.send_header("Content-type", "text/css")
         self.end_headers()
         code = [""]
-        if path == "scheme/static/":
-            path = "scheme/static/index.html"
+        if path == "editor/static/":
+            path = "editor/static/index.html"
             if file is not None:
                 file.seek(0)
                 code = ["".join(file)]

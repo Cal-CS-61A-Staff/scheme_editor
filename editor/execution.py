@@ -47,7 +47,7 @@ def string_exec(strings, out, global_frame=None):
     3
     """''
 
-    from editor import gui
+    import gui
 
     if global_frame is None:
         from environment import build_global_frame
