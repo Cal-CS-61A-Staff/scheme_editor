@@ -1,10 +1,10 @@
 from typing import List
 
-from scheme.helper import verify_exact_callable_length
-from scheme.gui import Holder
+from editor.helper import verify_exact_callable_length
+from editor.gui import Holder
 
-from scheme.datamodel import Expression
-from scheme.evaluate_apply import Frame, evaluate_all, Applicable
+from editor.datamodel import Expression
+from editor.evaluate_apply import Frame, evaluate_all, Applicable
 
 
 class BuiltIn(Applicable):

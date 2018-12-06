@@ -1,10 +1,10 @@
 from typing import List
 
-from scheme.datamodel import Expression, Number, bools, SingletonFalse, ValueHolder, Pair, SingletonTrue
-from scheme.environment import global_attr
-from scheme.evaluate_apply import Frame
-from scheme.helper import assert_all_numbers, verify_exact_callable_length, verify_min_callable_length
-from scheme.primitives import BuiltIn, SingleOperandPrimitive
+from editor.datamodel import Expression, Number, bools, SingletonFalse, ValueHolder, Pair, SingletonTrue
+from editor.environment import global_attr
+from editor.evaluate_apply import Frame
+from editor.helper import assert_all_numbers, verify_exact_callable_length, verify_min_callable_length
+from editor.primitives import BuiltIn, SingleOperandPrimitive
 
 
 @global_attr("+")

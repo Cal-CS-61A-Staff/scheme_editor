@@ -1,5 +1,5 @@
 import argparse
-import scheme.local_server as local_server
+import editor.local_server as local_server
 
 parser = argparse.ArgumentParser(description="Rahul's Scheme IDE!")
 parser.add_argument("file",

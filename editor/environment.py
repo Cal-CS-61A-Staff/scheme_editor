@@ -1,10 +1,10 @@
 import math
 
-import scheme.execution as execution
-from scheme.scheme_exceptions import MathError
-from scheme.datamodel import Symbol, Nil, SingletonTrue, SingletonFalse, Expression, Number
-from scheme.evaluate_apply import Frame
-from scheme.primitives import SingleOperandPrimitive
+import editor.execution as execution
+from editor.scheme_exceptions import MathError
+from editor.datamodel import Symbol, Nil, SingletonTrue, SingletonFalse, Expression, Number
+from editor.evaluate_apply import Frame
+from editor.primitives import SingleOperandPrimitive
 
 
 def make_frame_decorator(defdict):
@@ -38,7 +38,7 @@ class MathProcedure(SingleOperandPrimitive):
 
 
 def build_global_frame():
-    from scheme import primitives
+    from editor import primitives
     primitives.load_primitives()
     frame = Frame("builtins")
     for k, v in defdict.items():
