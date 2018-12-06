@@ -3,10 +3,10 @@ from __future__ import annotations
 from abc import ABC
 from typing import Dict, List, Union
 
-from scheme.datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean, String
-from scheme import gui
-from scheme.scheme_exceptions import SymbolLookupError, CallableResolutionError, IrreversibleOperationError
-from scheme.helper import pair_to_list
+from editor.datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean, String
+from editor import gui
+from editor.scheme_exceptions import SymbolLookupError, CallableResolutionError, IrreversibleOperationError
+from editor.helper import pair_to_list
 
 
 class Frame:
@@ -92,7 +92,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder,
         elif isinstance(expr, Symbol):
             gui_holder.evaluate()
             out = frame.lookup(expr)
-            from scheme.special_forms import MacroObject
+            from editor.special_forms import MacroObject
             if isinstance(out, Callable) and not isinstance(out, Applicable) and not isinstance(out, MacroObject):
                 raise SymbolLookupError(f"Variable not found in current environment: '{expr.value}'")
             visual_expression.value = out

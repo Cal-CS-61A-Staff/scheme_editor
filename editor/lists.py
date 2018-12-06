@@ -1,11 +1,11 @@
 from typing import List
 
-from scheme.datamodel import Expression, Pair, Nil, Number
-from scheme.environment import global_attr
-from scheme.evaluate_apply import Frame
-from scheme.helper import pair_to_list, make_list, verify_exact_callable_length
-from scheme.primitives import SingleOperandPrimitive, BuiltIn
-from scheme.scheme_exceptions import OperandDeduceError
+from editor.datamodel import Expression, Pair, Nil, Number
+from editor.environment import global_attr
+from editor.evaluate_apply import Frame
+from editor.helper import pair_to_list, make_list, verify_exact_callable_length
+from editor.primitives import SingleOperandPrimitive, BuiltIn
+from editor.scheme_exceptions import OperandDeduceError
 
 
 @global_attr("append")

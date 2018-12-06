@@ -1,4 +1,4 @@
-from scheme.scheme_exceptions import ParseError
+from editor.scheme_exceptions import ParseError
 
 SPECIALS = ["(", ")", ".", "'", "`", ",", "@", "\"", "\\"]
 
