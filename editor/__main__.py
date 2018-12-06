@@ -17,4 +17,5 @@ args = parser.parse_args()
 if args.okpy:
     import ok_interface
 else:
+    print(args.file)
     local_server.start(args.file)

@@ -186,9 +186,6 @@ class StoredFrame:
             name = "Global"
         else:
             name = f"f{i}"
-        print(logger.f_delta)
-        if name != "Builtins":
-            print("Building frame:", name, "with parent", logger.frame_lookup[id(base.parent)].name)
         self.name = name
         self.label = base.name
         self.parent = base.parent
