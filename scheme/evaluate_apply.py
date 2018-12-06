@@ -136,6 +136,8 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder,
 def apply(operator: Expression, operands: List[Expression], frame: Frame, gui_holder: gui.Holder):
     if isinstance(operator, Callable):
         return operator.execute(operands, frame, gui_holder)
+    elif isinstance(operator, Symbol):
+        raise CallableResolutionError(f"Unable to pass parameters into the Symbol '{operator}'")
     else:
         raise CallableResolutionError(f"Unable to pass parameters into: '{operator}'")
 
