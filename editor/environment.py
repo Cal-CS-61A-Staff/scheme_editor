@@ -38,7 +38,7 @@ class MathProcedure(SingleOperandPrimitive):
 
 
 def build_global_frame():
-    from editor import primitives
+    import primitives
     primitives.load_primitives()
     frame = Frame("builtins")
     for k, v in defdict.items():
@@ -53,7 +53,7 @@ def build_global_frame():
                  "tan", "tanh", "trunc"]:
         frame.assign(Symbol(name), MathProcedure(getattr(math, name), name))
 
-    with open("scheme/builtins.scm") as file:
+    with open("editor/builtins.scm") as file:
         execution.string_exec([" ".join(file.readlines())], lambda *x, **y: None, frame)
 
     return Frame("Global", frame)
