@@ -1,10 +1,10 @@
 from typing import List, Tuple, Union, Sequence, Iterator
 
-import editor.lexer as lexer
-from editor.datamodel import Expression, Pair, Symbol, Nil
-from editor.helper import pair_to_list
-from editor.parser import get_expression
-from editor.scheme_exceptions import SchemeError
+import lexer as lexer
+from datamodel import Expression, Pair, Symbol, Nil
+from helper import pair_to_list
+from parser import get_expression
+from scheme_exceptions import SchemeError
 
 LINE_LENGTH = 100
 MAX_EXPR_LENGTH = 40

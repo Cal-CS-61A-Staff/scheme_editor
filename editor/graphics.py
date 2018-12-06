@@ -1,12 +1,12 @@
 import math
 from typing import List
 
-from editor.datamodel import Expression, Number, Undefined, String, Symbol
-from editor.environment import global_attr
-from editor.evaluate_apply import Frame
-from editor.helper import verify_exact_callable_length, verify_min_callable_length
-from editor.primitives import SingleOperandPrimitive, BuiltIn
-from editor.scheme_exceptions import OperandDeduceError
+from datamodel import Expression, Number, Undefined, String, Symbol
+from environment import global_attr
+from evaluate_apply import Frame
+from helper import verify_exact_callable_length, verify_min_callable_length
+from primitives import SingleOperandPrimitive, BuiltIn
+from scheme_exceptions import OperandDeduceError
 
 
 class Canvas:

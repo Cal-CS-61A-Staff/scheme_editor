@@ -2,9 +2,9 @@ import json
 
 from flask import Flask, render_template, request, jsonify
 
-from editor import execution, database, gui
-from editor.runtime_limiter import limiter, TimeLimitException
-from editor.scheme_exceptions import SchemeError
+import execution, database, gui
+from runtime_limiter import limiter, TimeLimitException
+from scheme_exceptions import SchemeError
 
 app = Flask(__name__)
 

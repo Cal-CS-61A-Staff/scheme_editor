@@ -4,10 +4,10 @@ from enum import Enum, auto
 from typing import List, Union, Dict
 from uuid import uuid4
 
-from editor.datamodel import Expression, ValueHolder, Pair, Nil, Symbol, Undefined
-from editor import evaluate_apply
-from editor.helper import pair_to_list
-from editor.scheme_exceptions import OperandDeduceError
+from datamodel import Expression, ValueHolder, Pair, Nil, Symbol, Undefined
+import evaluate_apply
+from helper import pair_to_list
+from scheme_exceptions import OperandDeduceError
 
 
 class HolderState(Enum):

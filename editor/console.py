@@ -1,13 +1,13 @@
 from typing import List
 
-from editor.scheme_exceptions import OperandDeduceError
-import editor.gui as gui
-from editor.datamodel import Expression, Undefined, Symbol, String
-from editor.environment import global_attr
-from editor.evaluate_apply import Frame
-from editor.helper import verify_exact_callable_length
-from editor.primitives import SingleOperandPrimitive, BuiltIn
-import editor.execution as execution
+from scheme_exceptions import OperandDeduceError
+import gui
+from datamodel import Expression, Undefined, Symbol, String
+from environment import global_attr
+from evaluate_apply import Frame
+from helper import verify_exact_callable_length
+from primitives import SingleOperandPrimitive, BuiltIn
+import execution
 
 
 @global_attr("print")

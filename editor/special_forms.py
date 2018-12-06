@@ -1,12 +1,12 @@
 from typing import List
 
-from editor.datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined
-from editor.environment import global_attr
-from editor.evaluate_apply import Frame, evaluate, Callable, evaluate_all, Applicable
-from editor.gui import Holder, VisualExpression, return_symbol, logger
-from editor.helper import pair_to_list, verify_exact_callable_length, verify_min_callable_length, \
+from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined
+from environment import global_attr
+from evaluate_apply import Frame, evaluate, Callable, evaluate_all, Applicable
+from gui import Holder, VisualExpression, return_symbol, logger
+from helper import pair_to_list, verify_exact_callable_length, verify_min_callable_length, \
     make_list
-from editor.scheme_exceptions import OperandDeduceError
+from scheme_exceptions import OperandDeduceError
 
 
 class LambdaObject(Applicable):

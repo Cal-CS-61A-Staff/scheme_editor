@@ -1,7 +1,7 @@
 from typing import List, Union
 
-from editor.datamodel import Pair, Expression, Nil, Number, NilType
-from editor.scheme_exceptions import OperandDeduceError, MathError, CallableResolutionError
+from datamodel import Pair, Expression, Nil, Number, NilType
+from scheme_exceptions import OperandDeduceError, MathError, CallableResolutionError
 
 
 def pair_to_list(pos: Pair) -> List[Expression]:

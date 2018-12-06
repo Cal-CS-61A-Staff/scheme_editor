@@ -1,9 +1,9 @@
 import sys
 
-from editor.datamodel import Expression, Symbol, Number, Nil, SingletonTrue, SingletonFalse, String
-from editor.helper import make_list
-from editor.scheme_exceptions import ParseError
-from editor.lexer import TokenBuffer, SPECIALS
+from datamodel import Expression, Symbol, Number, Nil, SingletonTrue, SingletonFalse, String
+from helper import make_list
+from scheme_exceptions import ParseError
+from lexer import TokenBuffer, SPECIALS
 
 
 def tokenize(buffer: TokenBuffer):
