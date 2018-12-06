@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from editor.datamodel import Undefined
-from editor.evaluate_apply import evaluate
-from editor.gui import Holder, Root
-from editor.parser import get_expression
-from editor.lexer import TokenBuffer
-from editor.runtime_limiter import TimeLimitException
-from editor.scheme_exceptions import SchemeError
+from datamodel import Undefined
+from evaluate_apply import evaluate
+from gui import Holder, Root
+from parser import get_expression
+from lexer import TokenBuffer
+from runtime_limiter import TimeLimitException
+from scheme_exceptions import SchemeError
 
 
 def string_exec(strings, out, global_frame=None):
@@ -50,7 +50,7 @@ def string_exec(strings, out, global_frame=None):
     from editor import gui
 
     if global_frame is None:
-        from editor.environment import build_global_frame
+        from environment import build_global_frame
         gui.logger.f_delta -= 1
         global_frame = build_global_frame()
         gui.logger.active_frames.pop(0)  # clear builtin frame

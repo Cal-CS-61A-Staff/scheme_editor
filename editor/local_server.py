@@ -6,10 +6,10 @@ import sys
 import urllib.parse
 from http import HTTPStatus
 
-from editor.formatter import prettify
-from editor import execution, gui
-from editor.runtime_limiter import TimeLimitException, limiter
-from editor.scheme_exceptions import SchemeError
+from formatter import prettify
+import execution, gui
+from runtime_limiter import TimeLimitException, limiter
+from scheme_exceptions import SchemeError
 
 PORT = 8000
 
