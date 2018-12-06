@@ -179,13 +179,16 @@ class Logger:
 
 class StoredFrame:
     def __init__(self, i, base: evaluate_apply.Frame):
-        i += logger.f_delta + 1
-        if i == 0:
+        i += logger.f_delta
+        if i == -1:
             name = "Builtins"
-        elif i == 1:
+        elif i == 0:
             name = "Global"
         else:
             name = f"f{i}"
+        print(logger.f_delta)
+        if name != "Builtins":
+            print("Building frame:", name, "with parent", logger.frame_lookup[id(base.parent)].name)
         self.name = name
         self.label = base.name
         self.parent = base.parent
