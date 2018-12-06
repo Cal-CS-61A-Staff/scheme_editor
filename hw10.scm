@@ -7,12 +7,12 @@
                 (cdr lst))))
   (helper (lambda (x) x)
           nil
-          (helper lst nil lst)))
+          (helper func nil lst)))
 
 (define (range start end curr)
-  (if (= start end)
+  (if (>= start end)
       curr
-      (range (+ 1 start)
+      (range (+ 2 start)
              end
              (cons start curr))))
 
