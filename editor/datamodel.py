@@ -66,9 +66,6 @@ class Pair(Expression):
 
 class NilType(Expression):
     def __repr__(self):
-        from gui import logger
-        if logger.strict_mode:
-            return "()"
         return "nil"
 
 
