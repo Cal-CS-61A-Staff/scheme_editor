@@ -8,6 +8,7 @@ from http import HTTPStatus
 
 from formatter import prettify
 import execution, gui
+from ok_interface import run_tests, parse_test_data
 from runtime_limiter import TimeLimitException, limiter
 from scheme_exceptions import SchemeError
 
@@ -35,10 +36,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(bytes(handle(code, curr_i, curr_f, global_frame_id), "utf-8"))
         elif path == "/save":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
-            file.truncate(0)
-            file.seek(0)
-            file.write("\n".join(code))
-            file.flush()
+            save(code)
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
@@ -56,6 +54,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
             self.wfile.write(bytes(json.dumps({"result": "success", "formatted": prettify(code)}), "utf-8"))
+        elif path == "/test":
+            code = [x.decode("utf-8") for x in data[b"code[]"]]
+            save(code)
+            self.send_response(HTTPStatus.OK, 'test')
+            self.send_header("Content-type", "application/JSON")
+            self.end_headers()
+            self.wfile.write(bytes(json.dumps(parse_test_data(run_tests())), "utf-8"))
 
     def do_GET(self):
         self.send_response(HTTPStatus.OK, 'test')
@@ -118,6 +123,13 @@ def instant(code, global_frame_id):
     finally:
         gui.logger.preview_mode(False)
     return json.dumps({"success": True, "content": gui.logger.export()["out"]})
+
+
+def save(code):
+    file.truncate(0)
+    file.seek(0)
+    file.write("\n".join(code))
+    file.flush()
 
 
 def exit_handler(signal, frame):

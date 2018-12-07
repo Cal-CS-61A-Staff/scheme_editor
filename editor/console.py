@@ -1,6 +1,6 @@
 from typing import List
 
-from scheme_exceptions import OperandDeduceError
+from scheme_exceptions import OperandDeduceError, IrreversibleOperationError
 import gui
 from datamodel import Expression, Undefined, Symbol, String
 from environment import global_attr
@@ -38,10 +38,11 @@ class Newline(BuiltIn):
 @global_attr("load")
 class Load(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame):
-        if not gui.logger.strict_mode:
-            raise NotImplementedError("Unable to load files from web interface.")
         verify_exact_callable_length(self, 1, len(operands))
         if not isinstance(operands[0], Symbol):
             raise OperandDeduceError(f"Load expected a Symbol, received {operands[0]}.")
+        if gui.logger.fragile:
+            raise IrreversibleOperationError()
         with open(f"{operands[0].value}.scm") as file:
+            raise NotImplementedError("Not yet ready - need to hook this through #[eval]")
             execution.string_exec([" ".join(file.readlines())], lambda *x, **y: None, frame)

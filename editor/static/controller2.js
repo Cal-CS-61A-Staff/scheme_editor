@@ -18,6 +18,9 @@ let states = [
         env_open: false,
         turtle_open: false,
         out_open: false,
+        tests_open: false,
+
+        test_results: undefined,
 
     }
 ];
@@ -74,14 +77,14 @@ myLayout.registerComponent('editor', function (container, componentState) {
         <div class="content">
             <div class="header">        
                 <button type="button" class="btn-default save-btn" aria-label="Save">
-                    <span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>
                     <span class="text"> Save </span>
                 </button>
                 <button type="button" class="btn-success toolbar-btn run-btn">Run</button>
+                <button type="button" class="btn-danger toolbar-btn test-btn">Test</button>
 
                 <button type="button" class="btn-info toolbar-btn sub-btn">Subs</button>          
                 <button type="button" class="btn-info toolbar-btn env-btn">Envs</button>          
-                <button type="button" class="btn-info toolbar-btn reformat-btn">Reformat</button>          
+                <button type="button" class="btn-primary toolbar-btn reformat-btn">Reformat</button>          
             </div>
             <div class="editor-wrapper">
                 <div class="editor"></div>
@@ -114,7 +117,12 @@ myLayout.registerComponent('editor', function (container, componentState) {
         }
         editor.setValue(decoded["code"][0]);
 
-        container.getElement().find(".run-btn").on("click", function () {
+        editor.getSession().on("change", function () {
+            container.getElement().find(".save-btn > .text").text("Save");
+        });
+    });
+
+    container.getElement().find(".run-btn").on("click", function () {
             if (editor.getValue().trim() === "") {
                 return;
             }
@@ -157,74 +165,92 @@ myLayout.registerComponent('editor', function (container, componentState) {
             });
         });
 
-        container.getElement().find(".save-btn").on("click", function (e) {
-            container.getElement().find(".save-btn > .text").text("Saving...");
+    container.getElement().find(".save-btn").on("click", function (e) {
+        container.getElement().find(".save-btn > .text").text("Saving...");
 
-            localStorage.setItem('savedLayout', JSON.stringify(myLayout.toConfig()));
+        localStorage.setItem('savedLayout', JSON.stringify(myLayout.toConfig()));
 
-            localStorage.setItem('savedState', JSON.stringify(states));
+        localStorage.setItem('savedState', JSON.stringify(states));
 
-            let code = [editor.getValue()];
-            $.post("./save", {
-                code: code,
-            }).done(function (data) {
-                if (data === "success") {
-                    container.getElement().find(".save-btn > .text").text("Saved");
-                } else {
-                    alert("Save error - try copying code from editor to a file manually");
-                }
-            });
-        });
-
-        container.getElement().find(".reformat-btn").on("click", function (e) {
-            let code = [editor.getValue()];
-            $.post("./reformat", {
-                code: code,
-            }).done(function (data) {
-                data = $.parseJSON(data);
-                if (data["result"] === "success") {
-                    editor.setValue(data["formatted"]);
-                } else {
-                    alert("An error occurred!");
-                }
-            });
-        });
-
-        editor.getSession().on("change", function () {
-            container.getElement().find(".save-btn > .text").text("Save");
-        });
-
-        container.getElement().find(".sub-btn").on("click", function () {
-            if (states[componentState.id].sub_open) {
-
+        let code = [editor.getValue()];
+        $.post("./save", {
+            code: code,
+        }).done(function (data) {
+            if (data === "success") {
+                container.getElement().find(".save-btn > .text").text("Saved");
             } else {
+                alert("Save error - try copying code from editor to a file manually");
+            }
+        });
+    });
+
+    container.getElement().find(".reformat-btn").on("click", function (e) {
+        let code = [editor.getValue()];
+        $.post("./reformat", {
+            code: code,
+        }).done(function (data) {
+            data = $.parseJSON(data);
+            if (data["result"] === "success") {
+                editor.setValue(data["formatted"]);
+            } else {
+                alert("An error occurred!");
+            }
+        });
+    });
+
+    container.getElement().find(".sub-btn").on("click", function () {
+        if (states[componentState.id].sub_open) {
+
+        } else {
+            let config = {
+                type: "component",
+                componentName: "substitution_tree",
+                componentState: {id: componentState.id}
+            };
+            states[componentState.id].sub_open = true;
+            myLayout.root.contentItems[0].addChild(config)
+        }
+
+        $("*").trigger("update");
+    });
+
+    container.getElement().find(".env-btn").on("click", function () {
+        if (states[componentState.id].env_open) {
+
+        } else {
+            let config = {
+                type: "component",
+                componentName: "env_diagram",
+                componentState: {id: componentState.id}
+            };
+            states[componentState.id].env_open = true;
+            myLayout.root.contentItems[0].addChild(config)
+        }
+
+        $("*").trigger("update");
+    });
+
+    container.getElement().find(".test-btn").on("click", function () {
+        if (editor.getValue().trim() === "") {
+            return;
+        }
+        let code = [editor.getValue()];
+        $.post("./test", {
+            code: code,
+        }).done(function (data) {
+            data = $.parseJSON(data);
+            states[componentState.id].test_results = data;
+            if (states[componentState.id].tests_open) { } else {
                 let config = {
                     type: "component",
-                    componentName: "substitution_tree",
+                    componentName: "test_results",
                     componentState: {id: componentState.id}
                 };
-                states[componentState.id].sub_open = true;
-                myLayout.root.contentItems[0].addChild(config)
+                states[componentState.id].tests_open = true;
+                myLayout.root.contentItems[0].addChild(config);
             }
-
             $("*").trigger("update");
         });
-
-        container.getElement().find(".env-btn").on("click", function () {
-            if (states[componentState.id].env_open) {
-
-            } else {
-                let config = {
-                    type: "component",
-                    componentName: "env_diagram",
-                    componentState: {id: componentState.id}
-                };
-                states[componentState.id].env_open = true;
-                myLayout.root.contentItems[0].addChild(config)
-            }
-
-            $("*").trigger("update");
-        })
     });
 });
 
@@ -478,6 +504,61 @@ myLayout.registerComponent('env_diagram', function (container, componentState) {
     container.on("destroy", function () {
         states[componentState.id].env_open = false;
     });
+});
+
+myLayout.registerComponent('test_results', function (container, componentState) {
+    container.getElement().on("update", function () {
+        let data = states[componentState.id].test_results;
+        let out = `
+<div id="accordion">    
+`;
+        let expanded = false;
+        for (let entry of data) {
+            let random_id = Math.random().toString(36).replace(/[^a-z]+/g, '');
+            let card_style = entry.passed ? "bg-success" : "bg-danger";
+            let hideshow = (!expanded && !entry.passed) ? "show" : "hide";
+            expanded &= !entry.passed;
+            out += `
+<div class="card ">
+    <div class="card-header ${card_style} text-white" id="${random_id + "x"}" data-toggle="collapse" 
+    data-target="#${random_id}"> ${entry.problem} </div>
+    <div id="${random_id}" class="collapse ${hideshow}" aria-labelledby="${random_id + "x"}" data-parent="#accordion">
+    <div class="card-body" style="padding: 5px">
+        <table class="table table-sm table-hover">
+            <tbody>
+`;
+            console.log(entry.suites);
+            for (let i = 0; i !== entry.suites.length; ++i) {
+                for (let j = 0; j !== entry.suites[i].length; ++j) {
+                    let test = entry.suites[i][j];
+                    let pass_string = (test.passed ? "Passed!" : "Failed!");
+                    let class_string = (test.passed ? "" : "font-bold");
+                    out += `
+<tr class="${class_string}"><td>Suite ${i + 1}, Case ${j + 1}</td> <td>${pass_string}</td> <td> <button> View Case </button> </td></tr>
+`;
+                }
+            }
+            out += `
+      </tbody>
+      </table>
+      </div>
+    </div>
+</div>
+`;
+        }
+
+        out += "</div>";
+
+        container.getElement().html(out);
+    });
+
+    container.getElement().on("click", function () { });
+
+    container.on("destroy", function () {
+        states[componentState.id].tests_open = false;
+    });
+
+    container.on("open", function () {});
 });
 
 function display_env(environments, container, i) {
