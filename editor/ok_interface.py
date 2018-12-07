@@ -69,24 +69,38 @@ class TestCase:
                     prefix = ";" + " " * (len(prefix) - 1)
         return "\n".join(out)
 
+    def export(self):
+        return {
+            "code": self.get_full_str(),
+            "passed": self.passed
+        }
+
+
+class PrintCapture:
+    def __init__(self):
+        self.log = []
+
+    def write(self, message):
+        self.log.append(message)
+        sys.__stdout__.write(message)
+
+    def flush(self):
+        sys.__stdout__.flush()
+
 
 def run_tests():
     LOGGING_FORMAT = '%(levelname)s  | %(filename)s:%(lineno)d | %(message)s'
     logging.basicConfig(format=LOGGING_FORMAT)
     log = logging.getLogger('client')  # Get top-level logger
 
-    CLIENT_ROOT = os.path.dirname(client.__file__)
-
     # noinspection PyUnresolvedReferences
     from client.cli.ok import parse_input
     log.setLevel(logging.ERROR)
 
-    args = parse_input(["--all", "--verbose"])
-    assign = None
-    # Instantiating assignment
+    args = parse_input(["--all", "--verbose", "--local"])
 
     old_stdout = sys.stdout
-    sys.stdout = out = StringIO()
+    sys.stdout = out = PrintCapture()
 
     assign = assignment.load_assignment(None, args)
 
@@ -101,13 +115,13 @@ def run_tests():
         assign.dump_tests()
 
     sys.stdout = old_stdout
-    return out.getvalue()
+    return "\n".join(out.log)
 
 
 def parse_test_data(raw_out):
     blocks = raw_out.split("-" * 69)
     blocks = blocks[1:-1]  # cut off the header + footer
-    out = []
+    cases = []
     for block in blocks:
         lines = block.strip().split("\n")
         categorized_lines = []
@@ -152,9 +166,15 @@ def parse_test_data(raw_out):
         suite = int(vals[1].split()[1])
         case = int(vals[2].split()[1])
 
-        out.append(TestCase(problem, suite, case, not error, elements[1:]))
+        cases.append(TestCase(problem.replace("-", " ").title(), suite, case, not error, elements[1:]))
 
-    print("\n------\n".join(x.get_full_str() for x in out))
+    out = []
+    for case in cases:
+        if not out or out[-1]["problem"] != case.problem:
+            out.append({"problem": case.problem, "suites": [],
+                        "passed": all(x.passed for x in cases if x.problem == case.problem)})
+        if len(out[-1]["suites"]) != case.suite:
+            out[-1]["suites"].append([])
+        out[-1]["suites"][-1].append(case.export())
 
-
-parse_test_data(run_tests())
+    return out
