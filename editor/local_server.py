@@ -1,11 +1,13 @@
 import http.server
 import json
+import os
 import signal
 import socketserver
 import sys
 import urllib.parse
 from http import HTTPStatus
 
+from file_manager import get_scm_files
 from formatter import prettify
 import execution, gui
 from ok_interface import run_tests, parse_test_data
@@ -14,7 +16,7 @@ from scheme_exceptions import SchemeError
 
 PORT = 8000
 
-file = None
+main_file = ""
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -23,8 +25,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
         raw_data = self.rfile.read(content_length)
         data = urllib.parse.parse_qs(raw_data)
         path = urllib.parse.unquote(self.path)
+
         if b"code[]" not in data:
             data[b"code[]"] = [b""]
+
         if path == "/process2":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
             curr_i = int(data[b"curr_i"][0])
@@ -34,13 +38,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
             self.wfile.write(bytes(handle(code, curr_i, curr_f, global_frame_id), "utf-8"))
+
         elif path == "/save":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
-            save(code)
+            filename = data[b"filename"][0]
+            save(code, filename)
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
             self.wfile.write(bytes("success", "utf-8"))
+
         elif path == "/instant":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
             global_frame_id = int(data[b"globalFrameID"][0])
@@ -48,19 +55,35 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
             self.wfile.write(bytes(instant(code, global_frame_id), "utf-8"))
+
         elif path == "/reformat":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
             self.wfile.write(bytes(json.dumps({"result": "success", "formatted": prettify(code)}), "utf-8"))
+
         elif path == "/test":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
-            save(code)
+            filename = data[b"filename"][0]
+            save(code, filename)
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
             self.wfile.write(bytes(json.dumps(parse_test_data(run_tests())), "utf-8"))
+
+        elif path == "/list_files":
+            self.send_response(HTTPStatus.OK, 'test')
+            self.send_header("Content-type", "application/JSON")
+            self.end_headers()
+            self.wfile.write(bytes(json.dumps(get_scm_files()), "utf-8"))
+
+        elif path == "/read_file":
+            filename = data[b"filename"][0]
+            self.send_response(HTTPStatus.OK, 'test')
+            self.send_header("Content-type", "application/JSON")
+            self.end_headers()
+            self.wfile.write(bytes(json.dumps(read_file(filename)), "utf-8"))
 
     def do_GET(self):
         self.send_response(HTTPStatus.OK, 'test')
@@ -68,20 +91,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if path[-4:] == ".css":
             self.send_header("Content-type", "text/css")
         self.end_headers()
-        code = [""]
         if path == "editor/static/":
             path = "editor/static/index.html"
-            if file is not None:
-                file.seek(0)
-                code = ["".join(file)]
-                print(code, file)
         try:
             with open(path, "rb") as f:  # lol better make sure that port is closed
                 self.wfile.write(f.read()
                                  .replace(b"<START_DATA>",
-                                          bytes(repr(json.dumps({"code": code,
-                                                            "skip_tree": True,
-                                                            "hide_return_frames": True})),
+                                          bytes(repr(json.dumps({"file": main_file})),
                                                 "utf-8")))
         except Exception as e:
             print(e)
@@ -125,17 +141,22 @@ def instant(code, global_frame_id):
     return json.dumps({"success": True, "content": gui.logger.export()["out"]})
 
 
-def save(code):
-    file.truncate(0)
-    file.seek(0)
-    file.write("\n".join(code))
-    file.flush()
+def save(code, filename):
+    with open(filename, "w+") as file:
+        file.truncate(0)
+        file.seek(0)
+        file.write("\n".join(code))
+        file.flush()
+
+
+def read_file(filename):
+    with open(filename, "r") as file:
+        return "".join([x for x in file])
 
 
 def exit_handler(signal, frame):
     print(" - Ctrl+C pressed")
     print("Shutting down server - all unsaved work will be lost")
-    file.close()
     sys.exit(0)
 
 
@@ -143,8 +164,8 @@ signal.signal(signal.SIGINT, exit_handler)
 
 
 def start(file_arg=None):
-    global file
-    file = file_arg
+    global main_file
+    main_file = file_arg
     print(f"http://localhost:{PORT}")
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("localhost", PORT), Handler) as httpd:

@@ -8,14 +8,12 @@ parser.add_argument("file",
 parser.add_argument("-d", "--debug",
                     help="Enable debug mode",
                     action="store_true")
-parser.add_argument("-ok", "--okpy",
-                    help="start OKPY",
+parser.add_argument("-s", "--scm",
+                    help="start SCM searcher",
                     action="store_true")
 parser.add_argument("-t", "--terminal")
 args = parser.parse_args()
 
-if args.okpy:
-    import ok_interface
-else:
-    print(args.file)
-    local_server.start(args.file)
+file_name = args.file.name
+args.file.close()
+local_server.start(file_name)
