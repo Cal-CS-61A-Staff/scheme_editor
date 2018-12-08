@@ -4,7 +4,7 @@ from typing import Union
 
 
 class Expression:
-    pass
+    comment = None  # for use when autoformatting
 
 
 class ValueHolder(Expression):
@@ -94,7 +94,7 @@ class String(ValueHolder):
         super().__init__(value)
 
     def __repr__(self):
-        return "\"" + self.value + "\""
+        return repr(self.value)
 
 
 SingletonTrue = Boolean(True)
