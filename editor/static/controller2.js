@@ -27,6 +27,8 @@ let base_state = {
 
 let states = [jQuery.extend({}, base_state)];
 
+let temp_file = "<temporary>";
+
 function getDims(parentElement) {
     parentElement = parentElement || document.body;
     let div = document.createElement('div');
@@ -85,7 +87,7 @@ $("#open-btn").click(function () {
     }).done(function (data) {
         let files = new Set();
         for (let state of states) {
-            if (!state.editor_open) {
+            if (state.editor_open) {
                 files.add(state.file_name);
             }
         }
@@ -94,6 +96,9 @@ $("#open-btn").click(function () {
         $("#file-list").html("");
         for (let file of data) {
             if (files.has(file)) {
+                $("#file-list").append(`
+                <tr><td class="align-middle">${file}</td> <td class="text-right"><button type="button" disabled class="btn btn-primary disabled">Already Open</button></td></tr>
+            `);
                 continue;
             }
             $("#file-list").append(`
@@ -125,7 +130,8 @@ myLayout.registerComponent('editor', function (container, componentState) {
                     <span class="text"> Save </span>
                 </button>
                 <button type="button" class="btn-success toolbar-btn run-btn">Run</button>
-                <button type="button" class="btn-danger toolbar-btn test-btn">Test</button>
+                ${(componentState.id === 0) ? 
+        `<button type="button" class="btn-danger toolbar-btn test-btn">Test</button>` : ``}
 
                 <button type="button" class="btn-info toolbar-btn sub-btn">Subs</button>          
                 <button type="button" class="btn-info toolbar-btn env-btn">Envs</button>          
@@ -164,12 +170,16 @@ myLayout.registerComponent('editor', function (container, componentState) {
             states[componentState.id].file_name = decoded["file"];
         }
 
-        $.post("/read_file", {
-            filename: states[componentState.id].file_name,
-        }).done(function (data) {
-            data = $.parseJSON(data);
-            editor.setValue(data);
-        });
+        if (states[componentState.id].file_name === temp_file) {
+            editor.setValue(states[componentState.id].file_content);
+        } else {
+            $.post("/read_file", {
+                filename: states[componentState.id].file_name,
+            }).done(function (data) {
+                data = $.parseJSON(data);
+                editor.setValue(data);
+            });
+        }
 
         editor.getSession().on("change", function () {
             container.getElement().find(".save-btn > .text").text("Save");
@@ -329,11 +339,12 @@ myLayout.registerComponent('output', function (container, componentState) {
 `);
 
     let preview = "";
+    let editorDiv;
+    let editor;
 
     container.getElement().find(".output").on("update", function (e) {
         container.getElement().find(".output").html(states[componentState.id].out.trim());
         container.getElement().find(".preview").html(preview);
-        editor.focus();
         container.getElement().find(".output-wrapper").scrollTop(
             container.getElement().find(".output-wrapper")[0].scrollHeight);
     });
@@ -344,8 +355,6 @@ myLayout.registerComponent('output', function (container, componentState) {
     container.on("destroy", function () {
         states[componentState.id].out_open = false;
     });
-    let editorDiv;
-    let editor;
     container.on("open", function () {
         editorDiv = container.getElement().find(".console-input").get(0);
         editor = ace.edit(editorDiv);
@@ -366,6 +375,7 @@ myLayout.registerComponent('output', function (container, componentState) {
                 return "scm> ";
             }
         };
+        editor.focus();
 
         container.on("resize", function () {
             editor.resize();
@@ -570,46 +580,57 @@ myLayout.registerComponent('env_diagram', function (container, componentState) {
 myLayout.registerComponent('test_results', function (container, componentState) {
     container.getElement().on("update", function () {
         let data = states[componentState.id].test_results;
-        let out = `
-<div id="accordion">    
-`;
+        container.getElement().html(`<div id="accordion"> </div>`);
         let expanded = false;
         for (let entry of data) {
             let random_id = Math.random().toString(36).replace(/[^a-z]+/g, '');
             let card_style = entry.passed ? "bg-success" : "bg-danger";
             let hideshow = (!expanded && !entry.passed) ? "show" : "hide";
-            expanded &= !entry.passed;
-            out += `
-<div class="card ">
-    <div class="card-header ${card_style} text-white" id="${random_id + "x"}" data-toggle="collapse" 
-    data-target="#${random_id}"> ${entry.problem} </div>
-    <div id="${random_id}" class="collapse ${hideshow}" aria-labelledby="${random_id + "x"}" data-parent="#accordion">
-    <div class="card-body" style="padding: 5px">
-        <table class="table table-sm table-hover">
-            <tbody>
-`;
+            expanded |= !entry.passed;
+            $("#accordion").append(`
+            <div class="card ">
+                <div class="card-header ${card_style} text-white" id="${random_id + "x"}" data-toggle="collapse" 
+                data-target="#${random_id}"> ${entry.problem} </div>
+                <div id="${random_id}" class="collapse ${hideshow}" aria-labelledby="${random_id + "x"}" data-parent="#accordion">
+                <div class="card-body" style="padding: 5px">
+                    <table class="table table-sm table-hover">
+                        <tbody>
+                        </tbody>
+                  </table>
+                  </div>
+                </div>
+            </div>
+            `);
+
             for (let i = 0; i !== entry.suites.length; ++i) {
                 for (let j = 0; j !== entry.suites[i].length; ++j) {
                     let test = entry.suites[i][j];
                     let pass_string = (test.passed ? "Passed!" : "Failed!");
                     let class_string = (test.passed ? "" : "font-bold");
-                    out += `
-<tr class="${class_string}"><td>Suite ${i + 1}, Case ${j + 1}</td> <td>${pass_string}</td> <td> <button> View Case </button> </td></tr>
-`;
+                    $("#accordion").children().last().find("tbody").append(`
+                    <tr class="${class_string}">
+                        <td class="align-middle">Suite ${i + 1}, Case ${j + 1}</td> 
+                        <td class="align-middle">${pass_string}</td> 
+                        <td class="text-right"> <button class="btn btn-secondary"> View Case </button> </td>
+                    </tr>`);
+                    $(`#${random_id}`).find(".btn").last().click(function () {
+                        let index = states.length;
+                        let new_state = jQuery.extend({}, base_state);
+                        new_state.file_name = temp_file;
+                        new_state.file_content = test.code;
+                        states.push(new_state);
+                        let config = {
+                            type: "component",
+                            componentName: "editor",
+                            componentState: {id: index}
+                        };
+                        states[index].tests_open = true;
+                        myLayout.root.contentItems[0].addChild(config);
+                        $("#fileChooserModal").modal("hide");
+                    });
                 }
             }
-            out += `
-      </tbody>
-      </table>
-      </div>
-    </div>
-</div>
-`;
         }
-
-        out += "</div>";
-
-        container.getElement().html(out);
     });
 
     container.getElement().on("click", function () { });
