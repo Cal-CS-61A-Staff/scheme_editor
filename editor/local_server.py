@@ -117,9 +117,8 @@ def handle(code, curr_i, curr_f, global_frame_id):
         else:
             execution.string_exec(code, gui.logger.out, gui.logger.frame_lookup[global_frame_id].base)
         # limiter(3, execution.string_exec, code, gui.logger.out)
-    except SchemeError as e:
-        gui.logger.out(e)
-        raise
+    except ParseError as e:
+        return json.dumps({"success": False, "out": [str(e)]})
 
     out = gui.logger.export()
     return json.dumps(out)

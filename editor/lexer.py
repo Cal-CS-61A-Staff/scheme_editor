@@ -15,6 +15,11 @@ def get_input():
 
 
 class EndParen:
+    comment = None
+
+    def __init__(self):
+        print("making paren")
+
     def __eq__(self, other):
         return other == ")"
 
@@ -85,6 +90,7 @@ class TokenBuffer:
             while not self.done and self.get_next_char() != "\n":
                 curr += self.pop_next_char()
             self.prev_paren.comment = curr
+            print("Comment", curr)
             self.in_comment = False
             if self.done:
                 return None
@@ -93,6 +99,8 @@ class TokenBuffer:
 
         if self.in_string and self.get_next_char() != "\"":
             while self.get_next_char() != "\n" and self.get_next_char() != "\"":
+                if self.get_next_char() == "\\":
+                    curr += self.pop_next_char()
                 curr += self.pop_next_char()
             if self.get_next_char() == "\n":
                 raise ParseError("Multiline strings are not supported!")
@@ -128,6 +136,8 @@ class TokenBuffer:
     def pop_next_token(self):
         out = self.get_next_token()
         self.next_token = None
+        if not self.done:
+            self.next_token = self.get_next_token()
         return out
 
     def get_next_char(self) -> str:

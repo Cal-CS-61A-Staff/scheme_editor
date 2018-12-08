@@ -139,6 +139,7 @@ class Logger:
 
     def export(self):
         return {
+            "success": True,
             "roots": self.roots,
             "states": self.export_states,
             "out": ["\n".join(["".join(x).strip() for x in self._out])],

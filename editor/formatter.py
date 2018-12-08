@@ -24,12 +24,15 @@ def prettify(strings: List[str]) -> str:
         buff = lexer.TokenBuffer([string])
         while not buff.done:
             expr = get_expression(buff)
+            if expr is None:
+                continue
             out.append(prettify_expr(expr, LINE_LENGTH)[0])
 
     return "\n\n".join(out)
 
 
 def prettify_expr(expr: Expression, remaining: int) -> Tuple[str, bool]:
+    print(expr)
     if not isinstance(expr, Pair) or (len(str(expr)) < min(MAX_EXPR_LENGTH, remaining)
                                       and (not isinstance(expr.first, Symbol)
                                            or not (expr.first.value in MULTILINE_VALS or
@@ -104,7 +107,7 @@ def prettify_expr(expr: Expression, remaining: int) -> Tuple[str, bool]:
                         else:
                             ret = prettify_expr(rest.first, remaining - 1)
                         return SHORTHAND[first.value] + indent(ret[0], 1).lstrip(), ret[1]
-            except SchemeError:
+            except (SchemeError, ValueError):
                 print(f"Poorly formed {first.value} expression - printing in debug configuration")
 
             if len(str(expr)) < min(MAX_EXPR_LENGTH, remaining):
