@@ -30,7 +30,7 @@ class MathProcedure(SingleOperandPrimitive):
 
     def execute_simple(self, operand: Expression):
         if not isinstance(operand, Number):
-            raise MathError
+            raise MathError()
         return Number(self.func(operand.value), force_float=True)
 
     def __repr__(self):
