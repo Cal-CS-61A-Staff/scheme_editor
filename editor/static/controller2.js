@@ -205,19 +205,23 @@ myLayout.registerComponent('editor', function (container, componentState) {
             }).done(function (data) {
                 data = $.parseJSON(data);
                 console.log(data);
-                states[componentState.id].states = data.states;
-                states[componentState.id].environments = [];
-                for (let key of data.active_frames) {
-                    states[componentState.id].environments.push(data.frame_lookup[key]);
+                if (data.success) {
+                    states[componentState.id].states = data.states;
+                    states[componentState.id].environments = [];
+                    for (let key of data.active_frames) {
+                        states[componentState.id].environments.push(data.frame_lookup[key]);
+                    }
+                    states[componentState.id].moves = data.graphics;
+                    states[componentState.id].out = data.out[0];
+                    states[componentState.id].start = data.states[0][0];
+                    states[componentState.id].end = data.states[0][1];
+                    states[componentState.id].index = data.states[0][0];
+                    states[componentState.id].expr_i = 0;
+                    states[componentState.id].roots = data.roots;
+                    states[componentState.id].globalFrameID = data.globalFrameID;
+                } else {
+                    states[componentState.id].out = data.out[0];
                 }
-                states[componentState.id].moves = data.graphics;
-                states[componentState.id].out = data.out[0];
-                states[componentState.id].start = data.states[0][0];
-                states[componentState.id].end = data.states[0][1];
-                states[componentState.id].index = data.states[0][0];
-                states[componentState.id].expr_i = 0;
-                states[componentState.id].roots = data.roots;
-                states[componentState.id].globalFrameID = data.globalFrameID;
 
                 if (!states[componentState.id].out_open) {
                     let config = {
@@ -409,13 +413,15 @@ myLayout.registerComponent('output', function (container, componentState) {
                     if (data.out[0].trim() !== "") {
                         states[componentState.id].out += "\n" + data.out[0].trim();
                     }
-                    for (let key of data.active_frames) {
-                        states[componentState.id].environments.push(data.frame_lookup[key]);
+                    if (data.success) {
+                        for (let key of data.active_frames) {
+                            states[componentState.id].environments.push(data.frame_lookup[key]);
+                        }
+                        states[componentState.id].environments[0] =
+                            data.frame_lookup[states[componentState.id].globalFrameID];
+                        states[componentState.id].states.push(...data.states);
+                        states[componentState.id].roots.push(...data.roots);
                     }
-                    states[componentState.id].environments[0] =
-                        data.frame_lookup[states[componentState.id].globalFrameID];
-                    states[componentState.id].states.push(...data.states);
-                    states[componentState.id].roots.push(...data.roots);
                     $("*").trigger("update");
                 });
             } else {

@@ -94,19 +94,31 @@ def get_string(buffer: TokenBuffer) -> String:
 def get_rest_of_list(buffer: TokenBuffer) -> Expression:
     out = []
     last = Nil
+    comment = None
+    contains_comment = False
     while True:
         next = buffer.get_next_token()
         if next == ")":
             buffer.pop_next_token()
+            comment = next.comment
+            print(comment)
             break
         elif next == ".":
             buffer.pop_next_token()
             last = get_expression(buffer)
+            if last.contains_comment:
+                contains_comment = True
             if buffer.pop_next_token() != ")":
                 raise ParseError(f"Only one expression may follow a dot in a dotted list.")
             break
         out.append(get_expression(buffer))
-    return make_list(out, last)
+    out = make_list(out, last)
+    out.has_comment = contains_comment
+    if comment is not None:
+        print("COMMENT DETECTED")
+        out.comment = comment
+        out.contains_comment = True
+    return out
 
 
 def is_number(token: str) -> bool:
