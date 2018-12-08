@@ -1,4 +1,4 @@
-(define (map func lst)
+(define (map2 func lst)
   (define (helper func curr lst)
     (if (null? lst)
         curr

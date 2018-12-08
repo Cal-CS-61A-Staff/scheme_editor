@@ -64,6 +64,9 @@ class TestCase:
                     prefix = ";" + " " * (len(prefix) - 1)
             elif elem[0] == ACTUAL_OUTPUT:
                 prefix = "; actually received "
+                if elem[1][0].startswith("Traceback"):
+                    elem[1][2] = elem[1][2][13:]
+                    elem[1][:] = ["SchemeError:\n; " + "\n; ".join(elem[1][2:])]
                 for ret in elem[1]:
                     out.append(prefix + ret)
                     prefix = ";" + " " * (len(prefix) - 1)
