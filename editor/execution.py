@@ -65,8 +65,10 @@ def string_exec(strings, out, global_frame=None):
             continue
         buff = TokenBuffer([string])
         while not buff.done:
-            gui.logger.new_expr()
             expr = get_expression(buff)
+            if expr is None:
+                continue
+            gui.logger.new_expr()
             holder = Holder(expr, None)
             Root.setroot(holder)
             try:

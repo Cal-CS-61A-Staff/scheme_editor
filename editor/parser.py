@@ -1,4 +1,5 @@
 import sys
+from typing import Union
 
 from datamodel import Expression, Symbol, Number, Nil, SingletonTrue, SingletonFalse, String
 from helper import make_list
@@ -24,11 +25,15 @@ def tokenize(buffer: TokenBuffer):
     out = []  # array of top-level elements to be executed sequentially
     while not buffer.done:
         out.append(get_expression(buffer))
+        if out[-1] is None:
+            out.pop()
     return out
 
 
-def get_expression(buffer: TokenBuffer) -> Expression:
+def get_expression(buffer: TokenBuffer) -> Union[Expression, None]:
     token = buffer.pop_next_token()
+    if token is None:
+        return None
     if token in SPECIALS:
         if token == "(":
             return get_rest_of_list(buffer)
@@ -68,18 +73,22 @@ def get_expression(buffer: TokenBuffer) -> Expression:
 
 def get_string(buffer: TokenBuffer) -> String:
     out = []
-    while True:
-        token = buffer.pop_next_token()
-        if token == "\"":
-            return String("".join(out))
-        elif token == "\\":
-            escaped = buffer.pop_next_token()
-            if escaped == "n":
+    string = buffer.pop_next_token()
+    escaping = False
+    for char in string:
+        if escaping:
+            if char == "n":
                 out.append("\n")
             else:
-                out.append(escaped)
+                out.append(char)
+            escaping = False
+        elif char == "\\":
+            escaping = True
         else:
-            out.append(token)
+            out.append(char)
+    if buffer.pop_next_token() != "\"":
+        raise ParseError("String not terminated correctly!")
+    return String("".join(out))
 
 
 def get_rest_of_list(buffer: TokenBuffer) -> Expression:

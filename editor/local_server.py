@@ -11,7 +11,7 @@ from formatter import prettify
 import execution, gui
 from ok_interface import run_tests, parse_test_data
 from runtime_limiter import TimeLimitException, limiter
-from scheme_exceptions import SchemeError
+from scheme_exceptions import SchemeError, ParseError
 
 PORT = 8000
 
@@ -117,7 +117,8 @@ def handle(code, curr_i, curr_f, global_frame_id):
         else:
             execution.string_exec(code, gui.logger.out, gui.logger.frame_lookup[global_frame_id].base)
         # limiter(3, execution.string_exec, code, gui.logger.out)
-    except Exception as e:
+    except SchemeError as e:
+        gui.logger.out(e)
         raise
 
     out = gui.logger.export()

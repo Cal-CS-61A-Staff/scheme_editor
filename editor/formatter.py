@@ -30,7 +30,6 @@ def prettify(strings: List[str]) -> str:
 
 
 def prettify_expr(expr: Expression, remaining: int) -> Tuple[str, bool]:
-    print("Print:", expr)
     if not isinstance(expr, Pair) or (len(str(expr)) < min(MAX_EXPR_LENGTH, remaining)
                                       and (not isinstance(expr.first, Symbol)
                                            or not (expr.first.value in MULTILINE_VALS or
@@ -133,7 +132,6 @@ def prettify_expr(expr: Expression, remaining: int) -> Tuple[str, bool]:
 
 
 def prettify_data(expr: Expression, remaining: int):
-    print("Dataprint:", expr)
     if not isinstance(expr, Pair) or len(str(expr)) < remaining:
         return str(expr), remaining > 0
 

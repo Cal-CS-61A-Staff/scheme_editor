@@ -1,6 +1,8 @@
+from typing import Union
+
 from scheme_exceptions import ParseError
 
-SPECIALS = ["(", ")", ".", "'", "`", ",", "@", "\"", "\\"]
+SPECIALS = ["(", ")", ".", "'", "`", ",", "@", "\"", ";"]
 
 
 def get_input():
@@ -10,6 +12,17 @@ def get_input():
         if x == 'X':
             return out
         out.append(x)
+
+
+class EndParen:
+    def __eq__(self, other):
+        return other == ")"
+
+    def __hash__(self):
+        return hash(")")
+
+    def __repr__(self):
+        return ")"
 
 
 class TokenBuffer:
@@ -54,20 +67,29 @@ class TokenBuffer:
 
     def __init__(self, lines):
         self.i = 0
-        for i, line in enumerate(lines):
-            out = ""
-            for real_line in line.split("\n"):
-                out += real_line.split(";")[0] + " "
-            lines[i] = out
-        self.string = " ".join(lines).strip()
+        self.string = "\n".join(lines).strip()
         self.done = False
         self.next_token = None
         self.in_string = False
+        self.in_comment = False
+        self.prev_paren = EndParen()  # TODO: temporary fix!
 
-    def get_next_token(self) -> str:
+    def get_next_token(self) -> Union[str, EndParen, None]:
         if self.next_token is not None:
             return self.next_token
         curr = ""
+
+        if self.in_comment:
+            if self.in_string:
+                raise ParseError("String not terminated before comment")
+            while not self.done and self.get_next_char() != "\n":
+                curr += self.pop_next_char()
+            self.prev_paren.comment = curr
+            self.in_comment = False
+            if self.done:
+                return None
+            else:
+                return self.get_next_token()
 
         if self.in_string and self.get_next_char() != "\"":
             while self.get_next_char() != "\n" and self.get_next_char() != "\"":
@@ -91,9 +113,16 @@ class TokenBuffer:
             curr += self.pop_next_char()
             # print(f"curr = '{curr}'")
             if curr in SPECIALS or self.done:
+                if curr == ")":
+                    self.prev_paren = EndParen()
+                    curr = self.prev_paren
                 self.next_token = curr
                 if curr == "\"":
                     self.in_string ^= True
+                if curr == ";":
+                    self.in_comment = True
+                    self.next_token = None
+                    return self.get_next_token()
                 return curr
 
     def pop_next_token(self):
@@ -104,11 +133,11 @@ class TokenBuffer:
     def get_next_char(self) -> str:
         if self.done:
             raise ParseError("Incomplete expression, probably due to unmatched parentheses or quotes.")
-        return self.string[self.i]
+        out = self.string[self.i]
+        return out
 
     def pop_next_char(self) -> str:
         out = self.get_next_char()
-        # print(f"Popping: '{out}'")
 
         self.i += 1
 
