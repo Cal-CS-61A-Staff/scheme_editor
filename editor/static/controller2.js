@@ -126,9 +126,11 @@ myLayout.registerComponent('editor', function (container, componentState) {
     container.getElement().html(`
         <div class="content">
             <div class="header">        
-                <button type="button" class="btn-default save-btn" aria-label="Save">
+                ${(states[componentState.id].file_name !== temp_file) ? 
+                `<button type="button" class="btn-default save-btn" aria-label="Save">
                     <span class="text"> Save </span>
-                </button>
+                </button>` : ``}
+
                 <button type="button" class="btn-success toolbar-btn run-btn">Run</button>
                 ${(componentState.id === 0) ? 
         `<button type="button" class="btn-danger toolbar-btn test-btn">Test</button>` : ``}
