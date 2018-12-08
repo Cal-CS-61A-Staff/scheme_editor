@@ -73,7 +73,7 @@ def string_exec(strings, out, global_frame=None):
                 res = evaluate(expr, global_frame, holder)
                 if res is not Undefined:
                     out(res)
-            except (SchemeError, ZeroDivisionError) as e:
+            except (SchemeError, ZeroDivisionError, Exception) as e:
                 if not gui.logger.fragile:
                     gui.logger.raw_out("Traceback (most recent call last)\n")
                     for i, expr in enumerate(gui.logger.eval_stack):

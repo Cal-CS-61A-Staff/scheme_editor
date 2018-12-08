@@ -1,13 +1,12 @@
 import http.server
 import json
-import os
 import signal
 import socketserver
 import sys
 import urllib.parse
 from http import HTTPStatus
 
-from file_manager import get_scm_files
+from file_manager import get_scm_files, save, read_file
 from formatter import prettify
 import execution, gui
 from ok_interface import run_tests, parse_test_data
@@ -139,19 +138,6 @@ def instant(code, global_frame_id):
     finally:
         gui.logger.preview_mode(False)
     return json.dumps({"success": True, "content": gui.logger.export()["out"]})
-
-
-def save(code, filename):
-    with open(filename, "w+") as file:
-        file.truncate(0)
-        file.seek(0)
-        file.write("\n".join(code))
-        file.flush()
-
-
-def read_file(filename):
-    with open(filename, "r") as file:
-        return "".join([x for x in file])
 
 
 def exit_handler(signal, frame):
