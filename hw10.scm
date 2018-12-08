@@ -10,7 +10,7 @@
           (helper func nil lst)))
 
 (define (range start end curr)
-  (if (< start end)
+  (if (= start end)
       curr
       (range (+ 1 start)
              end
