@@ -52,7 +52,7 @@
             </div>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="#">Open</a>
+            <a class="nav-link" href="#" id="open-btn">Open</a>
         </li>
         <li class="nav-item">
             <a class="nav-link" href="#">Settings</a>
@@ -64,6 +64,26 @@
     </form>
 </nav>
 <div id="body" class="container-fluid">
+</div>
+
+<div class="modal fade" id="fileChooserModal" tabindex="-1" role="dialog" aria-labelledby="fileChooserModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="fileChooserModalLabel">Open file</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <table id="file-list" class="table table-hover">
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Bootstrap core JavaScript

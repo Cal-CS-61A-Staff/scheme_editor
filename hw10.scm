@@ -7,10 +7,10 @@
                 (cdr lst))))
   (helper (lambda (x) x)
           nil
-          (helper lst nil lst)))
+          (helper func nil lst)))
 
 (define (range start end curr)
-  (if (= start end)
+  (if (< start end)
       curr
       (range (+ 1 start)
              end
@@ -43,11 +43,11 @@
   (if (null? s)
       nil
       (begin (define (helper cnt s)
-               (if (null? (cdr-stream s))
+               (if (null? (cdr s))
                    (cons cnt nil)
-                   (if (eq? (car s) (car (cdr-stream s)))
-                       (helper (+ 1 cnt) (cdr-stream s))
-                       (cons cnt (cdr-stream s)))))
+                   (if (eq? (car s) (car (cdr s)))
+                       (helper (+ 1 cnt) (cdr s))
+                       (cons cnt (cdr s)))))
              (define ret (helper 1 s))
-             (cons-stream (list (car s) (car ret))
-                          (rle (cdr ret))))))
+             (cons (list (car s) (car ret))
+                   (rle (cdr ret))))))

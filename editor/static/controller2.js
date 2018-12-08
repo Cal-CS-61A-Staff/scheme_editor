@@ -1,5 +1,4 @@
-let states = [
-    {
+let base_state = {
         states: [],
         environments: [],
         moves: [],
@@ -14,6 +13,7 @@ let states = [
 
         globalFrameID: -1,
 
+        editor_open: false,
         sub_open: false,
         env_open: false,
         turtle_open: false,
@@ -22,8 +22,10 @@ let states = [
 
         test_results: undefined,
 
-    }
-];
+        file_name: "",
+};
+
+let states = [jQuery.extend({}, base_state)];
 
 function getDims(parentElement) {
     parentElement = parentElement || document.body;
@@ -45,12 +47,18 @@ let charHeight = getDims()[1];
 let charWidth = getDims()[0];
 
 let config = {
+    settings: {
+        showPopoutIcon: false,
+        showMaximiseIcon: false,
+        showCloseIcon: true,
+    },
     content: [{
         type: 'row',
         content: [{
             type: 'component',
             componentName: 'editor',
-            componentState: {id: 0}
+            componentState: {id: 0},
+            isClosable: false,
         }]
     }]
 };
@@ -70,6 +78,43 @@ if (savedState !== null) {
 
 $(window).resize(function () {
     myLayout.updateSize($("#body").width(), $("#body").height());
+});
+
+$("#open-btn").click(function () {
+    $.post("./list_files", {
+    }).done(function (data) {
+        let files = new Set();
+        for (let state of states) {
+            if (!state.editor_open) {
+                files.add(state.file_name);
+            }
+        }
+        data = $.parseJSON(data);
+        $("#fileChooserModal").modal();
+        $("#file-list").html("");
+        for (let file of data) {
+            if (files.has(file)) {
+                continue;
+            }
+            $("#file-list").append(`
+                <tr><td class="align-middle">${file}</td> <td class="text-right"><button type="button" class="btn btn-primary">Open</button></td></tr>
+            `);
+            $("#file-list").children().last().find(".btn").click(function () {
+                let index = states.length;
+                let new_state = jQuery.extend({}, base_state);
+                new_state.file_name = file;
+                states.push(new_state);
+                let config = {
+                    type: "component",
+                    componentName: "editor",
+                    componentState: {id: index}
+                };
+                states[index].tests_open = true;
+                myLayout.root.contentItems[0].addChild(config);
+                $("#fileChooserModal").modal("hide");
+            });
+        }
+    })
 });
 
 myLayout.registerComponent('editor', function (container, componentState) {
@@ -93,6 +138,7 @@ myLayout.registerComponent('editor', function (container, componentState) {
     `);
     let editorDiv;
     let editor;
+
     container.on("open", function () {
         editorDiv = container.getElement().find(".editor").get(0);
         editor = ace.edit(editorDiv);
@@ -107,19 +153,31 @@ myLayout.registerComponent('editor', function (container, componentState) {
         editor.container.style.background = "white";
         editor.focus();
 
+        states[componentState.id].editor_open = true;
+
         container.on("resize", function () {
             editor.resize();
         });
 
         let decoded = $.parseJSON(start_data);
-        if (componentState.id !== 0 || $.isEmptyObject(decoded)) {
-            return;
+        if (componentState.id === 0) {
+            states[componentState.id].file_name = decoded["file"];
         }
-        editor.setValue(decoded["code"][0]);
+
+        $.post("/read_file", {
+            filename: states[componentState.id].file_name,
+        }).done(function (data) {
+            data = $.parseJSON(data);
+            editor.setValue(data);
+        });
 
         editor.getSession().on("change", function () {
             container.getElement().find(".save-btn > .text").text("Save");
         });
+    });
+
+    container.on("destroy", function () {
+        states[componentState.id].editor_open = false;
     });
 
     container.getElement().find(".run-btn").on("click", function () {
@@ -175,6 +233,7 @@ myLayout.registerComponent('editor', function (container, componentState) {
         let code = [editor.getValue()];
         $.post("./save", {
             code: code,
+            filename: states[componentState.id].file_name,
         }).done(function (data) {
             if (data === "success") {
                 container.getElement().find(".save-btn > .text").text("Saved");
@@ -237,10 +296,12 @@ myLayout.registerComponent('editor', function (container, componentState) {
         let code = [editor.getValue()];
         $.post("./test", {
             code: code,
+            filename: states[componentState.id].file_name,
         }).done(function (data) {
             data = $.parseJSON(data);
             states[componentState.id].test_results = data;
-            if (states[componentState.id].tests_open) { } else {
+            if (states[componentState.id].tests_open) {
+            } else {
                 let config = {
                     type: "component",
                     componentName: "test_results",
@@ -527,7 +588,6 @@ myLayout.registerComponent('test_results', function (container, componentState) 
         <table class="table table-sm table-hover">
             <tbody>
 `;
-            console.log(entry.suites);
             for (let i = 0; i !== entry.suites.length; ++i) {
                 for (let j = 0; j !== entry.suites[i].length; ++j) {
                     let test = entry.suites[i][j];
@@ -702,7 +762,6 @@ function prev_i(i) {
     }
     $("*").trigger("update");
 }
-
 
 myLayout.init();
 
