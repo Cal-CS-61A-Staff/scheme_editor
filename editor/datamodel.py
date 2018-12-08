@@ -49,7 +49,11 @@ class Pair(Expression):
                     return f"`{str(self.rest.first)}"
 
         if isinstance(self.rest, Pair):
-            return f"({self.first} {str(self.rest)[1:-1]})"
+            rest_str = str(self.rest)
+            if rest_str[0] == "(" and rest_str[-1] == ")":
+                return f"({self.first} {str(self.rest)[1:-1]})"
+            else:
+                return f"({self.first} . {str(self.rest)})"
         elif self.rest is Nil:
             return f"({self.first})"
 

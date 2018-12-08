@@ -30,6 +30,7 @@ def prettify(strings: List[str]) -> str:
 
 
 def prettify_expr(expr: Expression, remaining: int) -> Tuple[str, bool]:
+    print("Print:", expr)
     if not isinstance(expr, Pair) or (len(str(expr)) < min(MAX_EXPR_LENGTH, remaining)
                                       and (not isinstance(expr.first, Symbol)
                                            or not (expr.first.value in MULTILINE_VALS or
@@ -105,7 +106,7 @@ def prettify_expr(expr: Expression, remaining: int) -> Tuple[str, bool]:
                             ret = prettify_expr(rest.first, remaining - 1)
                         return SHORTHAND[first.value] + indent(ret[0], 1).lstrip(), ret[1]
             except SchemeError:
-                print("Poorly formed {first.value} expression - printing in debug configuration")
+                print(f"Poorly formed {first.value} expression - printing in debug configuration")
 
             if len(str(expr)) < min(MAX_EXPR_LENGTH, remaining):
                 return str(expr), True
@@ -132,6 +133,7 @@ def prettify_expr(expr: Expression, remaining: int) -> Tuple[str, bool]:
 
 
 def prettify_data(expr: Expression, remaining: int):
+    print("Dataprint:", expr)
     if not isinstance(expr, Pair) or len(str(expr)) < remaining:
         return str(expr), remaining > 0
 
