@@ -8,10 +8,10 @@ from scheme_exceptions import ParseError
 
 class FormatList:
     def __init__(self,
-                 contents: List[FormatAtom],
-                 last: Union[FormatAtom, FormatList],
+                 contents: List[Formatted],
+                 last: Formatted,
                  comments: List[str],
-                 prefix: str=None):
+                 prefix: str=""):
         self.contents = contents
         self.last = last
         self.comments = comments
@@ -27,32 +27,36 @@ class FormatAtom:
         self.value = value
         self.comments = comments if comments else []
         self.contains_comment = False
+        self.prefix = ""
 
     def __repr__(self):
         return str(self.__dict__)
 
 
-def get_expression(buffer: TokenBuffer) -> Union[FormatList, FormatAtom]:
+Formatted = Union[FormatList, FormatAtom]
+
+
+def get_expression(buffer: TokenBuffer) -> Formatted:
     token = buffer.pop_next_token()
+    comments = []
     if token in SPECIALS:
+        comments = token.comments
         if token == "(":
             out = get_rest_of_list(buffer)
         elif token in ("'", "`"):
             out = get_expression(buffer)
             out.prefix = token.value
-            return out
         elif token == ",":
             if buffer.get_next_token() == "@":
                 buffer.pop_next_token()
                 out = get_expression(buffer)
                 out.prefix = ",@"
-                return out
             else:
                 out = get_expression(buffer)
                 out.prefix = token.value
-                return out
         elif token == "\"":
             out = FormatAtom('"' + buffer.pop_next_token().value + '"')
+            buffer.pop_next_token()
         else:
             raise ParseError(f"Unexpected token: '{token}'")
 
@@ -63,7 +67,7 @@ def get_expression(buffer: TokenBuffer) -> Union[FormatList, FormatAtom]:
             token.value = "#f"
         out = FormatAtom(token.value)
 
-    out.comments = buffer.tokens[buffer.i - 1].comments
+    out.comments = comments + buffer.tokens[buffer.i - 1].comments
     return out
 
 

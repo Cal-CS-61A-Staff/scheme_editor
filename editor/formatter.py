@@ -1,13 +1,10 @@
 from typing import List, Tuple, Union, Sequence, Iterator
 
 import lexer as lexer
-from datamodel import Expression, Pair, Symbol, Nil
-from helper import pair_to_list
-from format_parser import get_expression
-from scheme_exceptions import SchemeError
+from format_parser import get_expression, Formatted, FormatAtom, FormatList
 
 LINE_LENGTH = 100
-MAX_EXPR_LENGTH = 40
+MAX_EXPR_LENGTH = 60
 INDENT = 4
 
 DEFINE_VALS = ["define", "define-macro"]
@@ -25,146 +22,187 @@ def prettify(strings: List[str]) -> str:
         while not buff.done:
             expr = get_expression(buff)
             print(expr)
-            # out.append(prettify_expr(expr, LINE_LENGTH)[0])
+            out.append(prettify_expr(expr, LINE_LENGTH)[0])
 
     return "\n\n".join(out)
 
 
-def str_comment(expr: Expression):
-    assert not expr.contains_comment
-    if expr.comment:
-        return str(expr) + " ;" + expr.comment
+def make_comments(comments: List[str], depth: int, newline: bool):
+    if not comments:
+        return ""
+    if newline:
+        return "\n".join(";" + x for x in comments) + "\n"
     else:
-        return str(expr)
+        return " " + indent("\n".join(";" + x for x in comments), depth + 1).lstrip()
 
 
-def prettify_expr(expr: Expression, remaining: int) -> Tuple[str, bool]:
-    print(expr, "expr", expr.contains_comment)
-    if not expr.contains_comment and (not isinstance(expr, Pair)
-                                      or (len(str_comment(expr)) < min(MAX_EXPR_LENGTH, remaining)
-                                          and (not isinstance(expr.first, Symbol)
-                                               or not (expr.first.value in MULTILINE_VALS or
-                                                       expr.first.value in SHORTHAND)))):
-        return str_comment(expr), remaining > 0
-    first, rest = expr.first, expr.rest
-    try:
-        if isinstance(first, Symbol) and first.comment is None:
-            try:
-                if first.value in DEFINE_VALS:
-                    prettified = [*zip(*(prettify_expr(arg, remaining - INDENT // 2) for arg in pair_to_list(rest.rest)))]
-                    if not prettified:
-                        prettified = [[], []]
-                    return "(" + first.value + " " + str(rest.first) + "\n" \
-                           + indent(prettified[0], INDENT // 2) + ")", all(prettified[1])
+def verify(out: str, remaining: int) -> Tuple[str, bool]:
+    total_length = max(map(len, out.split("\n"))) <= remaining
+    expr_length = max(len(x.strip()) for x in out.split("\n")) <= MAX_EXPR_LENGTH
+    return out, total_length and expr_length
 
-                elif first.value == "if":
-                    space = remaining - len(first.value) - 3  # subtracting the brackets, symbol, and first space
-                    prettified_no_newline = [*zip(*(prettify_expr(arg, space) for arg in pair_to_list(rest)))]
-                    if not prettified_no_newline:
-                        prettified_no_newline = [[], []]
-                    return "(" + first.value + " " + indent(prettified_no_newline[0], len(first.value) + 2).lstrip() + ")", \
-                           all(prettified_no_newline[1])
 
-                elif first.value == "cond":
-                    clauses = pair_to_list(rest)
-                    clause_list = [pair_to_list(clause) for clause in clauses]
-                    if max(len(str(clause)) for clause in clauses) <= min(remaining - INDENT // 2, MAX_EXPR_LENGTH):
-                        if all(len(clause) == 2 for clause in clause_list):
-                            out = ["(cond"]
-                            depth = max(len(str(pred)) for pred, expr in clause_list)
-                            for pred, expr in clause_list:
-                                out.append("\n" + " " * (INDENT // 2) + "(" + str(pred) + " ")
-                                out.append(" " * (depth - len(str(pred))))
-                                out.append(str(expr) + ")")
-                            return "".join(out) + ")", True
-                    out = ["(cond"]
-                    for pred, *exprs in clause_list:
-                        out.append("\n" + " " * (INDENT // 2) + "(" +
-                                   indent(prettify_expr(pred, remaining - INDENT // 2 - 1)[0], INDENT // 2).lstrip())
-                        for expr in exprs:
-                            out.append("\n")
-                            out.append(indent(prettify_expr(expr, remaining - INDENT // 2 - 1)[0], INDENT // 2 + 1))
-                        out.append(")")
-                    return "".join(out) + ")", True
+def is_multiline(expr: Formatted):
+    if isinstance(expr, FormatList):
+        return any(map(is_multiline, expr.contents))
+    return expr.value in MULTILINE_VALS
 
-                elif first.value == "let":
-                    bindings = rest.first
-                    bindings_list = [pair_to_list(binding) for binding in pair_to_list(bindings)]
-                    out = ["(let ("]
-                    for var, expr in bindings_list:
-                        out.append("(" + str(var) + " " +
-                                   indent(prettify_expr(expr, remaining - 9 - len(str(var)))[0],
-                                          8 + len(str(var))).lstrip()
-                                   + ")\n" + " " * 6)
-                    if bindings_list:
-                        out[-1] = out[-1][:-7]
-                    out.append(")")
-                    exprs = pair_to_list(rest.rest)
-                    for expr in exprs:
-                        out.append("\n")
-                        out.append(indent(prettify_expr(expr, remaining - INDENT // 2)[0], INDENT // 2))
-                    out.append(")")
-                    return "".join(out), True
 
-                # elif first.value in DECLARE_VALS:
-                #     return str(expr), remaining > 0
-                elif first.value in SHORTHAND:
-                    if rest.rest is Nil:
-                        if first.value == "quote":
-                            ret = prettify_data(rest.first, remaining - 1)
-                        else:
-                            ret = prettify_expr(rest.first, remaining - 1)
-                        return SHORTHAND[first.value] + indent(ret[0], 1).lstrip(), ret[1]
-            except (SchemeError, ValueError):
-                print(f"Poorly formed {first.value} expression - printing in debug configuration")
-
-            if not expr.contains_comment and len(str(expr)) < min(MAX_EXPR_LENGTH, remaining):
-                return str_comment(expr), True
-
-            space = remaining - len(first.value) - 3  # subtracting the brackets, symbol, and first space
-            prettified_no_newline = [*zip(*(prettify_expr(arg, space) for arg in pair_to_list(rest)))]
-            if not prettified_no_newline:
-                prettified_no_newline = [[], []]
-            prettified_newline = [*zip(*(prettify_expr(arg, remaining - INDENT // 2 - 1)
-                                         for arg in pair_to_list(rest)))]
-            if not prettified_newline:
-                prettified_newline = [[], []]
-
-            if all(prettified_no_newline[1]) and lines(prettified_no_newline) <= 1 + lines(prettified_newline):
-                return "(" + first.value + " " + indent(prettified_no_newline[0], len(first.value) + 2).lstrip() + ")", True
-            else:
-                return "(" + first.value + "\n" + indent(prettified_newline[0], INDENT // 2) + ")", \
-                       all(prettified_newline[1])
+def inline_format(expr: Formatted) -> str:
+    if isinstance(expr, FormatAtom):
+        return expr.prefix + expr.value
+    else:
+        out = expr.prefix + "(" + " ".join(inline_format(elem) for elem in expr.contents)
+        if expr.last:
+            return out + " . " + inline_format(expr.last) + ")"
         else:
-            return prettify_data(expr, remaining)
-    except SchemeError:
-        print("Poorly formed Scheme list - printing in data configuration")
-        return prettify_data(expr, remaining)
+            return out + ")"
 
 
-def prettify_data(expr: Expression, remaining: int):
-    print(expr, "data")
-    if not isinstance(expr, Pair) or not expr.contains_comment and len(str(expr)) < remaining:
-        return str_comment(expr), remaining > 0
+def log(message: str):
+    print(message)
 
-    try:
-        args = pair_to_list(expr)
-        prettified = list(zip(*(prettify_expr(arg, remaining - 1) for arg in args)))
-        if not prettified:
-            prettified = [[], []]
-        return "(" + indent(prettified[0], 1)[1:] + ")", all(prettified[1])
-    except SchemeError:
-        # manually recover elements of ill-formed list
-        pos = expr
-        args = []
-        while isinstance(pos, Pair):
-            args.append(pos.first)
-            pos = pos.rest
-        prettified = list(zip(*(prettify_expr(arg, remaining - 1) for arg in args)))
-        if not prettified:
-            prettified = [[], []]
-        return "(" + indent(prettified[0], 1)[1:] + "\n" + " . " + indent(prettify_data(pos, remaining - 1)[0], 3).lstrip() + ")",\
-               all(prettified[1])
+
+def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
+    print(inline_format(expr))
+
+    if isinstance(expr, FormatAtom):
+        return verify(inline_format(expr) + make_comments(expr.comments, len(expr.value), False), remaining)
+
+    if expr.contents and not expr.contains_comment and not is_multiline(expr):
+        expr_str = inline_format(expr)
+        if len(expr_str) < min(MAX_EXPR_LENGTH, remaining):
+            out1 = expr_str + make_comments(expr.comments, len(expr_str), False)
+            out2 = make_comments(expr.comments, len(expr_str), True) + expr_str
+            if verify(out1, remaining)[1]:
+                return verify(out1, remaining)
+            else:
+                return verify(out2, remaining)
+
+    if expr.last is None:
+        # well formed
+        if expr.prefix:
+            # quoted or something
+            old_prefix = expr.prefix
+            comments, expr.comments = expr.comments, ""
+            expr.prefix = ""
+            if old_prefix == "`":
+                out = verify(make_comments(comments, 0, True) + old_prefix + indent(prettify_expr(expr, remaining - 1)[0], 1).strip(), remaining)
+            else:
+                out = verify(make_comments(comments, 0, True) + old_prefix + indent(prettify_data(expr, remaining - 1, True)[0], 1).strip(), remaining)
+            expr.prefix = old_prefix
+            expr.comments = comments
+            return out
+        elif not expr.contents:
+            # nil expr
+            return verify("()" + make_comments(expr.comments, 2, False), remaining)
+        else:
+            # call expr
+            if isinstance(expr.contents[0], FormatAtom) \
+                    and not expr.contents[0].comments\
+                    and not expr.contents[0].prefix:
+
+                operator = expr.contents[0].value
+                if operator in DEFINE_VALS:
+                    if len(expr.contents) < 3:
+                        log("define statement with too few arguments")
+                    else:
+                        name = expr.contents[1]
+                        body = []
+                        for body_expr in expr.contents[2:]:
+                            body.append(prettify_expr(body_expr, remaining - 2)[0])
+                        name_str = indent(prettify_expr(name, remaining - len(f"({operator} "))[0],
+                                          len(f"({operator} "))
+                        body_str = indent("\n".join(body), INDENT // 2)
+                        out_str = "(" + operator + " " + name_str.lstrip() + "\n" + body_str + ")"
+                        return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
+
+                if operator == "let":
+                    if len(expr.contents) < 3:
+                        log("let statement with too few arguments")
+                    bindings = expr.contents[1]
+                    if not isinstance(bindings, FormatList):
+                        log("let bindings incorrectly formatted")
+                    else:
+                        for binding in bindings.contents:
+                            if isinstance(binding, FormatAtom) or len(binding.contents) != 2:
+                                log("binding with incorrect number of elements")
+                                break
+                        else:
+                            # let is well-formed (bearing in mind unquotes can change things)
+                            binding_str = prettify_data(bindings, remaining - len("(let "), False, True)[0]
+                            binding_str = indent(binding_str, len("(let "))
+                            body = []
+                            for body_expr in expr.contents[2:]:
+                                body.append(prettify_expr(body_expr, remaining - INDENT // 2)[0])
+                            body_string = indent(body, INDENT // 2)
+                            out_str = "(let " + binding_str.lstrip() + "\n" + body_string
+                            if expr.contents[-1].comments:
+                                out_str += "\n"
+                            out_str += ")"
+                            return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
+
+                # assume no special forms
+                # we can inline the first two elements
+                operands = []
+                for operand in expr.contents[1:]:
+                    ret = prettify_expr(operand, remaining - len(operator) - 2)
+                    if not ret[1]:
+                        break
+                    operands.append(ret[0])
+                else:
+                    if not operands or len(operator) + len(operands[0]) < min(remaining, MAX_EXPR_LENGTH):
+                        # successfully loaded operands
+                        operand_string = indent(operands, len(operator) + 2)
+                        out_str = "(" + operator + " " + operand_string.lstrip()
+                        if expr.contents[-1].comments:
+                            out_str += "\n"
+                        out_str += ")"
+                        return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
+            # but may have to go here anyway, if inlining takes up too much space
+            return prettify_data(expr, remaining, False)
+    else:
+        # poorly formed
+        return prettify_data(expr, remaining, False)
+
+
+def prettify_data(expr: Formatted, remaining: int, is_data: bool, force_multiline: bool=False) -> Tuple[str, bool]:
+    if isinstance(expr, FormatAtom):
+        return verify(inline_format(expr) + make_comments(expr.comments, len(expr.value), False), remaining)
+
+    if is_data:
+        callback = lambda *args : prettify_data(*args, is_data=True)
+    else:
+        callback = prettify_expr
+
+    if expr.prefix:
+        old_prefix = expr.prefix
+        expr.prefix = ""
+        out = verify(old_prefix + indent(callback(expr, remaining - 1)[0], 1).strip(), remaining)
+        expr.prefix = old_prefix
+        return out
+
+    if not force_multiline and expr.contents and not expr.contains_comment:
+        expr_str = inline_format(expr)
+        if len(expr_str) < MAX_EXPR_LENGTH:
+            out1 = expr_str + make_comments(expr.comments, len(expr_str), False)
+            out2 = make_comments(expr.comments, len(expr_str), True) + expr_str
+            if verify(out1, remaining)[1]:
+                return verify(out1, remaining)
+            else:
+                return verify(out2, remaining)
+
+    elems = []
+    for elem in expr.contents:
+        ret = callback(elem, remaining - 1)
+        elems.append(ret[0])
+
+    elem_string = indent("\n".join(elems), 1).strip()
+    out_str = "(" + elem_string
+    if expr.contents and expr.contents[-1].comments:
+        out_str += "\n"
+    out_str += ")"
+    return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
 
 
 def indent(lines: Union[Iterator, str], depth) -> str:
@@ -173,5 +211,5 @@ def indent(lines: Union[Iterator, str], depth) -> str:
     return " " * depth + lines.rstrip().replace("\n", "\n" + " " * depth)
 
 
-def lines(lines: Sequence[str]) -> int:
+def count_lines(lines: Sequence[str]) -> int:
     return sum(x.count("\n") for x in lines)
