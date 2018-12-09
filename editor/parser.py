@@ -1,10 +1,9 @@
-import sys
 from typing import Union
 
 from datamodel import Expression, Symbol, Number, Nil, SingletonTrue, SingletonFalse, String
 from helper import make_list
-from scheme_exceptions import ParseError
 from lexer import TokenBuffer, SPECIALS
+from scheme_exceptions import ParseError
 
 
 def tokenize(buffer: TokenBuffer):
@@ -53,9 +52,9 @@ def get_expression(buffer: TokenBuffer) -> Union[Expression, None]:
             raise ParseError(f"Unexpected token: '{token}'")
     elif is_number(token.value):
         try:
-            return Number(int(token))
+            return Number(int(token.value))
         except ValueError:
-            return Number(float(token))
+            return Number(float(token.value))
     elif token == "#t" or token.value.lower() == "true":
         return SingletonTrue
     elif token == "#f" or token.value.lower() == "false":
