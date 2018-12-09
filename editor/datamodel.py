@@ -4,8 +4,7 @@ from typing import Union
 
 
 class Expression:
-    comment = None  # for use when autoformatting
-    contains_comment = False
+    pass
 
 
 class ValueHolder(Expression):
@@ -52,10 +51,7 @@ class Pair(Expression):
         if isinstance(self.rest, Pair):
             rest_str = str(self.rest)
             if rest_str[0] == "(" and rest_str[-1] == ")":
-                if self.contains_comment:
-                    return f"({self.first} {str(self.rest)[1:-1]})" + " ;" + str(self.comment) + "\n"
-                else:
-                    return f"({self.first} {str(self.rest)[1:-1]})"
+                return f"({self.first} {str(self.rest)[1:-1]})"
             else:
                 return f"({self.first} . {str(self.rest)})"
         elif self.rest is Nil:

@@ -3,7 +3,7 @@ from typing import List, Tuple, Union, Sequence, Iterator
 import lexer as lexer
 from datamodel import Expression, Pair, Symbol, Nil
 from helper import pair_to_list
-from parser import get_expression
+from format_parser import get_expression
 from scheme_exceptions import SchemeError
 
 LINE_LENGTH = 100
@@ -24,23 +24,31 @@ def prettify(strings: List[str]) -> str:
         buff = lexer.TokenBuffer([string])
         while not buff.done:
             expr = get_expression(buff)
-            if expr is None:
-                continue
-            out.append(prettify_expr(expr, LINE_LENGTH)[0])
+            print(expr)
+            # out.append(prettify_expr(expr, LINE_LENGTH)[0])
 
     return "\n\n".join(out)
 
 
+def str_comment(expr: Expression):
+    assert not expr.contains_comment
+    if expr.comment:
+        return str(expr) + " ;" + expr.comment
+    else:
+        return str(expr)
+
+
 def prettify_expr(expr: Expression, remaining: int) -> Tuple[str, bool]:
-    print(expr)
-    if not isinstance(expr, Pair) or (len(str(expr)) < min(MAX_EXPR_LENGTH, remaining)
-                                      and (not isinstance(expr.first, Symbol)
-                                           or not (expr.first.value in MULTILINE_VALS or
-                                                   expr.first.value in SHORTHAND))):
-        return str(expr), remaining > 0
+    print(expr, "expr", expr.contains_comment)
+    if not expr.contains_comment and (not isinstance(expr, Pair)
+                                      or (len(str_comment(expr)) < min(MAX_EXPR_LENGTH, remaining)
+                                          and (not isinstance(expr.first, Symbol)
+                                               or not (expr.first.value in MULTILINE_VALS or
+                                                       expr.first.value in SHORTHAND)))):
+        return str_comment(expr), remaining > 0
     first, rest = expr.first, expr.rest
     try:
-        if isinstance(first, Symbol):
+        if isinstance(first, Symbol) and first.comment is None:
             try:
                 if first.value in DEFINE_VALS:
                     prettified = [*zip(*(prettify_expr(arg, remaining - INDENT // 2) for arg in pair_to_list(rest.rest)))]
@@ -110,8 +118,8 @@ def prettify_expr(expr: Expression, remaining: int) -> Tuple[str, bool]:
             except (SchemeError, ValueError):
                 print(f"Poorly formed {first.value} expression - printing in debug configuration")
 
-            if len(str(expr)) < min(MAX_EXPR_LENGTH, remaining):
-                return str(expr), True
+            if not expr.contains_comment and len(str(expr)) < min(MAX_EXPR_LENGTH, remaining):
+                return str_comment(expr), True
 
             space = remaining - len(first.value) - 3  # subtracting the brackets, symbol, and first space
             prettified_no_newline = [*zip(*(prettify_expr(arg, space) for arg in pair_to_list(rest)))]
@@ -135,8 +143,9 @@ def prettify_expr(expr: Expression, remaining: int) -> Tuple[str, bool]:
 
 
 def prettify_data(expr: Expression, remaining: int):
-    if not isinstance(expr, Pair) or len(str(expr)) < remaining:
-        return str(expr), remaining > 0
+    print(expr, "data")
+    if not isinstance(expr, Pair) or not expr.contains_comment and len(str(expr)) < remaining:
+        return str_comment(expr), remaining > 0
 
     try:
         args = pair_to_list(expr)
