@@ -1,0 +1,81 @@
+from __future__ import annotations
+
+from typing import Union, List
+
+from lexer import TokenBuffer, SPECIALS
+from scheme_exceptions import ParseError
+
+
+class FormatList:
+    def __init__(self,
+                 contents: List[FormatAtom],
+                 last: Union[FormatAtom, FormatList],
+                 comments: List[str],
+                 prefix: str=None):
+        self.contents = contents
+        self.last = last
+        self.comments = comments
+        self.contains_comment = any(x.contains_comment or x.comments for x in contents)
+        self.prefix = prefix
+
+    def __repr__(self):
+        return str(self.__dict__)
+
+
+class FormatAtom:
+    def __init__(self, value: str, comments: List[str]=None):
+        self.value = value
+        self.comments = comments if comments else []
+        self.contains_comment = False
+
+    def __repr__(self):
+        return str(self.__dict__)
+
+
+def get_expression(buffer: TokenBuffer) -> Union[FormatList, FormatAtom]:
+    token = buffer.pop_next_token()
+    if token in SPECIALS:
+        if token == "(":
+            out = get_rest_of_list(buffer)
+        elif token in ("'", "`"):
+            out = get_expression(buffer)
+            out.prefix = token.value
+            return out
+        elif token == ",":
+            if buffer.get_next_token() == "@":
+                buffer.pop_next_token()
+                out = get_expression(buffer)
+                out.prefix = ",@"
+                return out
+            else:
+                out = get_expression(buffer)
+                out.prefix = token.value
+                return out
+        elif token == "\"":
+            out = FormatAtom('"' + buffer.pop_next_token().value + '"')
+        else:
+            raise ParseError(f"Unexpected token: '{token}'")
+
+    else:
+        if token.value.lower() == "true":
+            token.value = "#t"
+        elif token.value.lower() == "false":
+            token.value = "#f"
+        out = FormatAtom(token.value)
+
+    out.comments = buffer.tokens[buffer.i - 1].comments
+    return out
+
+
+def get_rest_of_list(buffer: TokenBuffer):
+    out = []
+    last = None
+    while buffer.get_next_token() != ")" and buffer.get_next_token() != ".":
+        out.append(get_expression(buffer))
+    if buffer.get_next_token() == ".":
+        buffer.pop_next_token()
+        last = get_expression(buffer)
+    if buffer.get_next_token() != ")":
+        raise ParseError("Only one expression may follow a dot in a dotted list.")
+    buffer.pop_next_token()
+    return FormatList(out, last, [])

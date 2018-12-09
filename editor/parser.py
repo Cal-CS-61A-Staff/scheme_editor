@@ -49,24 +49,21 @@ def get_expression(buffer: TokenBuffer) -> Union[Expression, None]:
             return make_list([Symbol("quasiquote"), get_expression(buffer)])
         elif token == "\"":
             return get_string(buffer)
-        elif token == "\\":
-            raise ParseError("Symbols with backslashes aren't yet supported! Pick a better naming convention :P")
         else:
             raise ParseError(f"Unexpected token: '{token}'")
-    elif is_number(token):
-        token = str(token)  # for okpy tests
+    elif is_number(token.value):
         try:
             return Number(int(token))
         except ValueError:
             return Number(float(token))
-    elif token == "#t" or token.lower() == "true":
+    elif token == "#t" or token.value.lower() == "true":
         return SingletonTrue
-    elif token == "#f" or token.lower() == "false":
+    elif token == "#f" or token.value.lower() == "false":
         return SingletonFalse
     elif token == "nil":
         return Nil
-    elif is_str(token):
-        return Symbol(token.lower())
+    elif is_str(token.value):
+        return Symbol(token.value.lower())
     else:
         raise ParseError(f"Unexpected token: '{token}'")
 
@@ -75,7 +72,7 @@ def get_string(buffer: TokenBuffer) -> String:
     out = []
     string = buffer.pop_next_token()
     escaping = False
-    for char in string:
+    for char in string.value:
         if escaping:
             if char == "n":
                 out.append("\n")
@@ -94,30 +91,20 @@ def get_string(buffer: TokenBuffer) -> String:
 def get_rest_of_list(buffer: TokenBuffer) -> Expression:
     out = []
     last = Nil
-    comment = None
-    contains_comment = False
     while True:
         next = buffer.get_next_token()
         if next == ")":
             buffer.pop_next_token()
-            comment = next.comment
-            print(comment)
             break
         elif next == ".":
             buffer.pop_next_token()
             last = get_expression(buffer)
-            if last.contains_comment:
-                contains_comment = True
             if buffer.pop_next_token() != ")":
                 raise ParseError(f"Only one expression may follow a dot in a dotted list.")
             break
-        out.append(get_expression(buffer))
+        expr = get_expression(buffer)
+        out.append(expr)
     out = make_list(out, last)
-    out.has_comment = contains_comment
-    if comment is not None:
-        print("COMMENT DETECTED")
-        out.comment = comment
-        out.contains_comment = True
     return out
 
 
