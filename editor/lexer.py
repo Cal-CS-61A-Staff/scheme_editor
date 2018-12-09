@@ -44,14 +44,17 @@ class TokenBuffer:
 def tokenize(string) -> List[Token]:
     string = string.strip()
     tokens = []
+    comments = {}
     i = 0
+    first_in_line = True
 
     def _get_token():
         """Always starts at a non-space character"""
-        nonlocal i
+        nonlocal i, first_in_line
         if i == len(string):
             return
         if string[i] == "\"":
+            first_in_line = False
             tokens.append(Token(string[i]))
             i += 1
             _get_string()
@@ -62,6 +65,7 @@ def tokenize(string) -> List[Token]:
             _get_comment()
 
         elif string[i] in SPECIALS:
+            first_in_line = False
             tokens.append(Token(string[i]))
             i += 1
 
@@ -72,6 +76,7 @@ def tokenize(string) -> List[Token]:
                 curr += string[i]
                 i += 1
             if curr:
+                first_in_line = False
                 tokens.append(Token(curr))
 
     def _get_comment():
@@ -80,7 +85,14 @@ def tokenize(string) -> List[Token]:
         while i != len(string) and string[i] != "\n":
             curr += string[i]
             i += 1
-        tokens[-1].comments.append(curr)
+        if first_in_line:
+            if len(tokens) not in comments:
+                comments[len(tokens)] = []
+            comments[len(tokens)].append(curr)
+        else:
+            if len(tokens) - 1 not in comments:
+                comments[len(tokens) - 1] = []
+            comments[len(tokens) - 1].append(curr)
 
     def _get_string():
         """Starts just after an opening quotation mark"""
@@ -108,6 +120,11 @@ def tokenize(string) -> List[Token]:
     while i != len(string):
         _get_token()
         while i != len(string) and string[i].isspace():
+            if string[i] == "\n":
+                first_in_line = True
             i += 1
+
+    for key, val in comments.items():
+        tokens[key].comments = val
 
     return tokens
