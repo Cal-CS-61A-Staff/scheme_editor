@@ -6,6 +6,7 @@ from typing import Tuple, List
 
 newdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/ok"
 sys.path.append(newdir)
+print(sys.path)
 
 # CODE TAKEN FROM OK-CLIENT : https://github.com/okpy/ok-client/blob/master/client/cli/ok.py
 
