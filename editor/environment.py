@@ -53,7 +53,8 @@ def build_global_frame():
                  "tan", "tanh", "trunc"]:
         frame.assign(Symbol(name), MathProcedure(getattr(math, name), name))
 
-    with open("editor/builtins.scm") as file:
+    # TODO : CHANGE THIS WHEN USING SOCKET SERVER
+    with open("./builtins.scm") as file:
         execution.string_exec([" ".join(file.readlines())], lambda *x, **y: None, frame)
 
     return Frame("Global", frame)

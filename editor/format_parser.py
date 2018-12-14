@@ -45,15 +45,15 @@ def get_expression(buffer: TokenBuffer) -> Formatted:
             out = get_rest_of_list(buffer)
         elif token in ("'", "`"):
             out = get_expression(buffer)
-            out.prefix = token.value
+            out.prefix = token.value + out.prefix
         elif token == ",":
             if buffer.get_next_token() == "@":
                 buffer.pop_next_token()
                 out = get_expression(buffer)
-                out.prefix = ",@"
+                out.prefix = ",@" + out.prefix
             else:
                 out = get_expression(buffer)
-                out.prefix = token.value
+                out.prefix = token.value + out.prefix
         elif token == "\"":
             out = FormatAtom('"' + buffer.pop_next_token().value + '"')
             buffer.pop_next_token()
