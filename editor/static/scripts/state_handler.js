@@ -1,48 +1,41 @@
-define([], function () {
-    let base_state = {
-        states: [],
-        environments: [],
-        moves: [],
-        out: "",
+export { states, base_state, temp_file, saveState };
 
-        index: 0,
-        expr_i: 0,
+let base_state = {
+    states: [],
+    environments: [],
+    moves: [],
+    out: "",
 
-        start: 0,
-        end: 0,
-        roots: ["demo"],
+    index: 0,
+    expr_i: 0,
 
-        globalFrameID: -1,
+    start: 0,
+    end: 0,
+    roots: ["demo"],
 
-        editor_open: false,
-        sub_open: false,
-        env_open: false,
-        turtle_open: false,
-        out_open: false,
-        tests_open: false,
+    globalFrameID: -1,
 
-        test_results: undefined,
+    editor_open: false,
+    sub_open: false,
+    env_open: false,
+    turtle_open: false,
+    out_open: false,
+    tests_open: false,
 
-        file_name: "",
-    };
+    test_results: undefined,
 
-    let states = [jQuery.extend({}, base_state)];
+    file_name: "",
+};
 
-    let temp_file = "<temporary>";
+let states = [jQuery.extend({}, base_state)];
 
-    let savedState = localStorage.getItem("savedState");
-    if (savedState !== null) {
-        states = JSON.parse(savedState);
-    }
+let temp_file = "<temporary>";
 
-    function saveState() {
-        localStorage.setItem('savedState', JSON.stringify(states));
-    }
+let savedState = localStorage.getItem("savedState");
+if (savedState !== null) {
+    states = JSON.parse(savedState);
+}
 
-    return {
-        states: states,
-        base_state: base_state,
-        temp_file: temp_file,
-        saveState: saveState,
-    }
-});
+function saveState() {
+    localStorage.setItem('savedState', JSON.stringify(states));
+}
