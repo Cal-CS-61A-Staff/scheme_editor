@@ -35,9 +35,14 @@ define([], function () {
         states = JSON.parse(savedState);
     }
 
+    function saveState() {
+        localStorage.setItem('savedState', JSON.stringify(states));
+    }
+
     return {
         states: states,
         base_state: base_state,
-        temp_file: temp_file
+        temp_file: temp_file,
+        saveState: saveState,
     }
 });

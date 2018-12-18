@@ -7,19 +7,22 @@ define(["./state_handler", "./substitution_tree_worker"], function (state_handle
                 <div class="content">
                     <div class="header">
                     <div class="btn-group">
-                        <button type="button" class="btn btn-sm btn-secondary prev">Prev</button>          
-                        <button type="button" class="btn btn-sm btn-secondary next">Next</button>
+                        <button type="button" data-id="${componentState.id}" 
+                                class="btn btn-sm btn-secondary prev">Prev</button>          
+                        <button type="button" data-id="${componentState.id}" 
+                                class="btn btn-sm btn-secondary next">Next</button>
                     </div>            
                     <div class="btn-group">
-                        <button type="button" class="btn btn-sm btn-secondary prev-expr">Prev Expr</button>          
-                        <button type="button" class="btn btn-sm btn-secondary next-expr">Next Expr</button>
+                        <button type="button" data-id="${componentState.id}" 
+                                class="btn btn-sm btn-secondary prev-expr">Prev Expr</button>          
+                        <button type="button" data-id="${componentState.id}" 
+                                class="btn btn-sm btn-secondary next-expr">Next Expr</button>
                     </div>
                     </div>
                     <div class="tree">
                         <svg></svg>
                     </div>
                 </div>
-        
             `);
 
             let rawSVG = container.getElement().find(".tree > svg").get(0);
@@ -61,22 +64,6 @@ define(["./state_handler", "./substitution_tree_worker"], function (state_handle
 
             container.on("destroy", function () {
                 states[componentState.id].sub_open = false;
-            });
-
-            container.getElement().find(".prev").click(function () {
-                prev_i(componentState.id);
-            });
-
-            container.getElement().find(".next").click(function () {
-                next_i(componentState.id);
-            });
-
-            container.getElement().find(".prev-expr").click(function () {
-                prev_expr(componentState.id);
-            });
-
-            container.getElement().find(".next-expr").click(function () {
-                next_expr(componentState.id);
             });
         });
     }

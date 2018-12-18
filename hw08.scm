@@ -5,7 +5,19 @@
               (list (car lst)))))
 
 (define (longest-increasing-subsequence lst)
-  'YOUR-CODE-HERE)
+  (define (helper lst prev)
+    (cond ((null? lst) nil)
+          ((<= (car lst) prev)
+           (helper (cdr lst) prev))
+          (else
+           (let ((yes
+                  (cons (car lst)
+                        (helper (cdr lst) (car lst))))
+                 (no (helper (cdr lst) prev)))
+             (if (> (length yes) (length no))
+                 yes
+                 no)))))
+  (helper lst -1))
 
 (define (cadr s) (car (cdr s)))
 
