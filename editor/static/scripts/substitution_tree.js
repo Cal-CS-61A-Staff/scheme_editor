@@ -32,12 +32,21 @@ function register(myLayout) {
         let rawSVG = container.getElement().find(".tree > svg").get(0);
         // svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
         let svg = SVG.adopt(rawSVG).size(container.width, container.height);
+        console.log("adopted");
+        let ready = false;
 
-        container.getElement().find(".tree").on("update", function () {
+        container.getElement().find(".tree").on("update", function (e) {
             let zoom = svgPanZoom(rawSVG).getZoom();
             let pan = svgPanZoom(rawSVG).getPan();
             svgPanZoom(rawSVG).destroy();
-            svg.clear();
+            console.log(rawSVG === undefined);
+            console.log(jQuery.isReady);
+            if (ready) {
+                svg.clear();
+            } else {
+                ready = true;
+                console.log("SKIP");
+            }
             substitution_tree_worker.display_tree(componentState.id, svg);
             svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
             if (isNaN(zoom)) {
@@ -50,6 +59,7 @@ function register(myLayout) {
 
         container.getElement().find(".tree").on("reset", function () {
             svgPanZoom(rawSVG).reset();
+            console.log("reset!");
         });
 
         container.on("resize", function () {
@@ -57,6 +67,7 @@ function register(myLayout) {
             let pan = svgPanZoom(rawSVG).getPan();
             svgPanZoom(rawSVG).destroy();
             svg.size(container.width, container.height);
+            console.log("ready!");
             svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
             if (isNaN(zoom)) {
                 svgPanZoom(rawSVG).reset();

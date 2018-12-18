@@ -46,11 +46,13 @@ function prev_i(i) {
 }
 
 function init_events() {
+    console.log("init events!");
     $("#body").on("click", ".prev", function (e) {
         prev_i($(e.target).data("id"));
     });
 
     $("#body").on("click", ".next", function (e) {
+        console.log("Next!");
         next_i($(e.target).data("id"));
     });
 
