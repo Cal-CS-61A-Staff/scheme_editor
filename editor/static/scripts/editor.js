@@ -73,7 +73,7 @@ define(["state_handler"], function (state_handler) {
 
             container.on("destroy", function () {
                 states[componentState.id].editor_open = false;
-                windows.editors = windows.editors.filter(item => item !== container);
+                // windows.editors = windows.editors.filter(item => item !== container);
             });
 
             container.getElement().find(".run-btn").on("click", function () {
@@ -196,16 +196,7 @@ define(["state_handler"], function (state_handler) {
                 }).done(function (data) {
                     data = $.parseJSON(data);
                     states[componentState.id].test_results = data;
-                    if (states[componentState.id].tests_open) {
-                    } else {
-                        let config = {
-                            type: "component",
-                            componentName: "test_results",
-                            componentState: {id: componentState.id}
-                        };
-                        states[componentState.id].tests_open = true;
-                        myLayout.root.contentItems[0].addChild(config);
-                    }
+                    require("layout").open("test_results", index);
                     $("*").trigger("update");
                 });
             });
