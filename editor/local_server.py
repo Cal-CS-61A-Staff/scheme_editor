@@ -87,8 +87,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(HTTPStatus.OK, 'test')
         path = "editor/static/" + urllib.parse.unquote(self.path)[1:]
-        if path[-4:] == ".css":
+
+        if "scripts" in path and not path.endswith(".js"):
+            path += ".js"
+
+        if path.endswith(".css"):
             self.send_header("Content-type", "text/css")
+        elif path.endswith(".js"):
+            self.send_header("Content-type", "application/javascript")
         self.end_headers()
         if path == "editor/static/":
             path = "editor/static/index.html"
