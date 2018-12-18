@@ -1,80 +1,80 @@
-define(["substitution_tree", "env_diagram", "editor", "test_results", "output", "state_handler"],
-    function (substitution_tree, env_diagram, editor, test_results, output, state_handler) {
-        let states = state_handler.states;
+import * as substitution_tree from "./substitution_tree";
+import * as env_diagram from "./env_diagram";
+import * as editor from "./editor";
+import * as test_results from "./test_results";
+import * as output from "./output";
 
-        let myLayout;
+import {states, saveState} from "./state_handler";
 
-        function open(type, index) {
-            let config = {
-                type: "component",
-                componentName: type,
-                componentState: {id: index}
-            };
+let myLayout;
 
-            let open_prop = new Map([
-                ["editor", "editor_open"],
-                ["output", "out_open"],
-                ["substitution_tree", "sub_open"],
-                ["turtle_graphics", "turtle_open"],
-                ["env_diagram", "env_open"],
-                ["test_results", "tests_open"]
-            ]);
+function open(type, index) {
+    let config = {
+        type: "component",
+        componentName: type,
+        componentState: {id: index}
+    };
 
-            states[index][open_prop.get(type)] = true;
+    let open_prop = new Map([
+        ["editor", "editor_open"],
+        ["output", "out_open"],
+        ["substitution_tree", "sub_open"],
+        ["turtle_graphics", "turtle_open"],
+        ["env_diagram", "env_open"],
+        ["test_results", "tests_open"]
+    ]);
 
-            myLayout.root.contentItems[0].addChild(config);
-        }
+    states[index][open_prop.get(type)] = true;
 
-        function init() {
-            let config = {
-                settings: {
-                    showPopoutIcon: false,
-                    showMaximiseIcon: false,
-                    showCloseIcon: true,
-                },
-                content: [{
-                    type: 'row',
-                    content: [{
-                        type: 'component',
-                        componentName: 'editor',
-                        componentState: {id: 0},
-                        isClosable: false,
-                    }]
-                }]
-            };
-            let savedLayout = localStorage.getItem('savedLayout');
-            if (savedLayout !== null) {
-                myLayout = new GoldenLayout(JSON.parse(savedLayout), $("#body"));
-            } else {
-                myLayout = new GoldenLayout(config, $("#body"));
-            }
+    myLayout.root.contentItems[0].addChild(config);
+}
 
-            myLayout.on('stateChanged', function () {
-                localStorage.setItem('savedLayout', JSON.stringify(myLayout.toConfig()));
-                state_handler.saveState()
-            });
+function init() {
+    let config = {
+        settings: {
+            showPopoutIcon: false,
+            showMaximiseIcon: false,
+            showCloseIcon: true,
+        },
+        content: [{
+            type: 'row',
+            content: [{
+                type: 'component',
+                componentName: 'editor',
+                componentState: {id: 0},
+                isClosable: false,
+            }]
+        }]
+    };
+    let savedLayout = localStorage.getItem('savedLayout');
+    if (savedLayout !== null) {
+        myLayout = new GoldenLayout(JSON.parse(savedLayout), $("#body"));
+    } else {
+        myLayout = new GoldenLayout(config, $("#body"));
+    }
 
-            $(window).resize(function () {
-                myLayout.updateSize($("#body").width(), $("#body").height());
-            });
-
-            myLayout.on("initialised", function () {
-                $("*").trigger("update");
-            });
-
-            substitution_tree.register(myLayout);
-            env_diagram.register(myLayout);
-            editor.register(myLayout);
-            test_results.register(myLayout);
-            output.register(myLayout);
-
-            myLayout.init();
-
-            return myLayout;
-        }
-
-        return {
-            init: init,
-            open: open,
-        }
+    myLayout.on('stateChanged', function () {
+        localStorage.setItem('savedLayout', JSON.stringify(myLayout.toConfig()));
+        saveState()
     });
+
+    $(window).resize(function () {
+        myLayout.updateSize($("#body").width(), $("#body").height());
+    });
+
+    myLayout.on("initialised", function () {
+        $("*").trigger("update");
+    });
+
+    substitution_tree.register(myLayout);
+    env_diagram.register(myLayout);
+    editor.register(myLayout);
+    test_results.register(myLayout);
+    output.register(myLayout);
+
+    myLayout.init();
+
+    return myLayout;
+}
+
+export {init, open};
