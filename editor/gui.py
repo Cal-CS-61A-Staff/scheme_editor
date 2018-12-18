@@ -142,7 +142,7 @@ class Logger:
             "success": True,
             "roots": self.roots,
             "states": self.export_states,
-            "out": ["\n".join(["".join(x).strip() for x in self._out])],
+            "out": ["".join(["".join(x) for x in self._out])],
             "active_frames": [id(f.base) for f in self.active_frames],
             "frame_lookup": {f: self.frame_lookup[f].export() for f in self.frame_lookup},
             "graphics": [],

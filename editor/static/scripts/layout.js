@@ -6,13 +6,14 @@ import * as output from "./output";
 
 import {states, saveState} from "./state_handler";
 
-let myLayout;
+let layout;
 
 function open(type, index) {
     let config = {
         type: "component",
         componentName: type,
-        componentState: {id: index}
+        componentState: {id: index},
+        height: 40,
     };
 
     let open_prop = new Map([
@@ -30,7 +31,24 @@ function open(type, index) {
 
     states[index][open_prop.get(type)] = true;
 
-    myLayout.root.contentItems[0].addChild(config);
+    if (layout.root.contentItems[0].config.type !== "column") {
+        let curr_config = layout.toConfig();
+        console.log(curr_config);
+        curr_config.content[0] = {
+            content: [curr_config.content[0], config],
+            isClosable: true,
+            reorderEnabled: true,
+            title: "",
+            type: "column",
+        };
+        console.log(curr_config);
+        localStorage.setItem('savedLayout', JSON.stringify(curr_config));
+        saveState();
+        window.location.reload();
+    } else {
+        layout.root.contentItems[0].addChild(config);
+    }
+
     $("*").trigger("update");
 }
 
@@ -42,44 +60,37 @@ function init() {
             showCloseIcon: true,
         },
         content: [{
-            type: 'row',
-            content: [{
-                type: 'component',
-                componentName: 'editor',
-                componentState: {id: 0},
-                isClosable: false,
-            }]
+            type: 'component',
+            componentName: 'editor',
+            componentState: {id: 0},
+            isClosable: false,
         }]
     };
     let savedLayout = localStorage.getItem('savedLayout');
     if (savedLayout !== null) {
-        myLayout = new GoldenLayout(JSON.parse(savedLayout), $("#body"));
+        layout = new GoldenLayout(JSON.parse(savedLayout), $("#body"));
     } else {
-        myLayout = new GoldenLayout(config, $("#body"));
+        layout = new GoldenLayout(config, $("#body"));
     }
 
-    myLayout.on('stateChanged', function () {
-        localStorage.setItem('savedLayout', JSON.stringify(myLayout.toConfig()));
-        saveState()
+    layout.on('stateChanged', function () {
+        localStorage.setItem('savedLayout', JSON.stringify(layout.toConfig()));
+        saveState();
     });
 
     $(window).resize(function () {
-        myLayout.updateSize($("#body").width(), $("#body").height());
+        layout.updateSize($("#body").width(), $("#body").height());
     });
 
-    myLayout.on("initialised", function () {
-        $("*").trigger("update");
-    });
+    substitution_tree.register(layout);
+    env_diagram.register(layout);
+    editor.register(layout);
+    test_results.register(layout);
+    output.register(layout);
 
-    substitution_tree.register(myLayout);
-    env_diagram.register(myLayout);
-    editor.register(myLayout);
-    test_results.register(myLayout);
-    output.register(myLayout);
+    layout.init();
 
-    myLayout.init();
-
-    return myLayout;
+    return layout;
 }
 
 export {init, open};
