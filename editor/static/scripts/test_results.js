@@ -40,18 +40,11 @@ define(["state_handler"], function (state_handler) {
                             </tr>`);
                             $(`#${random_id}`).find(".btn").last().click(function () {
                                 let index = states.length;
-                                let new_state = jQuery.extend({}, base_state);
-                                new_state.file_name = temp_file;
+                                let new_state = jQuery.extend({}, state_handler.base_state);
+                                new_state.file_name = state_handler.temp_file;
                                 new_state.file_content = test.code;
                                 states.push(new_state);
-                                let config = {
-                                    type: "component",
-                                    componentName: "editor",
-                                    componentState: {id: index}
-                                };
-                                states[index].tests_open = true;
-                                myLayout.root.contentItems[0].addChild(config);
-                                $("#fileChooserModal").modal("hide");
+                                require("layout").open("editor", index);
                             });
                         }
                     }

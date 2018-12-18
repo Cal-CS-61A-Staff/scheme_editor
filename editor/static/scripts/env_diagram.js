@@ -7,12 +7,16 @@ define(["./env_diagram_worker", "./state_handler"], function (env_diagram_worker
             <div class="content">
                 <div class="header">
                 <div class="btn-group">
-                    <button type="button" class="btn btn-sm btn-secondary prev">Prev</button>          
-                    <button type="button" class="btn btn-sm btn-secondary next">Next</button>
+                    <button type="button" data-id="${componentState.id}" 
+                            class="btn btn-sm btn-secondary prev">Prev</button>          
+                    <button type="button" data-id="${componentState.id}" 
+                            class="btn btn-sm btn-secondary next">Next</button>
                 </div>            
                 <div class="btn-group">
-                    <button type="button" class="btn btn-sm btn-secondary prev-expr">Prev Expr</button>          
-                    <button type="button" class="btn btn-sm btn-secondary next-expr">Next Expr</button>
+                    <button type="button" data-id="${componentState.id}" 
+                            class="btn btn-sm btn-secondary prev-expr">Prev Expr</button>          
+                    <button type="button" data-id="${componentState.id}" 
+                            class="btn btn-sm btn-secondary next-expr">Next Expr</button>
                 </div>
                 </div>
                 <div class="envs">

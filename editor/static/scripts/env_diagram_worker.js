@@ -1,4 +1,7 @@
-define([], function () {
+define(["./measure"], function (measure) {
+    let charWidth = measure.charWidth;
+    let charHeight = measure.charHeight;
+
     function display_env(environments, container, i) {
         container.clear();
 

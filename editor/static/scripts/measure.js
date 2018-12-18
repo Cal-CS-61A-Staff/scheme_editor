@@ -10,7 +10,7 @@ define([], function () {
         div.innerHTML = "x".repeat(999) + "x\n".repeat(1000);
         parentElement.appendChild(div);
         let w = div.offsetWidth / 1000;
-        let h = div.offsetHeight / 1000;
+        let h = div.offsetHeight / 1001;
         parentElement.removeChild(div);
         return [w, h];
     }
