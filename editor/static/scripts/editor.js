@@ -1,5 +1,7 @@
 import {states, temp_file} from "./state_handler";
 
+import {open} from "./layout";
+
 export {register};
 
 function register(myLayout) {
@@ -108,18 +110,9 @@ function register(myLayout) {
                     states[componentState.id].out = data.out[0];
                 }
 
-                if (!states[componentState.id].out_open) {
-                    let config = {
-                        type: "component",
-                        componentName: "output",
-                        componentState: {id: componentState.id}
-                    };
-                    states[componentState.id].out_open = true;
-                    myLayout.root.contentItems[0].addChild(config)
-                }
+                open("output", componentState.id);
 
                 $("*").trigger("reset");
-
                 $("*").trigger("update");
             });
         });
@@ -155,35 +148,11 @@ function register(myLayout) {
         });
 
         container.getElement().find(".sub-btn").on("click", function () {
-            if (states[componentState.id].sub_open) {
-
-            } else {
-                let config = {
-                    type: "component",
-                    componentName: "substitution_tree",
-                    componentState: {id: componentState.id}
-                };
-                states[componentState.id].sub_open = true;
-                myLayout.root.contentItems[0].addChild(config)
-            }
-
-            $("*").trigger("update");
+            open("substitution_tree", componentState.id);
         });
 
         container.getElement().find(".env-btn").on("click", function () {
-            if (states[componentState.id].env_open) {
-
-            } else {
-                let config = {
-                    type: "component",
-                    componentName: "env_diagram",
-                    componentState: {id: componentState.id}
-                };
-                states[componentState.id].env_open = true;
-                myLayout.root.contentItems[0].addChild(config)
-            }
-
-            $("*").trigger("update");
+            open("env_diagram", componentState.id);
         });
 
         container.getElement().find(".test-btn").on("click", function () {
