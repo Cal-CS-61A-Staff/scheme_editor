@@ -24,9 +24,14 @@ function open(type, index) {
         ["test_results", "tests_open"]
     ]);
 
+    if (states[index][open_prop.get(type)]) {
+        return;
+    }
+
     states[index][open_prop.get(type)] = true;
 
     myLayout.root.contentItems[0].addChild(config);
+    $("*").trigger("update");
 }
 
 function init() {
