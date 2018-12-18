@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/static" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/primitives" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/editor" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/editor/static/scripts" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/editor/static/ace" />
       <excludeFolder url="file://$MODULE_DIR$/ok_copy" />
     </content>

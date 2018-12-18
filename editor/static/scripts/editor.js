@@ -4,8 +4,8 @@ import {open} from "./layout";
 
 export {register};
 
-function register(myLayout) {
-    myLayout.registerComponent('editor', function (container, componentState) {
+function register(layout) {
+    layout.registerComponent('editor', function (container, componentState) {
         container.getElement().html(`
         <div class="content">
             <div class="header">        
@@ -166,8 +166,7 @@ function register(myLayout) {
             }).done(function (data) {
                 data = $.parseJSON(data);
                 states[componentState.id].test_results = data;
-                require("layout").open("test_results", index);
-                $("*").trigger("update");
+                open("test_results", componentState.id);
             });
         });
     });

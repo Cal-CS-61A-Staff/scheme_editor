@@ -53,6 +53,7 @@ class TestCase:
     elements: List[Tuple[str, List[str]]]
 
     def get_full_str(self):
+        inp = []
         out = []
         for elem in self.elements:
             if elem[0] == SCHEME_INPUT:
@@ -163,6 +164,7 @@ def parse_test_data(raw_out):
                 break
 
             elements.append((category, data))
+
 
         vals = elements[0][1][0].split(" > ")
         problem = vals[0]
