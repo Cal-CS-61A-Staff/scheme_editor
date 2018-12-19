@@ -1,8 +1,7 @@
 import * as state_handler from "./state_handler";
+import {states} from "./state_handler";
 
 export {init_events};
-
-let states = state_handler.states;
 
 function next_expr(i) {
     states[i].expr_i = Math.min(states[i].expr_i + 1, states[i].states.length - 1);

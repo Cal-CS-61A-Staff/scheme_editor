@@ -1,11 +1,10 @@
 import * as state_handler from "./state_handler";
 import * as measure from "./measure";
+import {states} from "./state_handler";
+import {charWidth} from "./measure";
+import {charHeight} from "./measure";
 
 export { display_tree };
-
-let states = state_handler.states;
-let charWidth = measure.charWidth;
-let charHeight = measure.charHeight;
 
 function get_i(all_data, curr, i) {
     let labels = [
@@ -39,6 +38,7 @@ function get_i(all_data, curr, i) {
 }
 
 function display_tree(id, svg) {
+    console.log(id);
     _display_tree(
         get_i(
             states[id].states[states[id].expr_i][2],
