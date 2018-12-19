@@ -1,7 +1,6 @@
 import * as state_handler from "./state_handler";
 import * as substitution_tree_worker from "./substitution_tree_worker"
-
-let states = state_handler.states;
+import {states} from "./state_handler";
 
 export { register };
 

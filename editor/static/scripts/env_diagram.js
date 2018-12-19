@@ -1,9 +1,7 @@
-import * as state_handler from "./state_handler";
 import * as env_diagram_worker from "./env_diagram_worker";
+import {states} from "./state_handler";
 
 export { register };
-
-let states = state_handler.states;
 
 function register(myLayout) {
     myLayout.registerComponent('env_diagram', function (container, componentState) {

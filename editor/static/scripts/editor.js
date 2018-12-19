@@ -110,7 +110,6 @@ function register(layout) {
                     states[componentState.id].out = data.out[0];
                 }
 
-                saveState();
                 open("output", componentState.id);
 
                 $("*").trigger("reset");
