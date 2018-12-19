@@ -3,17 +3,20 @@ import * as env_diagram from "./env_diagram";
 import * as editor from "./editor";
 import * as test_results from "./test_results";
 import * as output from "./output";
-
 import {states, saveState} from "./state_handler";
+
+export {init, open};
 
 let layout;
 
 function open(type, index) {
+    console.log("Opening " + type);
     let config = {
         type: "component",
         componentName: type,
         componentState: {id: index},
         height: 40,
+        width: 40,
     };
 
     let open_prop = new Map([
@@ -24,6 +27,7 @@ function open(type, index) {
         ["env_diagram", "env_open"],
         ["test_results", "tests_open"]
     ]);
+    console.log(states);
 
     if (states[index][open_prop.get(type)]) {
         return;
@@ -31,7 +35,22 @@ function open(type, index) {
 
     states[index][open_prop.get(type)] = true;
 
-    if (layout.root.contentItems[0].config.type !== "column") {
+    let pos;
+    let friends;
+
+    if (type === "editor") {
+        pos = "column";
+        friends = ["editor"]
+    } else if (type === "test_results") {
+        pos = "row";
+        friends = [];
+    } else {
+        // output, visualizations
+        pos = "column";
+        friends = [type] + ["substitution_tree", "env_diagram", "output"];
+    }
+
+    if (layout.root.contentItems[0].config.type !== pos) {
         let curr_config = layout.toConfig();
         console.log(curr_config);
         curr_config.content[0] = {
@@ -39,12 +58,10 @@ function open(type, index) {
             isClosable: true,
             reorderEnabled: true,
             title: "",
-            type: "column",
+            type: pos,
         };
-        console.log(curr_config);
         localStorage.setItem('savedLayout', JSON.stringify(curr_config));
-        saveState();
-        window.location.reload();
+        saveState(window.location.reload.bind(window.location));
     } else {
         layout.root.contentItems[0].addChild(config);
     }
@@ -92,5 +109,3 @@ function init() {
 
     return layout;
 }
-
-export {init, open};

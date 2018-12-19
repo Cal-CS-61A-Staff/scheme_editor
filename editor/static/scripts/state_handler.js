@@ -50,14 +50,18 @@ function db(callback) {
     };
 }
 
-function store(db) {
+function store(db, callback) {
     let tx = db.transaction("state", "readwrite");
     let store = tx.objectStore("state");
 
     store.put({id: 1, state: states});
 
     tx.oncomplete = function() {
-      // All requests have succeeded and the transaction has committed.
+        console.log("Save complete!");
+        if (callback !== undefined) {
+            console.log(callback);
+            callback();
+        }
     };
 }
 
@@ -74,7 +78,6 @@ function load(db, callback) {
           console.log(states);
       } else {
         // No match was found.
-        console.log(null);
       }
       callback();
     };
@@ -86,6 +89,8 @@ function loadState(callback) {
     });
 }
 
-function saveState() {
-    db(store);
-}
+function saveState(callback) {
+    console.log("Starting save!");
+    db(function (db) {
+        store(db, callback);
+    });}
