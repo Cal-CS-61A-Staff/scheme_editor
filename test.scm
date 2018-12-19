@@ -4,3 +4,5 @@
       (range (+ 1 start)
              end
              (cons start curr))))
+         
+ (range 1 40 '())

@@ -1,4 +1,4 @@
-import {states} from "./state_handler";
+import {saveState, states} from "./state_handler";
 
 export {register};
 
@@ -24,7 +24,7 @@ function register(myLayout) {
             container.getElement().find(".output").html(states[componentState.id].out.trim());
             container.getElement().find(".preview").html(preview);
             container.getElement().find(".output-wrapper").scrollTop(
-                container.getElement().find(".output-wrapper")[0].scrollHeight);
+            container.getElement().find(".output-wrapper")[0].scrollHeight);
         });
         container.getElement().on("click", function () {
             editor.focus();
@@ -94,6 +94,7 @@ function register(myLayout) {
                             states[componentState.id].states.push(...data.states);
                             states[componentState.id].roots.push(...data.roots);
                         }
+                        saveState();
                         $("*").trigger("update");
                     });
                 } else {
