@@ -5,9 +5,26 @@ import * as test_results from "./test_results";
 import * as output from "./output";
 import {states, saveState} from "./state_handler";
 
-export {init, open};
+export {init, open, notify_open, notify_close};
 
 let layout;
+
+let containers = {
+    "substitution_tree": [],
+    "env_diagram": [],
+    "output": [],
+    "editor": [],
+    "test_results": [],
+};
+
+function notify_open(type, component) {
+    console.log(type);
+    containers[type].push(component);
+}
+
+function notify_close(type, component) {
+    containers[type].splice(containers[type].indexOf(component), 1);
+}
 
 function open(type, index) {
     console.log("Opening " + type);
@@ -47,23 +64,37 @@ function open(type, index) {
     } else {
         // output, visualizations
         pos = "column";
-        friends = [type] + ["substitution_tree", "env_diagram", "output"];
+        friends = [type, "substitution_tree", "env_diagram", "output"];
     }
 
-    if (layout.root.contentItems[0].config.type !== pos) {
-        let curr_config = layout.toConfig();
-        console.log(curr_config);
-        curr_config.content[0] = {
-            content: [curr_config.content[0], config],
-            isClosable: true,
-            reorderEnabled: true,
-            title: "",
-            type: pos,
-        };
-        localStorage.setItem('savedLayout', JSON.stringify(curr_config));
-        saveState(window.location.reload.bind(window.location));
-    } else {
-        layout.root.contentItems[0].addChild(config);
+    let ok = false;
+    for (let friend of friends) {
+        console.log(friends);
+        if (containers[friend].length === 0) {
+            continue;
+        }
+        console.log(containers[friend].slice(-1)[0]);
+        containers[friend].slice(-1)[0].parent.parent.addChild(config);
+        ok = true;
+        break;
+    }
+
+    if (!ok) {
+        if (layout.root.contentItems[0].config.type !== pos) {
+            let curr_config = layout.toConfig();
+            console.log(curr_config);
+            curr_config.content[0] = {
+                content: [curr_config.content[0], config],
+                isClosable: true,
+                reorderEnabled: true,
+                title: "",
+                type: pos,
+            };
+            localStorage.setItem('savedLayout', JSON.stringify(curr_config));
+            saveState(window.location.reload.bind(window.location));
+        } else {
+            layout.root.contentItems[0].addChild(config);
+        }
     }
 
     $("*").trigger("update");
@@ -92,7 +123,7 @@ function init() {
 
     layout.on('stateChanged', function () {
         localStorage.setItem('savedLayout', JSON.stringify(layout.toConfig()));
-        saveState();
+        // saveState();
     });
 
     $(window).resize(function () {
