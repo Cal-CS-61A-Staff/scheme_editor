@@ -106,6 +106,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                                                 "utf-8")))
         except Exception as e:
             print(e)
+            # raise
 
     def log_message(self, *args, **kwargs):
         pass

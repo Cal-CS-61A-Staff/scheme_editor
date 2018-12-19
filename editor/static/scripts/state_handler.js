@@ -1,4 +1,4 @@
-export { states, base_state, temp_file, saveState };
+export {states, base_state, temp_file, loadState, saveState};
 
 let base_state = {
     states: [],
@@ -31,11 +31,61 @@ let states = [jQuery.extend({}, base_state)];
 
 let temp_file = "<temporary>";
 
-let savedState = localStorage.getItem("savedState");
-if (savedState !== null) {
-    states = JSON.parse(savedState);
+function db(callback) {
+    let request = indexedDB.open("state");
+
+    let db;
+
+    request.onupgradeneeded = function () {
+        // The database did not previously exist, so create object stores and indexes.
+        let db = request.result;
+        let store = db.createObjectStore("state", {keyPath: "id"});
+        let idIndex = store.createIndex("by_id", "id", {unique: true});
+    };
+
+    request.onsuccess = function () {
+        db = request.result;
+        callback(db);
+        db.close();
+    };
+}
+
+function store(db) {
+    let tx = db.transaction("state", "readwrite");
+    let store = tx.objectStore("state");
+
+    store.put({id: 1, state: states});
+
+    tx.oncomplete = function() {
+      // All requests have succeeded and the transaction has committed.
+    };
+}
+
+function load(db, callback) {
+    let tx = db.transaction("state", "readonly");
+    let store = tx.objectStore("state");
+    let index = store.index("by_id");
+
+    let request = index.get(1);
+    request.onsuccess = function() {
+      let matching = request.result;
+      if (matching !== undefined) {
+          states = matching.state;
+          console.log(states);
+      } else {
+        // No match was found.
+        console.log(null);
+      }
+      callback();
+    };
+}
+
+function loadState(callback) {
+    db(function (db) {
+        load(db, callback);
+    });
 }
 
 function saveState() {
-    localStorage.setItem('savedState', JSON.stringify(states));
+    db(store);
 }
