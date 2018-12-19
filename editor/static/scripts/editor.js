@@ -1,4 +1,4 @@
-import {states, temp_file} from "./state_handler";
+import {saveState, states, temp_file} from "./state_handler";
 
 import {open} from "./layout";
 
@@ -110,6 +110,7 @@ function register(layout) {
                     states[componentState.id].out = data.out[0];
                 }
 
+                saveState();
                 open("output", componentState.id);
 
                 $("*").trigger("reset");

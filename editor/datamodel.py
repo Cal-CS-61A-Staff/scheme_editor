@@ -51,9 +51,9 @@ class Pair(Expression):
         if isinstance(self.rest, Pair):
             rest_str = str(self.rest)
             if rest_str[0] == "(" and rest_str[-1] == ")":
-                return f"({self.first} {str(self.rest)[1:-1]})"
+                return f"({self.first} {rest_str[1:-1]})"
             else:
-                return f"({self.first} . {str(self.rest)})"
+                return f"({self.first} . {rest_str})"
         elif self.rest is Nil:
             return f"({self.first})"
 
