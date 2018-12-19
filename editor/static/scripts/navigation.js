@@ -8,7 +8,7 @@ function next_expr(i) {
     states[i].start = states[i].states[states[i].expr_i][0];
     states[i].end = states[i].states[states[i].expr_i][1];
     states[i].index = states[i].start;
-    state_handler.saveState();
+    // state_handler.saveState();
     $("*").trigger("update");
 }
 
@@ -17,7 +17,7 @@ function prev_expr(i) {
     states[i].start = states[i].states[states[i].expr_i][0];
     states[i].end = states[i].states[states[i].expr_i][1];
     states[i].index = states[i].start;
-    state_handler.saveState();
+    // state_handler.saveState();
     $("*").trigger("update");
 }
 
@@ -28,7 +28,7 @@ function next_i(i) {
     } else {
         states[i].index = Math.min(states[i].index, states[i].end - 1);
     }
-    state_handler.saveState();
+    // state_handler.saveState();
     $("*").trigger("update");
 }
 
@@ -40,7 +40,7 @@ function prev_i(i) {
     } else {
         states[i].index = Math.max(states[i].index, states[i].start);
     }
-    state_handler.saveState();
+    // state_handler.saveState();
     $("*").trigger("update");
 }
 
