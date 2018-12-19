@@ -1,4 +1,5 @@
 import {saveState, states} from "./state_handler";
+import {notify_close, notify_open} from "./layout";
 
 export {register};
 
@@ -31,9 +32,12 @@ function register(myLayout) {
         });
 
         container.on("destroy", function () {
+            notify_close("output", container);
             states[componentState.id].out_open = false;
         });
         container.on("open", function () {
+            notify_open("output", container);
+
             editorDiv = container.getElement().find(".console-input").get(0);
             editor = ace.edit(editorDiv);
             ace.config.set("packaged", true);

@@ -1,6 +1,7 @@
 import * as state_handler from "./state_handler";
 import * as substitution_tree_worker from "./substitution_tree_worker"
 import {states} from "./state_handler";
+import {notify_open} from "./layout";
 
 export { register };
 
@@ -33,6 +34,10 @@ function register(myLayout) {
         let svg = SVG.adopt(rawSVG).size(container.width, container.height);
         console.log("adopted");
         let ready = false;
+
+        container.on("open", function () {
+            notify_open("substitution_tree", container);
+        });
 
         container.getElement().find(".tree").on("update", function (e) {
             let zoom = svgPanZoom(rawSVG).getZoom();
@@ -78,6 +83,7 @@ function register(myLayout) {
 
         container.on("destroy", function () {
             states[componentState.id].sub_open = false;
+            notify_open("substitution_tree", container);
         });
     });
 }

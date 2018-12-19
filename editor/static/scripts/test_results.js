@@ -1,10 +1,15 @@
 import {base_state, states, temp_file} from "./state_handler";
-import {open} from "./layout";
+import {notify_close, notify_open, open} from "./layout";
 
 export {register};
 
 function register(myLayout) {
     myLayout.registerComponent('test_results', function (container, componentState) {
+
+        container.on("open", function () {
+            notify_open("test_results", container);
+        });
+
         container.getElement().on("update", function () {
             let data = states[componentState.id].test_results;
             container.getElement().html(`<div id="accordion"> </div>`);
@@ -57,6 +62,7 @@ function register(myLayout) {
 
         container.on("destroy", function () {
             states[componentState.id].tests_open = false;
+            notify_close("test_results", container);
         });
 
         container.on("open", function () {});
