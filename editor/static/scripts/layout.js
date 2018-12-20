@@ -47,6 +47,7 @@ function open(type, index) {
     console.log(states);
 
     if (states[index][open_prop.get(type)]) {
+        $("*").trigger("update");
         return;
     }
 

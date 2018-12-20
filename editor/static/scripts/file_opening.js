@@ -1,4 +1,4 @@
-import {base_state, states} from "./state_handler";
+import {base_state, saveState, states} from "./state_handler";
 import {open} from "./layout";
 
 export { init };
@@ -36,6 +36,7 @@ function init() {
                     new_state.file_name = file;
                     states.push(new_state);
                     open("editor", index);
+                    saveState();
                     $("#fileChooserModal").modal("hide");
                 });
             }

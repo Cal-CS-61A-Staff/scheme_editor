@@ -7,6 +7,8 @@ import {charHeight} from "./measure";
 export { display_tree };
 
 function get_i(all_data, curr, i) {
+    console.log(i);
+    console.log(all_data[curr]);
     let labels = [
         ["transitions", "transition_type"],
         ["strs", "str"],
@@ -48,6 +50,7 @@ function display_tree(id, svg) {
 }
 
 function _display_tree(data, container, x, y, level, starts) {
+    console.log(data);
     let color;
     switch (data["transition_type"]) {
         case "UNEVALUATED":

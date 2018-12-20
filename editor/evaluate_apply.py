@@ -99,7 +99,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder,
             gui_holder.complete()
             ret = out
         elif isinstance(expr, Pair):
-            if tail_context and False:
+            if tail_context:
                 ret = Thunk(expr, frame, log_stack)
             else:
                 gui_holder.evaluate()
@@ -115,7 +115,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder,
                 out = apply(operator, operands, frame, gui_holder)
                 if isinstance(out, Thunk):
                     expr, frame = out.expr, out.frame
-                    gui_holder.expression = expr
+                    gui_holder.expression.update(expr)
                     continue
                 visual_expression.value = out
                 gui_holder.complete()
@@ -147,7 +147,7 @@ class Callable(Expression):
         raise NotImplementedError()
 
 
-class Applicable(Callable, ABC):
+class Applicable(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: gui.Holder, eval_operands=True):
         raise NotImplementedError()
 
