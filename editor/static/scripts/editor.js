@@ -1,6 +1,7 @@
 import {saveState, states, temp_file} from "./state_handler";
 
 import {notify_open, notify_close, open} from "./layout";
+import {make, request_update} from "./event_handler";
 
 export {register};
 
@@ -27,13 +28,15 @@ function register(layout) {
             </div>
         </div>
     `);
+
+        make(container, "editor", componentState.id);
+
         let editorDiv;
         let editor;
 
         container.setTitle(states[componentState.id].file_name);
 
         container.on("open", function () {
-            notify_open("editor", container);
             editorDiv = container.getElement().find(".editor").get(0);
             editor = ace.edit(editorDiv);
             ace.config.set("packaged", true);
@@ -74,12 +77,6 @@ function register(layout) {
             });
         });
 
-        container.on("destroy", function () {
-            states[componentState.id].editor_open = false;
-            notify_close("editor", container);
-            // windows.editors = windows.editors.filter(item => item !== container);
-        });
-
         container.getElement().find(".run-btn").on("click", function () {
             if (editor.getValue().trim() === "") {
                 return;
@@ -115,7 +112,7 @@ function register(layout) {
                 saveState();
 
                 $("*").trigger("reset");
-                $("*").trigger("update");
+                request_update();
             });
         });
 

@@ -1,5 +1,6 @@
 import {saveState, states} from "./state_handler";
 import {notify_close, notify_open} from "./layout";
+import {make, request_update} from "./event_handler";
 
 export {register};
 
@@ -17,6 +18,8 @@ function register(myLayout) {
         </div>
         `);
 
+        make(container, "output", componentState.id);
+
         let preview = "";
         let editorDiv;
         let editor;
@@ -31,13 +34,7 @@ function register(myLayout) {
             editor.focus();
         });
 
-        container.on("destroy", function () {
-            notify_close("output", container);
-            states[componentState.id].out_open = false;
-        });
         container.on("open", function () {
-            notify_open("output", container);
-
             editorDiv = container.getElement().find(".console-input").get(0);
             editor = ace.edit(editorDiv);
             ace.config.set("packaged", true);
@@ -76,7 +73,7 @@ function register(myLayout) {
                     }, 10);
                     val = val.replace(/\n/g, "");
                     states[componentState.id].out += "\nscm> " + val;
-                    $("*").trigger("update");
+                    request_update();
                     $.post("./process2", {
                         code: [val],
                         globalFrameID: states[componentState.id].globalFrameID,
@@ -97,7 +94,7 @@ function register(myLayout) {
                             states[componentState.id].states.push(...data.states);
                             states[componentState.id].roots.push(...data.roots);
                         }
-                        $("*").trigger("update");
+                        request_update();
                     });
                 } else {
                     $.post("./instant", {
@@ -110,7 +107,7 @@ function register(myLayout) {
                         } else {
                             preview = "";
                         }
-                        $("*").trigger("update");
+                        request_update();
                     })
                 }
             });

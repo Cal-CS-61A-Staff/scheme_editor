@@ -1,6 +1,7 @@
 import * as env_diagram_worker from "./env_diagram_worker";
 import {states} from "./state_handler";
 import {notify_close, notify_open} from "./layout";
+import {make} from "./event_handler";
 
 export { register };
 
@@ -28,13 +29,11 @@ function register(myLayout) {
         </div>
         `);
 
+        make(container, "env_diagram", componentState.id);
+
         let rawSVG = container.getElement().find(".envs > svg").get(0);
         // svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
         let svg = SVG.adopt(rawSVG).size(container.width, container.height);
-
-        container.on("open", function () {
-            notify_open("env_diagram", container);
-        });
 
         container.getElement().find(".envs").on("update", function () {
             let zoom = svgPanZoom(rawSVG).getZoom();
@@ -67,11 +66,6 @@ function register(myLayout) {
                 svgPanZoom(rawSVG).zoom(zoom);
                 svgPanZoom(rawSVG).pan(pan);
             }
-        });
-
-        container.on("destroy", function () {
-            states[componentState.id].env_open = false;
-            notify_close("env_diagram", container);
         });
     });
 }
