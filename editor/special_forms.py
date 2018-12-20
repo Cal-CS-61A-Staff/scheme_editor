@@ -316,8 +316,7 @@ class MacroObject(Callable):
         gui_holder.expression.set_entries(
             [VisualExpression(expr, gui_holder.expression.display_value) for expr in body])
         for i, expression in enumerate(body):
-            out = evaluate(expression, new_frame, gui_holder.expression.children[i],
-                           i == len(body) - 1, log_stack=len(self.body) == 1)
+            out = evaluate(expression, new_frame, gui_holder.expression.children[i], log_stack=len(self.body) == 1)
 
         gui_holder.expression.set_entries([VisualExpression(out, gui_holder.expression.display_value)])
         new_frame.assign(return_symbol, out)

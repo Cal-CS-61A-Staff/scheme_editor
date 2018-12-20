@@ -23,7 +23,7 @@ class VisualExpression:
         self.base_expr = base_expr if true_base_expr is None else true_base_expr
         self.value: Expression = None
         self.children: List[Holder] = []
-        self.id = uuid4()
+        self.id = uuid4().hex[:10]
         if base_expr is None:
             return
         if isinstance(base_expr, ValueHolder) or isinstance(base_expr, evaluate_apply.Callable) \
@@ -43,6 +43,12 @@ class VisualExpression:
         if expressions and isinstance(expressions[0], VisualExpression):
             logger.node_cache[self.id].modify(self, HolderState.EVALUATING)
         return self
+
+    def update(self, expression: Expression):
+        old_id = self.id
+        self.__init__(expression)
+        self.id = old_id
+        logger.node_cache[self.id].modify(self, HolderState.EVALUATING)
 
     def __repr__(self):
         if self.value is not None:
@@ -113,8 +119,8 @@ class Logger:
         # self.i = 0
         self._out.append([])
         if Root.set and self.start != self.i:
-            self.export_states.append((self.start, self.i, {i.hex: v.export() for i, v in self.node_cache.items()}))
-            self.roots.append(Root.root.expression.id.hex)
+            self.export_states.append((self.start, self.i, {i: v.export() for i, v in self.node_cache.items()}))
+            self.roots.append(Root.root.expression.id)
         self.start = self.i
         self.node_cache = {}
         Root.set = True
@@ -138,6 +144,7 @@ class Logger:
         self.i += 1
 
     def export(self):
+        print(f"Generated {len(self.export_states[-1][2])} nodes")
         return {
             "success": True,
             "roots": self.roots,
@@ -168,7 +175,7 @@ class Logger:
 
     def new_node(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
         if isinstance(expr, Expression):
-            key = uuid4()
+            key = uuid4().hex[:10]
             self.node_cache[key] = StaticNode(expr, transition_type)
             return key
         if expr.id in self.node_cache:
@@ -260,7 +267,7 @@ class FatNode:
             "transitions": self.transitions,
             "strs": self.str,
             "parent_strs": self.base_str,
-            "children": [(i, [x.hex for x in y]) for i, y in self.children]
+            "children": [(i, [x for x in y]) for i, y in self.children]
         }
 
 

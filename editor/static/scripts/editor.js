@@ -37,7 +37,6 @@ function register(layout) {
             editorDiv = container.getElement().find(".editor").get(0);
             editor = ace.edit(editorDiv);
             ace.config.set("packaged", true);
-            ace.config.set("basePath", "/ace");
             editor.session.setMode("ace/mode/scheme");
             editor.setOption("fontSize", 14);
             editor.setOption("enableBasicAutocompletion", true);
@@ -113,6 +112,7 @@ function register(layout) {
                 }
 
                 open("output", componentState.id);
+                saveState();
 
                 $("*").trigger("reset");
                 $("*").trigger("update");
