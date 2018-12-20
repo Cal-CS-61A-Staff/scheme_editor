@@ -165,7 +165,6 @@ def parse_test_data(raw_out):
 
             elements.append((category, data))
 
-
         vals = elements[0][1][0].split(" > ")
         problem = vals[0]
         suite = int(vals[1].split()[1])

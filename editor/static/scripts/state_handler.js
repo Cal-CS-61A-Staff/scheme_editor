@@ -91,6 +91,9 @@ function loadState(callback) {
 
 function saveState(callback) {
     console.log("Starting save!");
-    db(function (db) {
-        store(db, callback);
-    });}
+    setTimeout(function () {
+        db(function (db) {
+            store(db, callback);
+        });
+    }, 0);
+}

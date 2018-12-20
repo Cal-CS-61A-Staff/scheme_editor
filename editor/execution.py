@@ -66,6 +66,7 @@ def string_exec(strings, out, global_frame=None):
         buff = TokenBuffer([string])
         while not buff.done:
             expr = get_expression(buff)
+            print(expr)
             if expr is None:
                 continue
             gui.logger.new_expr()

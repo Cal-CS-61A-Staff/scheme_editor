@@ -1,8 +1,6 @@
-(define (range start end curr)
-  (if (= start end)
-      curr
-      (range (+ 1 start)
-             end
-             (cons start curr))))
-         
- (range 1 40 '())
+(define (tailcall x)
+  (if (> x 0)
+      (tailcall (- x 1))
+      (print "wow")))
+
+(tailcall 100) ; expect tailcall

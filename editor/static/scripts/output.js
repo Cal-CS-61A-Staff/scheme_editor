@@ -41,7 +41,6 @@ function register(myLayout) {
             editorDiv = container.getElement().find(".console-input").get(0);
             editor = ace.edit(editorDiv);
             ace.config.set("packaged", true);
-            ace.config.set("basePath", "/ace");
             editor.session.setMode("ace/mode/scheme");
             editor.setOption("fontSize", 14);
             editor.setOption("enableBasicAutocompletion", true);
@@ -98,7 +97,6 @@ function register(myLayout) {
                             states[componentState.id].states.push(...data.states);
                             states[componentState.id].roots.push(...data.roots);
                         }
-                        saveState();
                         $("*").trigger("update");
                     });
                 } else {
