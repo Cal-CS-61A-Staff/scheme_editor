@@ -1,5 +1,6 @@
 import * as state_handler from "./state_handler";
 import {states} from "./state_handler";
+import {request_update} from "./event_handler";
 
 export {init_events};
 
@@ -9,7 +10,7 @@ function next_expr(i) {
     states[i].end = states[i].states[states[i].expr_i][1];
     states[i].index = states[i].start;
     // state_handler.saveState();
-    $("*").trigger("update");
+    request_update();
 }
 
 function prev_expr(i) {
@@ -18,7 +19,7 @@ function prev_expr(i) {
     states[i].end = states[i].states[states[i].expr_i][1];
     states[i].index = states[i].start;
     // state_handler.saveState();
-    $("*").trigger("update");
+    request_update();
 }
 
 function next_i(i) {
@@ -29,7 +30,7 @@ function next_i(i) {
         states[i].index = Math.min(states[i].index, states[i].end - 1);
     }
     // state_handler.saveState();
-    $("*").trigger("update");
+    request_update();
 }
 
 function prev_i(i) {
@@ -41,7 +42,7 @@ function prev_i(i) {
         states[i].index = Math.max(states[i].index, states[i].start);
     }
     // state_handler.saveState();
-    $("*").trigger("update");
+    request_update();
 }
 
 function init_events() {

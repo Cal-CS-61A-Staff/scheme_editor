@@ -4,8 +4,9 @@ import * as editor from "./editor";
 import * as test_results from "./test_results";
 import * as output from "./output";
 import {states, saveState} from "./state_handler";
+import {request_update} from "./event_handler";
 
-export {init, open, notify_open, notify_close};
+export {init, open, notify_open, notify_close, open_prop};
 
 let layout;
 
@@ -17,8 +18,16 @@ let containers = {
     "test_results": [],
 };
 
+const open_prop = new Map([
+    ["editor", "editor_open"],
+    ["output", "out_open"],
+    ["substitution_tree", "sub_open"],
+    ["turtle_graphics", "turtle_open"],
+    ["env_diagram", "env_open"],
+    ["test_results", "tests_open"]
+]);
+
 function notify_open(type, component) {
-    console.log(type);
     containers[type].push(component);
 }
 
@@ -36,18 +45,10 @@ function open(type, index) {
         width: 40,
     };
 
-    let open_prop = new Map([
-        ["editor", "editor_open"],
-        ["output", "out_open"],
-        ["substitution_tree", "sub_open"],
-        ["turtle_graphics", "turtle_open"],
-        ["env_diagram", "env_open"],
-        ["test_results", "tests_open"]
-    ]);
     console.log(states);
 
     if (states[index][open_prop.get(type)]) {
-        $("*").trigger("update");
+        request_update();
         return;
     }
 
@@ -98,7 +99,7 @@ function open(type, index) {
         }
     }
 
-    $("*").trigger("update");
+    request_update();
 }
 
 function init() {
