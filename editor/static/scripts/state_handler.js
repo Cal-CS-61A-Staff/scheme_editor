@@ -1,4 +1,4 @@
-export {states, base_state, temp_file, loadState, saveState};
+export {states, temp_file, loadState, saveState, make_new_state};
 
 let base_state = {
     states: [],
@@ -27,9 +27,14 @@ let base_state = {
     file_name: "",
 };
 
-let states = [jQuery.extend({}, base_state)];
+let states = [make_new_state()];
+states[0].file_name = $.parseJSON(start_data)["file"];
 
 let temp_file = "<temporary>";
+
+function make_new_state() {
+    return jQuery.extend({}, base_state);
+}
 
 function db(callback) {
     let request = indexedDB.open("state");
