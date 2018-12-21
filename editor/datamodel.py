@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from typing import Union
+from typing import Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from evaluate_apply import Frame
 
 
 class Expression:
@@ -95,6 +98,19 @@ class String(ValueHolder):
 
     def __repr__(self):
         return "\"" + self.value.replace("\n", "\\n").replace("\"", "\\\"").replace("\'", "'") + "\""
+
+
+class Promise(Expression):
+    def __init__(self, expr: Expression, frame: Frame):
+        self.forced = False
+        self.expr = expr
+        self.frame = frame
+
+    def __repr__(self):
+        if self.forced:
+            return "#[promise (forced)]"
+        else:
+            return "#[promise (not forced)]"
 
 
 SingletonTrue = Boolean(True)

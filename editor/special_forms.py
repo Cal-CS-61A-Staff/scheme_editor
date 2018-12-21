@@ -1,7 +1,7 @@
 from typing import List
 
 import gui
-from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined
+from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise
 from environment import global_attr
 from evaluate_apply import Frame, evaluate, Callable, evaluate_all, Applicable
 from gui import Holder, VisualExpression, return_symbol, logger
@@ -9,7 +9,7 @@ from helper import pair_to_list, verify_exact_callable_length, verify_min_callab
     make_list
 from lexer import TokenBuffer
 from parser import get_expression
-from scheme_exceptions import OperandDeduceError, IrreversibleOperationError
+from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError
 
 
 class LambdaObject(Applicable):
@@ -408,10 +408,38 @@ class Load(Applicable):
             raise OperandDeduceError(f"Load expected a Symbol, received {operands[0]}.")
         if gui.logger.fragile:
             raise IrreversibleOperationError()
-        with open(f"{operands[0].value}.scm") as file:
-            code = "(begin" + "\n".join(file.readlines()) + ")"
-            buffer = TokenBuffer([code])
-            expr = get_expression(buffer)
-            gui_holder.expression.set_entries([VisualExpression(expr, gui_holder.expression.display_value)])
-            gui_holder.apply()
-            return evaluate(expr, frame, gui_holder.expression.children[0], True)
+        try:
+            with open(f"{operands[0].value}.scm") as file:
+                code = "(begin" + "\n".join(file.readlines()) + ")"
+                buffer = TokenBuffer([code])
+                expr = get_expression(buffer)
+                gui_holder.expression.set_entries([VisualExpression(expr, gui_holder.expression.display_value)])
+                gui_holder.apply()
+                return evaluate(expr, frame, gui_holder.expression.children[0], True)
+        except OSError as e:
+            raise LoadError(e)
+
+
+@global_attr("delay")
+class Delay(Callable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: gui.Holder):
+        verify_exact_callable_length(self, 1, len(operands))
+        return Promise(operands[0], frame)
+
+
+@global_attr("force")
+class Force(Applicable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: gui.Holder, eval_operands=True):
+        verify_exact_callable_length(self, 1, len(operands))
+        operand = operands[0]
+        if eval_operands:
+            operand = evaluate_all(operands, frame, gui_holder.expression.children[1:])[0]
+        if not isinstance(operand, Promise):
+            raise OperandDeduceError(f"Force expected a Promise, received {operand}")
+        if operand.forced:
+            return operand.expr
+        gui_holder.expression.set_entries([VisualExpression(operand.expr, gui_holder.expression.display_value)])
+        gui_holder.apply()
+        operand.expr = evaluate(operand.expr, operand.frame, gui_holder.expression.children[0])
+        operand.forced = True
+        return operand.expr
