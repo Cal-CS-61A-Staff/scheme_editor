@@ -7,6 +7,8 @@ export {register};
 
 function register(layout) {
     layout.registerComponent('editor', function (container, componentState) {
+        console.log(componentState.id);
+        console.log(states);
         container.getElement().html(`
         <div class="content">
             <div class="header">        

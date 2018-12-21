@@ -1,4 +1,4 @@
-import {base_state, saveState, states} from "./state_handler";
+import {make_new_state, saveState, states} from "./state_handler";
 import {open} from "./layout";
 
 export { init };
@@ -32,7 +32,7 @@ function init() {
                     `);
                 $("#file-list").children().last().find(".btn").click(function () {
                     let index = states.length;
-                    let new_state = jQuery.extend({}, base_state);
+                    let new_state = make_new_state();
                     new_state.file_name = file;
                     states.push(new_state);
                     open("editor", index);

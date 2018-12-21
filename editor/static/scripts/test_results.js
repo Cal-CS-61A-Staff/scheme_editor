@@ -1,5 +1,5 @@
-import {base_state, states, temp_file} from "./state_handler";
-import {notify_close, notify_open, open} from "./layout";
+import {make_new_state, saveState, states, temp_file} from "./state_handler";
+import {open} from "./layout";
 import {make} from "./event_handler";
 
 export {register};
@@ -43,10 +43,11 @@ function register(myLayout) {
                         </tr>`);
                         $(`#${random_id}`).find(".btn").last().click(function () {
                             let index = states.length;
-                            let new_state = jQuery.extend({}, base_state);
+                            let new_state = make_new_state();
                             new_state.file_name = temp_file;
                             new_state.file_content = test.code;
                             states.push(new_state);
+                            saveState();
                             open("editor", index);
                         });
                     }

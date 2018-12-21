@@ -3,7 +3,7 @@ import * as env_diagram from "./env_diagram";
 import * as editor from "./editor";
 import * as test_results from "./test_results";
 import * as output from "./output";
-import {states, saveState} from "./state_handler";
+import {states, saveState, make_new_state} from "./state_handler";
 import {request_update} from "./event_handler";
 
 export {init, open, notify_open, notify_close, open_prop};
@@ -11,11 +11,12 @@ export {init, open, notify_open, notify_close, open_prop};
 let layout;
 
 let containers = {
-    "substitution_tree": [],
-    "env_diagram": [],
-    "output": [],
-    "editor": [],
-    "test_results": [],
+    "substitution_tree": new Map(),
+    "env_diagram": new Map(),
+    "output": new Map(),
+    "editor": new Map(),
+    "test_results": new Map(),
+    "turtle_graphics": new Map()
 };
 
 const open_prop = new Map([
@@ -27,27 +28,36 @@ const open_prop = new Map([
     ["test_results", "tests_open"]
 ]);
 
-function notify_open(type, component) {
-    containers[type].push(component);
+function notify_open(type, component, id) {
+    containers[type].set(id, component);
 }
 
-function notify_close(type, component) {
-    containers[type].splice(containers[type].indexOf(component), 1);
+function notify_close(type, component, id) {
+    containers[type].delete(id);
+    if (type === "editor") {
+        for (let type of open_prop.keys()) {
+            if (containers[type].has(id)) {
+                containers[type].get(id).close();
+            }
+        }
+        states[id] = make_new_state();
+    }
 }
 
 function open(type, index) {
-    console.log("Opening " + type);
     let config = {
         type: "component",
         componentName: type,
         componentState: {id: index},
         height: 40,
-        width: 40,
+        width: 20,
     };
 
     console.log(states);
 
     if (states[index][open_prop.get(type)]) {
+        let container = containers[type].get(index);
+        container.parent.parent.setActiveContentItem(container.parent);
         request_update();
         return;
     }
@@ -72,11 +82,12 @@ function open(type, index) {
     let ok = false;
     for (let friend of friends) {
         console.log(friends);
-        if (containers[friend].length === 0) {
+        if (containers[friend].size === 0) {
             continue;
         }
-        console.log(containers[friend].slice(-1)[0]);
-        containers[friend].slice(-1)[0].parent.parent.addChild(config);
+        let lastElem = Array.from(containers[friend].values()).pop();
+        console.log(lastElem);
+        lastElem.parent.parent.addChild(config);
         ok = true;
         break;
     }
