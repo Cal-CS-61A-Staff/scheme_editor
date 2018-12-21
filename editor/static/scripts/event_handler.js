@@ -1,5 +1,5 @@
 import {notify_close, notify_open, open_prop} from "./layout";
-import {states} from "./state_handler";
+import {saveState, states} from "./state_handler";
 
 export {request_update, make}
 
@@ -9,11 +9,12 @@ function request_update() {
 
 function make(container, type, id) {
     container.on("open", function () {
-        notify_open(type, container);
+        notify_open(type, container, id);
     });
 
     container.on("destroy", function () {
-        notify_close(type, container);
-        states[id][open_prop[type]] = false;
+        notify_close(type, container, id);
+        states[id][open_prop.get(type)] = false;
+        saveState();
     });
 }
