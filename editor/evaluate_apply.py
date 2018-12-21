@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC
 from typing import Dict, List, Union
 
-from datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean, String
+from datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean, String, Promise
 import gui
 from scheme_exceptions import SymbolLookupError, CallableResolutionError, IrreversibleOperationError
 from helper import pair_to_list
@@ -85,7 +85,8 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder,
         if isinstance(expr, Number) \
                 or isinstance(expr, Callable) \
                 or isinstance(expr, Boolean) \
-                or isinstance(expr, String):
+                or isinstance(expr, String) \
+                or isinstance(expr, Promise):
             gui_holder.complete()
             visual_expression.value = expr
             ret = expr

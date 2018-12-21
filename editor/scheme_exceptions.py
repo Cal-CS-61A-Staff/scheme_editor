@@ -28,3 +28,5 @@ class IrreversibleOperationError(SchemeError): pass
 
 
 class FormatError(SchemeError): pass
+
+class LoadError(SchemeError): pass

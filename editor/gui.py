@@ -4,7 +4,7 @@ from enum import Enum, auto
 from typing import List, Union, Dict
 from uuid import uuid4
 
-from datamodel import Expression, ValueHolder, Pair, Nil, Symbol, Undefined
+from datamodel import Expression, ValueHolder, Pair, Nil, Symbol, Undefined, Promise
 import evaluate_apply
 from helper import pair_to_list
 from scheme_exceptions import OperandDeduceError
@@ -26,8 +26,11 @@ class VisualExpression:
         self.id = uuid4().hex[:10]
         if base_expr is None:
             return
-        if isinstance(base_expr, ValueHolder) or isinstance(base_expr, evaluate_apply.Callable) \
-                or base_expr == Nil or base_expr == Undefined:
+        if isinstance(base_expr, ValueHolder) \
+                or isinstance(base_expr, evaluate_apply.Callable) \
+                or isinstance(base_expr, Promise) \
+                or base_expr == Nil \
+                or base_expr == Undefined:
             self.value = base_expr
         elif isinstance(base_expr, Pair):
             try:
