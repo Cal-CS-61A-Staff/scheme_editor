@@ -153,7 +153,7 @@ def exit_handler(signal, frame):
     sys.exit(0)
 
 
-# signal.signal(signal.SIGINT, exit_handler)
+signal.signal(signal.SIGINT, exit_handler)
 
 
 def start(file_arg=None):
