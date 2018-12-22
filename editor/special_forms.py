@@ -13,6 +13,7 @@ from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, Lo
 
 class LambdaObject(Applicable):
     def __init__(self, params: List[Symbol], body: List[Expression], frame: Frame, name: str = "lambda"):
+        super().__init__()
         self.params = params
         self.body = body
         self.frame = frame
@@ -254,6 +255,7 @@ class Mu(Callable):
 
 class MuObject(Applicable):
     def __init__(self, params: List[Symbol], body: List[Expression], name: str):
+        super().__init__()
         self.params = params
         self.body = body
         self.name = name
@@ -294,6 +296,7 @@ class MuObject(Applicable):
 
 class MacroObject(Callable):
     def __init__(self, params: List[Symbol], body: List[Expression], frame: Frame, name: str):
+        super().__init__()
         self.params = params
         self.body = body
         self.frame = frame

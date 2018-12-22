@@ -273,9 +273,9 @@ class StoredFrame:
         self.base = base
 
     def bind(self, name: str, value: Expression):
-        value_id = logger.heap.record(value)
+        value_key = logger.heap.record(value)
 
-        self.bindings.append((logger.i, (name, str(value)), value_id))
+        self.bindings.append((logger.i, (name, str(value)), value_key))
 
     def export(self):
         if id(self.parent) not in logger.frame_lookup:
@@ -291,8 +291,8 @@ class Heap:
     HeapKey = Tuple[bool, Union[int, str]]
 
     def __init__(self):
-        self.prev: Dict[int, Heap.HeapObject] = {}
-        self.curr: Dict[int, Heap.HeapObject] = {}
+        self.prev: Dict[str, Heap.HeapObject] = {}
+        self.curr: Dict[str, Heap.HeapObject] = {}
 
     def export(self):
         out = self.curr
@@ -301,7 +301,7 @@ class Heap:
         return out
 
     def record(self, expr: Expression) -> Heap.HeapKey:
-        if id(expr) not in self.prev:
+        if expr.id not in self.prev:
             if isinstance(expr, ValueHolder):
                 return False, repr(expr.value)
             elif isinstance(expr, Pair):
@@ -311,8 +311,8 @@ class Heap:
             else:
                 # assume the repr method is good enough
                 val = repr(expr)
-            self.curr[id(expr)] = val
-            return True, id(expr)
+            self.curr[expr.id] = val
+        return True, expr.id
 
 
 return_symbol = Symbol("Return Value")
