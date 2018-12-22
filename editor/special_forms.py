@@ -438,6 +438,8 @@ class Force(Applicable):
             raise OperandDeduceError(f"Force expected a Promise, received {operand}")
         if operand.forced:
             return operand.expr
+        if gui.logger.fragile:
+            raise IrreversibleOperationError()
         gui_holder.expression.set_entries([VisualExpression(operand.expr, gui_holder.expression.display_value)])
         gui_holder.apply()
         operand.expr = evaluate(operand.expr, operand.frame, gui_holder.expression.children[0])
