@@ -42,8 +42,6 @@ function register(myLayout) {
             let zoom = svgPanZoom(rawSVG).getZoom();
             let pan = svgPanZoom(rawSVG).getPan();
             svgPanZoom(rawSVG).destroy();
-            console.log(rawSVG === undefined);
-            console.log(jQuery.isReady);
             if (ready) {
                 svg.clear();
             } else {

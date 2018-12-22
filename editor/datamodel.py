@@ -1,17 +1,20 @@
 from __future__ import annotations
 
 from typing import Union, TYPE_CHECKING
+from uuid import uuid4
 
 if TYPE_CHECKING:
     from evaluate_apply import Frame
 
 
 class Expression:
-    pass
+    def __init__(self):
+        self.id = uuid4().hex[:10]
 
 
 class ValueHolder(Expression):
     def __init__(self, value):
+        super().__init__()
         self.value = value
 
     def __repr__(self):
@@ -23,8 +26,8 @@ class Symbol(ValueHolder):
 
 
 class Number(ValueHolder):
-    # noinspection PyMissingConstructor
     def __init__(self, value, *, force_float=False):
+        super().__init__(value)
         if value == round(value) and not force_float:
             self.value = round(value)
         else:
@@ -36,6 +39,7 @@ class Number(ValueHolder):
 
 class Pair(Expression):
     def __init__(self, first: Expression, rest: Union[Pair, Nil]):
+        super().__init__()
         self.first = first
         self.rest = rest
 
@@ -102,6 +106,7 @@ class String(ValueHolder):
 
 class Promise(Expression):
     def __init__(self, expr: Expression, frame: Frame):
+        super().__init__()
         self.forced = False
         self.expr = expr
         self.frame = frame
