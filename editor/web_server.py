@@ -2,7 +2,7 @@ import json
 
 from flask import Flask, render_template, request, jsonify
 
-import execution, database, gui
+import execution, database, log
 from runtime_limiter import limiter, TimeLimitException
 from scheme_exceptions import SchemeError
 
@@ -36,19 +36,19 @@ def receive():
 
 
 def handle(code, skip_tree, skip_envs, hide_return_frames):
-    gui.logger.setID(database.save(code, skip_tree, hide_return_frames))
-    gui.logger.new_query(skip_tree, skip_envs, hide_return_frames)
+    log.logger.setID(database.save(code, skip_tree, hide_return_frames))
+    log.logger.new_query(skip_tree, skip_envs, hide_return_frames)
     try:
         # execution.string_exec(code, gui.logger.out)
-        limiter(3, execution.string_exec, code, gui.logger.out)
+        limiter(3, execution.string_exec, code, log.logger.out)
     except SchemeError as e:
-        gui.logger.out(e)
+        log.logger.out(e)
     except TimeLimitException:
-        gui.logger.out("Time limit exceeded. Try disabling the substitution visualizer (top checkbox) for increased "
+        log.logger.out("Time limit exceeded. Try disabling the substitution visualizer (top checkbox) for increased "
                        "performance.")
     except Exception as e:
-        gui.logger.out(e)
+        log.logger.out(e)
 
-    out = gui.logger.export()
+    out = log.logger.export()
     return jsonify(out)
 

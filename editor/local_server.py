@@ -8,7 +8,7 @@ from http import HTTPStatus
 
 from file_manager import get_scm_files, save, read_file
 from formatter import prettify
-import execution, gui
+import execution, log
 from ok_interface import run_tests, parse_test_data
 from runtime_limiter import TimeLimitException, limiter
 from scheme_exceptions import SchemeError, ParseError
@@ -118,33 +118,33 @@ def handle(code, curr_i, curr_f, global_frame_id):
     # file.write("\n".join(code))
     # file.flush()
     try:
-        gui.logger.new_query(curr_i, curr_f)
+        log.logger.new_query(curr_i, curr_f)
         if global_frame_id == -1:
-            execution.string_exec(code, gui.logger.out)
+            execution.string_exec(code, log.logger.out)
         else:
-            execution.string_exec(code, gui.logger.out, gui.logger.frame_lookup[global_frame_id].base)
+            execution.string_exec(code, log.logger.out, log.logger.frame_lookup[global_frame_id].base)
         # limiter(3, execution.string_exec, code, gui.logger.out)
     except ParseError as e:
         return json.dumps({"success": False, "out": [str(e)]})
 
-    out = gui.logger.export()
+    out = log.logger.export()
     return json.dumps(out)
 
 
 def instant(code, global_frame_id):
-    gui.logger.new_query()
+    log.logger.new_query()
     try:
-        gui.logger.preview_mode(True)
-        limiter(0.3, execution.string_exec, code, gui.logger.out, gui.logger.frame_lookup[global_frame_id].base)
+        log.logger.preview_mode(True)
+        limiter(0.3, execution.string_exec, code, log.logger.out, log.logger.frame_lookup[global_frame_id].base)
     except (SchemeError, ZeroDivisionError) as e:
-        gui.logger.out(e)
+        log.logger.out(e)
     except TimeLimitException:
         pass
     except Exception as e:
         raise
     finally:
-        gui.logger.preview_mode(False)
-    return json.dumps({"success": True, "content": gui.logger.export()["out"]})
+        log.logger.preview_mode(False)
+    return json.dumps({"success": True, "content": log.logger.export()["out"]})
 
 
 def exit_handler(signal, frame):

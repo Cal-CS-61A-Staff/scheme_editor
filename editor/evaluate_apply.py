@@ -4,7 +4,7 @@ from abc import ABC
 from typing import Dict, List, Union
 
 from datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean, String, Promise
-import gui
+import log
 from scheme_exceptions import SymbolLookupError, CallableResolutionError, IrreversibleOperationError
 from helper import pair_to_list
 
@@ -15,14 +15,14 @@ class Frame:
         self.name = name
         self.vars: Dict[str, Expression] = {}
         self.id = "unknown - an error has occurred"
-        self.temp = gui.logger.fragile
-        gui.logger.frame_create(self)
+        self.temp = log.logger.fragile
+        log.logger.frame_create(self)
 
     def assign(self, varname: Symbol, varval: Expression):
-        if gui.logger.fragile and not self.temp:
+        if log.logger.fragile and not self.temp:
             raise IrreversibleOperationError()
         self.vars[varname.value] = varval
-        gui.logger.frame_store(self, varname.value, varval)
+        log.logger.frame_store(self, varname.value, varval)
 
     def lookup(self, varname: Symbol):
         if varname.value in self.vars:
@@ -48,7 +48,7 @@ class Thunk:
         return "thunk"
 
 
-def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder,
+def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
              tail_context: bool = False, *, log_stack: bool=True) -> Union[Expression, Thunk]:
     """
     >>> global_frame = __import__("special_forms").build_global_frame()
@@ -73,13 +73,13 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder,
     depth = 0
     while True:
         if isinstance(gui_holder.expression, Expression):
-            visual_expression = gui.VisualExpression(expr)
+            visual_expression = log.VisualExpression(expr)
             gui_holder.link_visual(visual_expression)
         else:
             visual_expression = gui_holder.expression
 
         if log_stack:
-            gui.logger.eval_stack.append(f"{repr(expr)} [frame = {frame.id}]")
+            log.logger.eval_stack.append(f"{repr(expr)} [frame = {frame.id}]")
             depth += 1
 
         if isinstance(expr, Number) \
@@ -129,12 +129,12 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: gui.Holder,
             raise Exception("Internal error. Please report to maintainer!")
 
         for _ in range(depth):
-            gui.logger.eval_stack.pop()
+            log.logger.eval_stack.pop()
 
         return ret
 
 
-def apply(operator: Expression, operands: List[Expression], frame: Frame, gui_holder: gui.Holder):
+def apply(operator: Expression, operands: List[Expression], frame: Frame, gui_holder: log.Holder):
     if isinstance(operator, Callable):
         return operator.execute(operands, frame, gui_holder)
     elif isinstance(operator, Symbol):
@@ -144,14 +144,14 @@ def apply(operator: Expression, operands: List[Expression], frame: Frame, gui_ho
 
 
 class Callable(Expression):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: gui.Holder):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: log.Holder):
         raise NotImplementedError()
 
 
 class Applicable(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: gui.Holder, eval_operands=True):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: log.Holder, eval_operands=True):
         raise NotImplementedError()
 
 
-def evaluate_all(operands: List[Expression], frame: Frame, operand_holders: List[gui.Holder]) -> List[Expression]:
+def evaluate_all(operands: List[Expression], frame: Frame, operand_holders: List[log.Holder]) -> List[Expression]:
     return [evaluate(operand, frame, holder) for operand, holder in zip(operands, operand_holders)]

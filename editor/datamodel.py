@@ -78,7 +78,7 @@ class NilType(Expression):
 
 class UndefinedType(Expression):
     def __repr__(self):
-        from gui import logger
+        from log import logger
         if logger.strict_mode:
             return ""
         return "undefined"
