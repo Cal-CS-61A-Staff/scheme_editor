@@ -106,6 +106,9 @@ function register(layout) {
                     states[componentState.id].expr_i = 0;
                     states[componentState.id].roots = data.roots;
                     states[componentState.id].globalFrameID = data.globalFrameID;
+
+                    console.log(data.heap);
+
                 } else {
                     states[componentState.id].out = data.out[0];
                 }

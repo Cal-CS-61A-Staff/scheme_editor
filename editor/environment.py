@@ -11,7 +11,7 @@ def make_frame_decorator(defdict):
     def global_builtin(name):
         def decorator(cls):
             cls.__repr__ = lambda self: f"#[{name}]"
-            defdict[Symbol(name)] = cls()
+            defdict[Symbol(name)] = cls
             return cls
 
         return decorator
@@ -25,6 +25,7 @@ global_attr = make_frame_decorator(defdict)
 
 class MathProcedure(SingleOperandPrimitive):
     def __init__(self, func, name):
+        super().__init__()
         self.func = func
         self.name = name
 
@@ -42,7 +43,7 @@ def build_global_frame():
     primitives.load_primitives()
     frame = Frame("builtins")
     for k, v in defdict.items():
-        frame.assign(k, v)
+        frame.assign(k, v())
     frame.assign(Symbol("nil"), Nil)
     frame.assign(Symbol("#t"), SingletonTrue)
     frame.assign(Symbol("#f"), SingletonFalse)
