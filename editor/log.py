@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum, auto
-from typing import List, Union, Dict
+from typing import List, Union, Dict, Tuple
 from uuid import uuid4
 
 from datamodel import Expression, ValueHolder, Pair, Nil, Symbol, Undefined, Promise
@@ -49,8 +49,10 @@ class VisualExpression:
 
     def update(self, expression: Expression):
         old_id = self.id
+        old_base_expr = self.base_expr
         self.__init__(expression)
         self.id = old_id
+        self.base_expr = old_base_expr
         logger.node_cache[self.id].modify(self, HolderState.EVALUATING)
 
     def __repr__(self):
@@ -105,18 +107,25 @@ def print_announce(message, local, root):
 
 class Logger:
     def __init__(self):
-        self._out = [[]]
-        self.i = 0
-        self.start = 0
-        self.node_cache = {}
-        self.f_delta = 0
-        self.frame_lookup: Dict[int, StoredFrame] = {}
-        self.active_frames: List[StoredFrame] = []
-        self.strict_mode = False
-        self.fragile = False
-        self.export_states = []
-        self.roots = []
-        self.eval_stack = []
+        self._out = [[]]  # text printed to console
+
+        self.i = 0  # number of "steps" in the substitution tree
+        self.start = 0  # the step of the current expr
+
+        self.f_delta = 0  # the index of the first frame to generate
+        self.frame_lookup: Dict[int, StoredFrame] = {}  # lookup of all previous frames TODO: use weakrefs or something
+        self.active_frames: List[StoredFrame] = []  # new frames to be added to the js frame store
+
+        self.strict_mode = False  # legacy - used for okpy testing of the interpreter
+        self.fragile = False  # flag for if new assignments prohibited, like in previewing
+
+        self.node_cache = {}  # a cache of visual expressions
+        self.export_states = []  # all the nodes generated in the current evaluation, in exported form
+        self.roots = []  # the root node of each expr we are currently evaluating
+
+        self.eval_stack = []  # the eval stack for use in tracebacks
+
+        self.heap = Heap()  # heap of all non-atomic objects
 
     def new_expr(self):
         # self.i = 0
@@ -156,7 +165,8 @@ class Logger:
             "active_frames": [id(f.base) for f in self.active_frames],
             "frame_lookup": {f: self.frame_lookup[f].export() for f in self.frame_lookup},
             "graphics": [],
-            "globalFrameID": id(self.active_frames[0].base) if self.active_frames else -1
+            "globalFrameID": id(self.active_frames[0].base) if self.active_frames else -1,
+            "heap": self.heap.export()
         }
 
     def out(self, val, end="\n"):
@@ -186,33 +196,6 @@ class Logger:
         node = FatNode(expr, transition_type)
         self.node_cache[node.id] = node
         return node.id
-
-
-class StoredFrame:
-    def __init__(self, i, base: evaluate_apply.Frame):
-        i += logger.f_delta
-        if i == -1:
-            name = "Builtins"
-        elif i == 0:
-            name = "Global"
-        else:
-            name = f"f{i}"
-        self.name = name
-        self.label = base.name
-        self.parent = base.parent
-        self.bindings = []
-        self.base = base
-
-    def bind(self, name: str, value: Expression):
-        self.bindings.append((logger.i, (name, str(value))))
-
-    def export(self):
-        if id(self.parent) not in logger.frame_lookup:
-            return None
-        return {"name": self.name,
-                "label": self.label,
-                "parent": logger.frame_lookup[id(self.parent)].name,
-                "bindings": self.bindings}
 
 
 class StaticNode:
@@ -272,6 +255,64 @@ class FatNode:
             "parent_strs": self.base_str,
             "children": [(i, [x for x in y]) for i, y in self.children]
         }
+
+
+class StoredFrame:
+    def __init__(self, i, base: evaluate_apply.Frame):
+        i += logger.f_delta
+        if i == -1:
+            name = "Builtins"
+        elif i == 0:
+            name = "Global"
+        else:
+            name = f"f{i}"
+        self.name = name
+        self.label = base.name
+        self.parent = base.parent
+        self.bindings = []
+        self.base = base
+
+    def bind(self, name: str, value: Expression):
+        value_id = logger.heap.record(value)
+
+        self.bindings.append((logger.i, (name, str(value)), value_id))
+
+    def export(self):
+        if id(self.parent) not in logger.frame_lookup:
+            return None
+        return {"name": self.name,
+                "label": self.label,
+                "parent": logger.frame_lookup[id(self.parent)].name,
+                "bindings": self.bindings}
+
+
+class Heap:
+    HeapObject = Union[List['HeapObject'], str]
+    HeapKey = Tuple[bool, Union[int, str]]
+
+    def __init__(self):
+        self.prev: Dict[int, Heap.HeapObject] = {}
+        self.curr: Dict[int, Heap.HeapObject] = {}
+
+    def export(self):
+        out = self.curr
+        self.prev.update(self.curr)
+        self.curr = {}
+        return out
+
+    def record(self, expr: Expression) -> Heap.HeapKey:
+        if id(expr) not in self.prev:
+            if isinstance(expr, ValueHolder):
+                return False, repr(expr.value)
+            elif isinstance(expr, Pair):
+                val = [self.record(expr.first), self.record(expr.rest)]
+            elif isinstance(expr, Promise):
+                val = repr(expr)  # TODO: Make promises work!
+            else:
+                # assume the repr method is good enough
+                val = repr(expr)
+            self.curr[id(expr)] = val
+            return True, id(expr)
 
 
 return_symbol = Symbol("Return Value")

@@ -1,10 +1,9 @@
 from typing import List
 
-import gui
 from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise
 from environment import global_attr
 from evaluate_apply import Frame, evaluate, Callable, evaluate_all, Applicable
-from gui import Holder, VisualExpression, return_symbol, logger
+from log import Holder, VisualExpression, return_symbol, logger
 from helper import pair_to_list, verify_exact_callable_length, verify_min_callable_length, \
     make_list
 from lexer import TokenBuffer
@@ -167,7 +166,6 @@ class Cond(Callable):
             eval_condition = SingletonTrue
             if not isinstance(expanded[0], Symbol) or expanded[0].value != "else":
                 eval_condition = evaluate(expanded[0], frame, cond_holder.expression.children[0])
-                # TODO: Can be tail context under rare circumstances
             if (isinstance(expanded[0], Symbol) and expanded[0].value == "else") \
                     or eval_condition is not SingletonFalse:
                 out = eval_condition
@@ -400,13 +398,13 @@ class Quasiquote(Callable):
 
 @global_attr("load")
 class Load(Applicable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: gui.Holder, eval_operands=True):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, eval_operands=True):
         verify_exact_callable_length(self, 1, len(operands))
         if eval_operands:
             operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
         if not isinstance(operands[0], Symbol):
             raise OperandDeduceError(f"Load expected a Symbol, received {operands[0]}.")
-        if gui.logger.fragile:
+        if logger.fragile:
             raise IrreversibleOperationError()
         try:
             with open(f"{operands[0].value}.scm") as file:
@@ -422,14 +420,14 @@ class Load(Applicable):
 
 @global_attr("delay")
 class Delay(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: gui.Holder):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 1, len(operands))
         return Promise(operands[0], frame)
 
 
 @global_attr("force")
 class Force(Applicable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: gui.Holder, eval_operands=True):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, eval_operands=True):
         verify_exact_callable_length(self, 1, len(operands))
         operand = operands[0]
         if eval_operands:
@@ -438,7 +436,7 @@ class Force(Applicable):
             raise OperandDeduceError(f"Force expected a Promise, received {operand}")
         if operand.forced:
             return operand.expr
-        if gui.logger.fragile:
+        if logger.fragile:
             raise IrreversibleOperationError()
         gui_holder.expression.set_entries([VisualExpression(operand.expr, gui_holder.expression.display_value)])
         gui_holder.apply()

@@ -1,2 +1,1 @@
-(define (func n)
-  (if (= n 0) 0 (func (- n 1))))
+(define cat (cons 6 7))

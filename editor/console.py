@@ -1,6 +1,6 @@
 from typing import List
 
-import gui
+import log
 from datamodel import Expression, Undefined, String
 from environment import global_attr
 from evaluate_apply import Frame
@@ -11,7 +11,7 @@ from primitives import SingleOperandPrimitive, BuiltIn
 @global_attr("print")
 class Print(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
-        gui.logger.out(operand)
+        log.logger.out(operand)
         return Undefined
 
 
@@ -19,9 +19,9 @@ class Print(SingleOperandPrimitive):
 class Display(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if isinstance(operand, String):
-            gui.logger.raw_out(operand.value)
+            log.logger.raw_out(operand.value)
         else:
-            gui.logger.out(operand, end="")
+            log.logger.out(operand, end="")
         return Undefined
 
 
@@ -29,5 +29,5 @@ class Display(SingleOperandPrimitive):
 class Newline(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 0, len(operands))
-        gui.logger.raw_out("\n")
+        log.logger.raw_out("\n")
         return Undefined

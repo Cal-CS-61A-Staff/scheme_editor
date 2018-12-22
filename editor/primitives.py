@@ -1,7 +1,7 @@
 from typing import List
 
 from helper import verify_exact_callable_length
-from gui import Holder
+from log import Holder
 
 from datamodel import Expression
 from evaluate_apply import Frame, evaluate_all, Applicable
