@@ -1,4 +1,3 @@
-import * as state_handler from "./state_handler";
 import {states} from "./state_handler";
 import {request_update} from "./event_handler";
 

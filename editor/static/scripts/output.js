@@ -93,6 +93,7 @@ function register(myLayout) {
                                 data.frame_lookup[states[componentState.id].globalFrameID];
                             states[componentState.id].states.push(...data.states);
                             states[componentState.id].roots.push(...data.roots);
+                            $.extend(states[componentState.id].heap, data.heap);
                         }
                         request_update();
                     });
