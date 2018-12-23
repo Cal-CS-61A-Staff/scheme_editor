@@ -301,6 +301,8 @@ class Heap:
         return out
 
     def record(self, expr: Expression) -> Heap.HeapKey:
+        if isinstance(expr, evaluate_apply.Thunk):
+            return False, repr(expr)
         if expr.id not in self.prev:
             if isinstance(expr, ValueHolder):
                 return False, repr(expr.value)
