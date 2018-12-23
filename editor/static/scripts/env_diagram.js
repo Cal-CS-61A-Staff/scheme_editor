@@ -40,7 +40,12 @@ function register(myLayout) {
             let pan = svgPanZoom(rawSVG).getPan();
             svgPanZoom(rawSVG).destroy();
             svg.clear();
-            env_diagram_worker.display_env(states[componentState.id].environments, svg, states[componentState.id].index);
+            // env_diagram_worker.display_env(states[componentState.id].environments, svg, states[componentState.id].index);
+            env_diagram_worker.display_env_pointers(
+                states[componentState.id].environments,
+                states[componentState.id].heap,
+                svg,
+                states[componentState.id].index);
             svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
             if (isNaN(zoom)) {
                 svgPanZoom(rawSVG).reset();

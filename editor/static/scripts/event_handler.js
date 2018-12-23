@@ -10,6 +10,7 @@ function request_update() {
 function make(container, type, id) {
     container.on("open", function () {
         notify_open(type, container, id);
+        saveState();
     });
 
     container.on("destroy", function () {

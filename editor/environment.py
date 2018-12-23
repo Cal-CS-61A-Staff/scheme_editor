@@ -44,9 +44,11 @@ def build_global_frame():
     frame = Frame("builtins")
     for k, v in defdict.items():
         frame.assign(k, v())
-    frame.assign(Symbol("nil"), Nil)
-    frame.assign(Symbol("#t"), SingletonTrue)
-    frame.assign(Symbol("#f"), SingletonFalse)
+
+    # moved to the parser
+    # frame.assign(Symbol("nil"), Nil)
+    # frame.assign(Symbol("#t"), SingletonTrue)
+    # frame.assign(Symbol("#f"), SingletonFalse)
 
     for name in ["acos", "acosh", "asin", "asinh", "atan", "atanh",
                  "ceil", "copysign", "cos", "cosh", "degrees", "floor", "log",

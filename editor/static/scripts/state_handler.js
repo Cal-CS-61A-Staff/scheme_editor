@@ -1,10 +1,11 @@
 export {states, temp_file, loadState, saveState, make_new_state};
 
 let base_state = {
-    states: [],
+    states: {},
     environments: [],
     moves: [],
     out: "",
+    heap: {},
 
     index: 0,
     expr_i: 0,

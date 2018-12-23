@@ -1,1 +1,3 @@
-(define cat (cons 6 7))
+(define cat '(1 2 . 3))
+
+nil
