@@ -382,6 +382,7 @@ class Quasiquote(Callable):
                 return out
             elif isinstance(expr.first, Symbol) and expr.first.value == "quasiquote":
                 visual_expression.value = expr
+                gui_holder.complete()
                 return expr
             else:
                 if is_well_formed:
@@ -393,9 +394,11 @@ class Quasiquote(Callable):
                     out = Pair(Quasiquote.quasiquote_evaluate(expr.first, frame, visual_expression.children[0]),
                                Quasiquote.quasiquote_evaluate(expr.rest, frame, visual_expression.children[1]))
                 visual_expression.value = out
+                gui_holder.complete()
                 return out
         else:
             visual_expression.value = expr
+            gui_holder.complete()
             return expr
 
 
