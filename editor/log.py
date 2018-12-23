@@ -4,7 +4,7 @@ from enum import Enum, auto
 from typing import List, Union, Dict, Tuple
 from uuid import uuid4
 
-from datamodel import Expression, ValueHolder, Pair, Nil, Symbol, Undefined, Promise
+from datamodel import Expression, ValueHolder, Pair, Nil, Symbol, Undefined, Promise, NilType
 import evaluate_apply
 from helper import pair_to_list
 from scheme_exceptions import OperandDeduceError
@@ -287,8 +287,8 @@ class StoredFrame:
 
 
 class Heap:
-    HeapObject = Union[List['HeapObject'], str]
-    HeapKey = Tuple[bool, Union[int, str]]
+    HeapKey = Tuple[bool, Union[int, str]]  # the bool means that I'm NOT a pointer!
+    HeapObject = Union[List['HeapObject'], HeapKey]
 
     def __init__(self):
         self.prev: Dict[str, Heap.HeapObject] = {}
@@ -305,14 +305,16 @@ class Heap:
             return False, repr(expr)
         if expr.id not in self.prev:
             if isinstance(expr, ValueHolder):
-                return False, repr(expr.value)
+                return False, str(expr.value)
             elif isinstance(expr, Pair):
                 val = [self.record(expr.first), self.record(expr.rest)]
             elif isinstance(expr, Promise):
-                val = repr(expr)  # TODO: Make promises work!
+                val = [(False, repr(expr))]  # TODO: Make promises work!
+            elif isinstance(expr, NilType):
+                return False, "nil"
             else:
                 # assume the repr method is good enough
-                val = repr(expr)
+                val = [(False, repr(expr))]
             self.curr[expr.id] = val
         return True, expr.id
 
