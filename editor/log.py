@@ -305,7 +305,7 @@ class Heap:
             return False, repr(expr)
         if expr.id not in self.prev:
             if isinstance(expr, ValueHolder):
-                return False, str(expr.value)
+                return False, repr(expr)
             elif isinstance(expr, Pair):
                 val = [self.record(expr.first), self.record(expr.rest)]
             elif isinstance(expr, Promise):
