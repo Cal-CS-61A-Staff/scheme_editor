@@ -19,6 +19,7 @@ let base_state = {
     editor_open: false,
     sub_open: false,
     env_open: false,
+    using_box_pointer: false,
     turtle_open: false,
     out_open: false,
     tests_open: false,

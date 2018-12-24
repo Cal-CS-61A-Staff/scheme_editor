@@ -65,3 +65,16 @@ html, body{
 .font-bold {
   font-weight: bold;
 }
+
+.diagram-header {
+    padding-right: 10px;
+    background: white;
+    height: 2rem;
+    font-size: 0.875rem;
+}
+
+.header-checkbox {
+    display: flex;
+    height: 2rem;
+    align-items: center;
+}

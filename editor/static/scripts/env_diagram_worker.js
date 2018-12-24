@@ -54,7 +54,7 @@ function display_env_pointers(environments, heap, container, i) {
             container.text(line).font("family", "Monaco, monospace").font("size", 14).dx(35).dy(curr_y + charHeight * (k + 1));
             let depth = display_elem(
                 200,
-                curr_y + h,
+                h,
                 frame["bindings"][k][2],
                 heap,
                 container,
@@ -168,7 +168,7 @@ function display_elem(x, y, id, all_data, container, depth, cache) {
                 container.line(x + lens[i], y, x + lens[i], y + minWidth).stroke({color: "#000000", width: 2});
             }
             let elem = all_data[id[1]][i];
-            if (i !== all_data[id[1]].length - 1 && elem[0]) {
+            if (i !== all_data[id[1]].length - 1 && elem[0] && !cache.has(elem[1])) {
                 new_depth += 1;
             }
             new_depth += display_elem(x + lens[i], y, elem, all_data, container, new_depth, cache);
