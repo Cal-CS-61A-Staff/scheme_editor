@@ -1,40 +1,8 @@
 import {charWidth, charHeight} from "./measure";
 
-export {display_env, display_env_pointers};
+export {display_env_pointers};
 
-function display_env(environments, container, i) {
-    container.clear();
-
-    let curr_y = 10;
-
-    for (let frame of environments) {
-        let maxlen = 0;
-        let k;
-        for (k = 0; k !== frame["bindings"].length; ++k) {
-            if (frame["bindings"][k][0] > i) {
-                break;
-            }
-            let line = "   " + frame["bindings"][k][1][0] + ": " + frame["bindings"][k][1][1] + "\n";
-            maxlen = Math.max(maxlen, line.length);
-            container.text(line).font("family", "Monaco, monospace").font("size", 14).dx(35).dy(curr_y + charHeight * (k + 1));
-        }
-        if (k === 0) {
-            continue;
-        }
-        let title = "Frame " + frame.name + ": " + frame.label + " [parent = " + frame.parent + "]\n";
-        container.text(title).font("family", "Monaco, monospace").font("size", 14).dx(25).dy(curr_y);
-        maxlen = Math.max(maxlen, title.length);
-        let rect = container.rect(maxlen * charWidth + 10, charHeight * (k + 1) + 10)
-            .dx(15).dy(curr_y)
-            .stroke({color: "#000000", width: 2})
-            .fill({color: "#FFFFFF"})
-            .radius(10).back();
-
-        curr_y += charHeight * (k + 1) + 20;
-    }
-}
-
-function display_env_pointers(environments, heap, container, i) {
+function display_env_pointers(environments, heap, container, i, pointers) {
     container.clear();
 
     let cache = new Map();
@@ -57,10 +25,10 @@ function display_env_pointers(environments, heap, container, i) {
             }
             let line = "   " + frame["bindings"][k][1][0];
             let data = frame["bindings"][k][2];
-            if (data[0]) {
+            if (pointers && data[0]) {
                 // non-atomic
             } else {
-                line += ": " + data[1];
+                line += ": " + frame["bindings"][k][1][1];
                 data = false;
             }
             curr.push([line, data]);
@@ -74,6 +42,7 @@ function display_env_pointers(environments, heap, container, i) {
             title += " [parent = " + frame.parent + "]";
         }
         title += "\n";
+        maxlen = Math.max(maxlen, title.length);
         curr[0] = [title, false];
         frame_data.push(curr);
     }
