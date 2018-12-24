@@ -1,27 +1,33 @@
 import * as env_diagram_worker from "./env_diagram_worker";
 import {states} from "./state_handler";
-import {notify_close, notify_open} from "./layout";
-import {make} from "./event_handler";
+import {make, request_update} from "./event_handler";
 
 export { register };
 
 function register(myLayout) {
     myLayout.registerComponent('env_diagram', function (container, componentState) {
+        let random_id = Math.random().toString(36).replace(/[^a-z]+/g, '');
         container.getElement().html(`
         <div class="content">
-            <div class="header">
-            <div class="btn-group">
-                <button type="button" data-id="${componentState.id}" 
-                        class="btn btn-sm btn-secondary prev">Prev</button>          
-                <button type="button" data-id="${componentState.id}" 
-                        class="btn btn-sm btn-secondary next">Next</button>
-            </div>            
-            <div class="btn-group">
-                <button type="button" data-id="${componentState.id}" 
-                        class="btn btn-sm btn-secondary prev-expr">Prev Expr</button>          
-                <button type="button" data-id="${componentState.id}" 
-                        class="btn btn-sm btn-secondary next-expr">Next Expr</button>
-            </div>
+            <div class="header diagram-header">
+                <div class="btn-group">
+                    <button type="button" data-id="${componentState.id}" 
+                            class="btn btn-sm btn-secondary prev">Prev</button>          
+                    <button type="button" data-id="${componentState.id}" 
+                            class="btn btn-sm btn-secondary next">Next</button>
+                </div>            
+                <div class="btn-group">
+                    <button type="button" data-id="${componentState.id}" 
+                            class="btn btn-sm btn-secondary prev-expr">Prev Expr</button>          
+                    <button type="button" data-id="${componentState.id}" 
+                            class="btn btn-sm btn-secondary next-expr">Next Expr</button>
+                </div>
+                <div class="btn-group float-right">
+                    <div class="custom-control custom-checkbox header-checkbox">
+                      <input type="checkbox" class="custom-control-input" id="${random_id}">
+                      <label class="custom-control-label" for="${random_id}">Show box and pointer diagrams</label>
+                    </div>
+                </div>
             </div>
             <div class="envs">
                 <svg></svg>
@@ -41,11 +47,18 @@ function register(myLayout) {
             svgPanZoom(rawSVG).destroy();
             svg.clear();
             // env_diagram_worker.display_env(states[componentState.id].environments, svg, states[componentState.id].index);
-            env_diagram_worker.display_env_pointers(
-                states[componentState.id].environments,
-                states[componentState.id].heap,
-                svg,
-                states[componentState.id].index);
+            if ($(`#${random_id}`).is(":checked")) {
+                env_diagram_worker.display_env_pointers(
+                    states[componentState.id].environments,
+                    states[componentState.id].heap,
+                    svg,
+                    states[componentState.id].index);
+            } else {
+                env_diagram_worker.display_env(
+                    states[componentState.id].environments,
+                    svg,
+                    states[componentState.id].index);
+            }
             svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
             if (isNaN(zoom)) {
                 svgPanZoom(rawSVG).reset();
@@ -57,6 +70,10 @@ function register(myLayout) {
 
         container.getElement().find(".envs").on("reset", function () {
             svgPanZoom(rawSVG).reset();
+        });
+
+        container.getElement().find(`#${random_id}`).on("click", function () {
+            request_update();
         });
 
         container.on("resize", function () {
