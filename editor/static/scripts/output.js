@@ -1,5 +1,4 @@
-import {saveState, states} from "./state_handler";
-import {notify_close, notify_open} from "./layout";
+import {states} from "./state_handler";
 import {make, request_update} from "./event_handler";
 
 export {register};
@@ -23,6 +22,9 @@ function register(myLayout) {
         let preview = "";
         let editorDiv;
         let editor;
+
+        let history = [""];
+        let i = 0;
 
         container.getElement().find(".output").on("update", function () {
             container.getElement().find(".output").html(states[componentState.id].out.trim());
@@ -62,6 +64,10 @@ function register(myLayout) {
             editor.getSession().on("change", function () {
                 let val = editor.getValue();
                 val = val.replace(/\r/g, "");
+                if (val.trim()) {
+                    history[i] = val.trim();
+                }
+                console.log(history);
                 if (val.slice(-1) === "\n") {
                     val = val.trim();
                     editor.setReadOnly(true);
@@ -71,8 +77,11 @@ function register(myLayout) {
                     setTimeout(function () {
                         editor.setValue("", 0);
                     }, 10);
+                    i = history.length;
+                    history.push("");
+                    let displayVal = val.replace(/\n/g, "\n.... ");
                     val = val.replace(/\n/g, "");
-                    states[componentState.id].out += "\nscm> " + val;
+                    states[componentState.id].out += "\nscm> " + displayVal;
                     request_update();
                     $.post("./process2", {
                         code: [val],
@@ -111,6 +120,56 @@ function register(myLayout) {
                         request_update();
                     })
                 }
+            });
+
+            // console.log(editor.textInput.getElement());
+            // $(editor.textInput.getElement()).on("keydown", function (e) {
+            //     if (e.which === 38) {
+            //         // up arrow
+            //         console.log(editor.getCursorPosition().row);
+            //         if (editor.getCursorPosition().row === 0) {
+            //             editor.setValue(history[history.length - 1]);
+            //             history.pop();
+            //         }
+            //     }
+            // });
+
+            let old_up_arrow = editor.commands.commandKeyBinding.up;
+            editor.commands.addCommand({
+                name: "uparrow",
+                bindKey: { win: "Up", mac: "Up" },
+                exec: function(editor, ...rest) {
+                    console.log(editor.getCursorPosition().row);
+                    if (editor.getCursorPosition().row === 0) {
+                        if (i > 0) {
+                            --i;
+                        }
+                        editor.setValue(history[i]);
+                    } else {
+                        old_up_arrow.exec(editor, ...rest);
+                    }
+                },
+            });
+
+            let old_down_arrow = editor.commands.commandKeyBinding.down;
+            editor.commands.addCommand({
+                name: "downarrow",
+                bindKey: { win: "Down", mac: "Down" },
+                exec: function(editor, ...rest) {
+                    console.log(history);
+                    console.log(editor.getCursorPosition().row);
+                    console.log(editor.getSession().getDocument());
+                    let numLines = editor.getSession().getLength();
+                    console.log(editor.getSession().getLength());
+                    if (editor.getCursorPosition().row === numLines - 1) {
+                        if (i < history.length - 1) {
+                            ++i;
+                        }
+                        editor.setValue(history[i]);
+                    } else {
+                        old_down_arrow.exec(editor, ...rest);
+                    }
+                },
             });
         });
     });
