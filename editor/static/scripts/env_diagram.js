@@ -47,18 +47,12 @@ function register(myLayout) {
             svgPanZoom(rawSVG).destroy();
             svg.clear();
             // env_diagram_worker.display_env(states[componentState.id].environments, svg, states[componentState.id].index);
-            if ($(`#${random_id}`).is(":checked")) {
-                env_diagram_worker.display_env_pointers(
-                    states[componentState.id].environments,
-                    states[componentState.id].heap,
-                    svg,
-                    states[componentState.id].index);
-            } else {
-                env_diagram_worker.display_env(
-                    states[componentState.id].environments,
-                    svg,
-                    states[componentState.id].index);
-            }
+            env_diagram_worker.display_env_pointers(
+                states[componentState.id].environments,
+                states[componentState.id].heap,
+                svg,
+                states[componentState.id].index,
+                $(`#${random_id}`).is(":checked"));
             svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
             if (isNaN(zoom)) {
                 svgPanZoom(rawSVG).reset();
@@ -89,5 +83,9 @@ function register(myLayout) {
                 svgPanZoom(rawSVG).pan(pan);
             }
         });
+
+        container.on("shown", function () {
+            request_update();
+        })
     });
 }
