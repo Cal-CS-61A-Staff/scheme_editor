@@ -77,7 +77,9 @@ function register(myLayout) {
                     setTimeout(function () {
                         editor.setValue("", 0);
                     }, 10);
-                    i = history.length;
+                    i = history.length - 1;
+                    history[i] = val.trim();
+                    ++i;
                     history.push("");
                     let displayVal = val.replace(/\n/g, "\n.... ");
                     val = val.replace(/\n/g, "");
