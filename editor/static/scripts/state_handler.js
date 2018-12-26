@@ -1,3 +1,5 @@
+import {begin_slow, end_slow} from "./event_handler";
+
 export {states, temp_file, loadState, saveState, make_new_state};
 
 let base_state = {
@@ -90,9 +92,13 @@ function load(db, callback) {
     };
 }
 
+let in_progress = false;
+
 function loadState(callback) {
     db(function (db) {
-        load(db, callback);
+        load(db, function () {
+            callback();
+        });
     });
 }
 
@@ -100,7 +106,12 @@ function saveState(callback) {
     console.log("Starting save!");
     setTimeout(function () {
         db(function (db) {
-            store(db, callback);
+            store(db, function () {
+                in_progress = false;
+                if (callback !== undefined) {
+                    callback();
+                }
+            });
         });
     }, 0);
 }

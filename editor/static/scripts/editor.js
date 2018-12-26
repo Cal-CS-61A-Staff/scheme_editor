@@ -1,7 +1,7 @@
 import {saveState, states, temp_file} from "./state_handler";
 
 import {notify_open, notify_close, open} from "./layout";
-import {make, request_update} from "./event_handler";
+import {begin_slow, end_slow, make, request_update} from "./event_handler";
 
 export {register};
 
@@ -84,12 +84,14 @@ function register(layout) {
                 return;
             }
             let code = [editor.getValue()];
+            begin_slow();
             $.post("./process2", {
                 code: code,
                 globalFrameID: -1,
                 curr_i: 0,
                 curr_f: 0,
             }).done(function (data) {
+                end_slow();
                 data = $.parseJSON(data);
                 console.log(data);
                 if (data.success) {
@@ -163,10 +165,12 @@ function register(layout) {
                 return;
             }
             let code = [editor.getValue()];
+            begin_slow();
             $.post("./test", {
                 code: code,
                 filename: states[componentState.id].file_name,
             }).done(function (data) {
+                end_slow();
                 data = $.parseJSON(data);
                 states[componentState.id].test_results = data;
                 open("test_results", componentState.id);

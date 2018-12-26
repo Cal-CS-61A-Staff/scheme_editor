@@ -85,6 +85,27 @@
   </div>
 </div>
 
+<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false" aria-labelledby="fileChooserModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="loadingModalLabel">Loading...</h5>
+      </div>
+      <div class="modal-body">
+          <p>
+            A long-running operation is currently in progress.
+          </p>
+          <p>
+              If your program has entered an infinite loop, open the terminal that you used to start the IDE (where you ran <code>python editor</code>) and press <kbd>Ctrl</kbd> + <kbd>C</kbd> , then refresh this page.
+          </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger">This dialog keeps appearing!</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Bootstrap core JavaScript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
