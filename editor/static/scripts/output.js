@@ -1,5 +1,5 @@
 import {states} from "./state_handler";
-import {make, request_update} from "./event_handler";
+import {begin_slow, end_slow, make, request_update} from "./event_handler";
 
 export {register};
 
@@ -85,6 +85,7 @@ function register(myLayout) {
                     val = val.replace(/\n/g, "");
                     states[componentState.id].out += "\nscm> " + displayVal;
                     request_update();
+                    begin_slow();
                     $.post("./process2", {
                         code: [val],
                         globalFrameID: states[componentState.id].globalFrameID,
@@ -92,6 +93,7 @@ function register(myLayout) {
                         curr_f: states[componentState.id].environments.length
                     }).done(function (data) {
                         // editor.setValue(val.slice(firstTerminator + 1));
+                        end_slow();
                         data = $.parseJSON(data);
                         if (data.out[0].trim() !== "") {
                             states[componentState.id].out += "\n" + data.out[0].trim();
@@ -123,18 +125,6 @@ function register(myLayout) {
                     })
                 }
             });
-
-            // console.log(editor.textInput.getElement());
-            // $(editor.textInput.getElement()).on("keydown", function (e) {
-            //     if (e.which === 38) {
-            //         // up arrow
-            //         console.log(editor.getCursorPosition().row);
-            //         if (editor.getCursorPosition().row === 0) {
-            //             editor.setValue(history[history.length - 1]);
-            //             history.pop();
-            //         }
-            //     }
-            // });
 
             let old_up_arrow = editor.commands.commandKeyBinding.up;
             editor.commands.addCommand({

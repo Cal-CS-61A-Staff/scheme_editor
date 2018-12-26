@@ -1,7 +1,7 @@
 import {notify_close, notify_open, open_prop} from "./layout";
 import {saveState, states} from "./state_handler";
 
-export {request_update, make}
+export {request_update, make, begin_slow, end_slow}
 
 function request_update() {
     $("*").trigger("update");
@@ -18,4 +18,23 @@ function make(container, type, id) {
         states[id][open_prop.get(type)] = false;
         saveState();
     });
+}
+
+let timer;
+
+function begin_slow() {
+    console.log("SHOWING");
+    timer = setTimeout(function() {
+        $("#loadingModal").modal("show");
+        timer = -1;
+    }, 1000);
+}
+
+function end_slow() {
+    console.log("HIDING");
+    if (timer) {
+        clearInterval(timer);
+        timer = undefined;
+    }
+    $("#loadingModal").modal("hide");
 }
