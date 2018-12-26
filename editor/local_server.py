@@ -17,6 +17,8 @@ PORT = 8000
 
 main_file = ""
 
+state = None
+
 
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
@@ -83,6 +85,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
             self.wfile.write(bytes(json.dumps(read_file(filename)), "utf-8"))
+
+        elif path == "/save_state":
+            global state
+            state = data[b"state"][0]
+            self.send_response(HTTPStatus.OK, 'test')
+            self.send_header("Content-type", "application/JSON")
+            self.end_headers()
+
+        elif path == "/load_state":
+            self.send_response(HTTPStatus.OK, 'test')
+            self.send_header("Content-type", "application/JSON")
+            self.end_headers()
+            if state is None:
+                self.wfile.write(b"fail")
+            else:
+                self.wfile.write(state)
 
     def do_GET(self):
         self.send_response(HTTPStatus.OK, 'test')

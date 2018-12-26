@@ -4,7 +4,7 @@ import * as editor from "./editor";
 import * as test_results from "./test_results";
 import * as output from "./output";
 import {states, saveState, make_new_state} from "./state_handler";
-import {request_update} from "./event_handler";
+import {init_complete, request_update} from "./event_handler";
 
 export {init, open, notify_open, notify_close, open_prop};
 
@@ -150,6 +150,7 @@ function init() {
     output.register(layout);
 
     layout.init();
+    init_complete();
 
     return layout;
 }
