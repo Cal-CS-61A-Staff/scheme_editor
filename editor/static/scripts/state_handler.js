@@ -1,4 +1,5 @@
 import {begin_slow, end_slow} from "./event_handler";
+import {open} from "./layout";
 
 export {states, temp_file, loadState, saveState, make_new_state};
 
@@ -65,7 +66,7 @@ function store(db, callback) {
 
     store.put({id: 1, state: states});
 
-    tx.oncomplete = function() {
+    tx.oncomplete = function () {
         console.log("Save complete!");
         if (callback !== undefined) {
             console.log(callback);
@@ -80,38 +81,57 @@ function load(db, callback) {
     let index = store.index("by_id");
 
     let request = index.get(1);
-    request.onsuccess = function() {
-      let matching = request.result;
-      if (matching !== undefined) {
-          states = matching.state;
-          console.log(states);
-      } else {
-        // No match was found.
-      }
-      callback();
+    request.onsuccess = function () {
+        let matching = request.result;
+        if (matching !== undefined) {
+            states = matching.state;
+            console.log(states);
+        } else {
+            // No match was found.
+        }
+        callback();
     };
 }
 
 let in_progress = false;
 
 function loadState(callback) {
-    db(function (db) {
-        load(db, function () {
+    begin_slow();
+    $.post("./load_state", {})
+        .done(function (data) {
+            end_slow();
+            if (data !== "fail") {
+                states = $.parseJSON(data);
+            } else {
+                localStorage.clear();
+            }
             callback();
         });
-    });
 }
 
+// function loadState(callback) {
+//     db(function (db) {
+//         load(db, function () {
+//             callback();
+//         });
+//     });
+// }
+//
+
+let curr_saving = false;
 function saveState(callback) {
-    console.log("Starting save!");
-    setTimeout(function () {
-        db(function (db) {
-            store(db, function () {
-                in_progress = false;
-                if (callback !== undefined) {
-                    callback();
-                }
-            });
-        });
-    }, 0);
+    if (curr_saving) {
+        return;
+    }
+    begin_slow();
+    curr_saving = true;
+    $.post("./save_state", {
+        state: JSON.stringify(states),
+    }).done(function () {
+        end_slow();
+        curr_saving = false;
+        if (callback !== undefined) {
+            callback();
+        }
+    });
 }

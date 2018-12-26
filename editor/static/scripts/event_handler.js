@@ -1,7 +1,7 @@
 import {notify_close, notify_open, open_prop} from "./layout";
 import {saveState, states} from "./state_handler";
 
-export {request_update, make, begin_slow, end_slow}
+export {request_update, make, begin_slow, end_slow, init_complete}
 
 function request_update() {
     $("*").trigger("update");
@@ -10,7 +10,9 @@ function request_update() {
 function make(container, type, id) {
     container.on("open", function () {
         notify_open(type, container, id);
-        saveState();
+        if (!initializing) {
+            saveState();
+        }
     });
 
     container.on("destroy", function () {
@@ -37,4 +39,10 @@ function end_slow() {
         timer = undefined;
     }
     $("#loadingModal").modal("hide");
+}
+
+let initializing = true;
+
+function init_complete() {
+    initializing = false;
 }
