@@ -80,7 +80,7 @@
             ]
           }
         ]
-      }, {"qualifiers": ["multiple", "optional"], "val": "body"}
+      }, {"qualifiers": ["multiple"], "val": "body"}
     ]
   }, {
     "name": "begin",

@@ -8,7 +8,7 @@ from http import HTTPStatus
 
 import execution
 import log
-from documentation import export_items
+from documentation import search
 from file_manager import get_scm_files, save, read_file
 from formatter import prettify
 from ok_interface import run_tests, parse_test_data
@@ -104,11 +104,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
             else:
                 self.wfile.write(state)
 
-        elif path == "/documentation_search":
+        elif path == "/documentation":
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
-            self.wfile.write(bytes(json.dumps(export_items()), "utf-8"))
+
+            query = data.get(b"query", [b""])[0].decode("utf-8")
+            self.wfile.write(bytes(json.dumps(search(query)), "utf-8"))
 
     def do_GET(self):
         self.send_response(HTTPStatus.OK, 'test')
