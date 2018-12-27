@@ -78,3 +78,7 @@ html, body{
     height: 2rem;
     align-items: center;
 }
+
+#documentation-search {
+    padding-right: 15px;
+}

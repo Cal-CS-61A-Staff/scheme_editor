@@ -58,8 +58,10 @@
         </li>
     </ul>
     <form class="form-inline my-2 my-lg-0">
-        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search documentation</button>
+        <select id="documentation-search" class="form-control mr-sm-2" type="search" aria-label="Search">
+            <option></option>
+        </select>
+        <!--<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search documentation</button>-->
     </form>
 </nav>
 <div id="body" class="container-fluid">
@@ -126,6 +128,8 @@
 <script src="/bootstrap.min.js"></script>
 <script src="ace/src-min-noconflict/ace.js"></script>
 <script src="ace/src-min-noconflict/ext-language_tools.js"></script>
+<script src="/select2.full.min.js"></script>
+<link href="/select2.min.css" rel="stylesheet" />
 <script>
     start_data =<START_DATA>;
 </script>

@@ -41,60 +41,6 @@ function make_new_state() {
     return jQuery.extend({}, base_state);
 }
 
-function db(callback) {
-    let request = indexedDB.open("state");
-
-    let db;
-
-    request.onupgradeneeded = function () {
-        // The database did not previously exist, so create object stores and indexes.
-        let db = request.result;
-        let store = db.createObjectStore("state", {keyPath: "id"});
-        let idIndex = store.createIndex("by_id", "id", {unique: true});
-    };
-
-    request.onsuccess = function () {
-        db = request.result;
-        callback(db);
-        db.close();
-    };
-}
-
-function store(db, callback) {
-    let tx = db.transaction("state", "readwrite");
-    let store = tx.objectStore("state");
-
-    store.put({id: 1, state: states});
-
-    tx.oncomplete = function () {
-        console.log("Save complete!");
-        if (callback !== undefined) {
-            console.log(callback);
-            callback();
-        }
-    };
-}
-
-function load(db, callback) {
-    let tx = db.transaction("state", "readonly");
-    let store = tx.objectStore("state");
-    let index = store.index("by_id");
-
-    let request = index.get(1);
-    request.onsuccess = function () {
-        let matching = request.result;
-        if (matching !== undefined) {
-            states = matching.state;
-            console.log(states);
-        } else {
-            // No match was found.
-        }
-        callback();
-    };
-}
-
-let in_progress = false;
-
 function loadState(callback) {
     begin_slow();
     $.post("./load_state", {})
@@ -108,15 +54,6 @@ function loadState(callback) {
             callback();
         });
 }
-
-// function loadState(callback) {
-//     db(function (db) {
-//         load(db, function () {
-//             callback();
-//         });
-//     });
-// }
-//
 
 let curr_saving = false;
 function saveState(callback) {
