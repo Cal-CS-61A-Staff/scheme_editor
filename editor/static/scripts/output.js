@@ -3,6 +3,23 @@ import {begin_slow, end_slow, make, request_update} from "./event_handler";
 
 export {register};
 
+let entityMap = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+    '/': '&#x2F;',
+    '`': '&#x60;',
+    '=': '&#x3D;'
+};
+
+function escapeHtml(string) {
+  return String(string).replace(/[&<>"'`=\/]/g, function (s) {
+    return entityMap[s];
+  });
+}
+
 function register(myLayout) {
     myLayout.registerComponent('output', function (container, componentState) {
         container.getElement().html(`
@@ -27,8 +44,8 @@ function register(myLayout) {
         let i = 0;
 
         container.getElement().find(".output").on("update", function () {
-            container.getElement().find(".output").html(states[componentState.id].out.trim());
-            container.getElement().find(".preview").html(preview);
+            container.getElement().find(".output").html(escapeHtml(states[componentState.id].out.trim()));
+            container.getElement().find(".preview").html("<i>" + escapeHtml(preview) + "</i>");
             container.getElement().find(".output-wrapper").scrollTop(
             container.getElement().find(".output-wrapper")[0].scrollHeight);
         });
@@ -115,9 +132,13 @@ function register(myLayout) {
                         code: [editor.getValue()],
                         globalFrameID: states[componentState.id].globalFrameID,
                     }).done(function (data) {
+                        preview = "";
+                        if (!data) {
+                            request_update();
+                        }
                         data = $.parseJSON(data);
                         if (data.success) {
-                            preview = "<i>" + data.content + "</i>";
+                            preview = data.content;
                         } else {
                             preview = "";
                         }
