@@ -6,9 +6,11 @@ import sys
 import urllib.parse
 from http import HTTPStatus
 
+import execution
+import log
+from documentation import export_items
 from file_manager import get_scm_files, save, read_file
 from formatter import prettify
-import execution, log
 from ok_interface import run_tests, parse_test_data
 from runtime_limiter import TimeLimitException, limiter
 from scheme_exceptions import SchemeError, ParseError
@@ -101,6 +103,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self.wfile.write(b"fail")
             else:
                 self.wfile.write(state)
+
+        elif path == "/documentation_search":
+            self.send_response(HTTPStatus.OK, 'test')
+            self.send_header("Content-type", "application/JSON")
+            self.end_headers()
+            self.wfile.write(bytes(json.dumps(export_items()), "utf-8"))
 
     def do_GET(self):
         self.send_response(HTTPStatus.OK, 'test')
