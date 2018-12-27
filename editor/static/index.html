@@ -58,61 +58,112 @@
         </li>
     </ul>
     <form class="form-inline my-2 my-lg-0">
-        <select id="documentation-search" class="form-control mr-sm-2" type="search" aria-label="Search">
-            <option></option>
-        </select>
-        <!--<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search documentation</button>-->
+        <input id="documentation-search" class="form-control mr-sm-2" type="search" aria-label="Search"
+               placeholder="Search">
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search documentation</button>
     </form>
 </nav>
 <div id="body" class="container-fluid">
 </div>
 
-<div class="modal fade" id="fileChooserModal" tabindex="-1" role="dialog" aria-labelledby="fileChooserModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="fileChooserModalLabel">Open file</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <table id="file-list" class="table table-hover">
-        </table>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-      </div>
+<div class="modal fade" id="fileChooserModal" tabindex="-1" role="dialog" aria-labelledby="fileChooserModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fileChooserModalLabel">Open file</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table id="file-list" class="table table-hover">
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
-<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false" aria-labelledby="fileChooserModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="loadingModalLabel">Loading...</h5>
-      </div>
-      <div class="modal-body">
-          <p>
-            A long-running operation is currently in progress.
-          </p>
-          <p>
-              If your program has entered an infinite loop, open the terminal that you used to start the IDE (where you ran <code>python editor</code>) and stop the process by pressing <kbd>Ctrl</kbd> + <kbd>C</kbd>.
-          </p>
-          <p>
-              Run <code>python editor</code> again, then refresh this page.
-          </p>
-          <p>
-              If this window does not disappear though you having run a program, and will
-          </p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-danger">This dialog keeps appearing!</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Dismiss dialog</button>
-      </div>
+<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false"
+     aria-labelledby="fileChooserModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="loadingModalLabel">Loading...</h5>
+            </div>
+            <div class="modal-body">
+                <p>
+                    A long-running operation is currently in progress.
+                </p>
+                <p>
+                    If your program has entered an infinite loop, open the terminal that you used to start the IDE
+                    (where you ran <code>python editor</code>) and stop the process by pressing <kbd>Ctrl</kbd> +
+                    <kbd>C</kbd>.
+                </p>
+                <p>
+                    Run <code>python editor</code> again, then refresh this page.
+                </p>
+                <p>
+                    If this window does not disappear though you having run a program, and will
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger">This dialog keeps appearing!</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Dismiss dialog</button>
+            </div>
+        </div>
     </div>
-  </div>
+</div>
+
+<div class="modal" id="documentationModal" tabindex="-1" role="dialog"
+     aria-labelledby="fileChooserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="documentationModalLabel">Documentation</h5>
+            </div>
+            <div class="modal-body">
+                <form class="form my-2 my-lg-0">
+                    <input id="documentation-search-modal" class="form-control mr-sm-2" type="search"
+                           aria-label="Search" placeholder="Search">
+                </form>
+                <br>
+                <ul class="list-group" id="documentation-body">
+                  <li class="list-group-item">
+                      <h3><strong><code>lambda</code></strong></h3>
+                      <p>
+                      <code>
+                          (lambda ([params] ...) &lt;body&gt; ...)
+                      </code>
+                      </p>
+                      <p>
+                          Creates a new lambda with <code>params</code> as its parameters and the <code>body</code>
+                          expressions as its body. When the procedure this form creates is called, the call frame
+                          will extend the environment this lambda was defined in.
+                      </p>
+                      <h6>For example:</h6>
+                      <pre>
+; assigns x to a lambda that takes in no arguments and returns 5
+scm> (define x (lambda () 5))
+; calls x, returning 5
+scm> (x)
+5
+                      </pre>
+                  </li>
+                  <li class="list-group-item">Dapibus ac facilisis in</li>
+                  <li class="list-group-item">Morbi leo risus</li>
+                  <li class="list-group-item">Porta ac consectetur ac</li>
+                  <li class="list-group-item">Vestibulum at eros</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Bootstrap core JavaScript
@@ -129,9 +180,9 @@
 <script src="ace/src-min-noconflict/ace.js"></script>
 <script src="ace/src-min-noconflict/ext-language_tools.js"></script>
 <script src="/select2.full.min.js"></script>
-<link href="/select2.min.css" rel="stylesheet" />
+<link href="/select2.min.css" rel="stylesheet"/>
 <script>
-    start_data =<START_DATA>;
+    start_data = <START_DATA>;
 </script>
 <script type="module" src="scripts/main.js"></script>
 </body>
