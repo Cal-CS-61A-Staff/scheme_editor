@@ -124,6 +124,7 @@ function register(myLayout) {
                             states[componentState.id].states.push(...data.states);
                             states[componentState.id].roots.push(...data.roots);
                             $.extend(states[componentState.id].heap, data.heap);
+                            states[componentState.id].frameUpdates.push(...data.frameUpdates);
                         }
                         request_update();
                     });

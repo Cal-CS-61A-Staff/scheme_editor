@@ -58,8 +58,9 @@ def string_exec(strings, out, global_frame=None):
 
     log.logger.export_states = []
     log.logger.roots = []
-
+    log.logger.frame_updates = []
     log.logger._out = []
+
     for i, string in enumerate(strings):
         if not string.strip():
             continue
