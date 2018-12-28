@@ -3,8 +3,8 @@ from typing import List, Tuple, Union, Sequence, Iterator
 import lexer as lexer
 from format_parser import get_expression, Formatted, FormatAtom, FormatList
 
-LINE_LENGTH = 100
-MAX_EXPR_LENGTH = 40
+LINE_LENGTH = 80
+MAX_EXPR_COUNT = 7
 INDENT = 4
 
 DEFINE_VALS = ["define", "define-macro"]
@@ -21,7 +21,7 @@ def prettify(strings: List[str]) -> str:
         buff = lexer.TokenBuffer([string])
         while not buff.done:
             expr = get_expression(buff)
-            print(expr)
+            # print(expr)
             out.append(prettify_expr(expr, LINE_LENGTH)[0])
 
     return "\n\n".join(out)
@@ -30,7 +30,7 @@ def prettify(strings: List[str]) -> str:
 def make_comments(comments: List[str], depth: int, newline: bool):
     if not comments:
         return ""
-    if newline:
+    if newline or len(comments) > 1:
         return "\n".join(";" + x for x in comments) + "\n"
     else:
         return " " + indent("\n".join(";" + x for x in comments), depth + 1).lstrip()
@@ -38,7 +38,10 @@ def make_comments(comments: List[str], depth: int, newline: bool):
 
 def verify(out: str, remaining: int) -> Tuple[str, bool]:
     total_length = max(map(len, out.split("\n"))) <= remaining
-    expr_length = max(len(x.strip()) for x in out.split("\n")) <= MAX_EXPR_LENGTH
+    expr_length = max(sum(len(y) > 2 for y in x.split()) for x in out.split("\n")) <= MAX_EXPR_COUNT
+    print(out)
+    print(max(sum(len(y) > 2 for y in x.split()) for x in out.split("\n")))
+    print(total_length and expr_length)
     return out, total_length and expr_length
 
 
@@ -67,14 +70,17 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
     print(inline_format(expr))
 
     if isinstance(expr, FormatAtom):
-        return verify(inline_format(expr) + make_comments(expr.comments, len(expr.value), False), remaining)
+        if len(expr.comments) <= 1:
+            return verify(inline_format(expr) + make_comments(expr.comments, len(expr.value), False), remaining)
+        else:
+            return verify(make_comments(expr.comments, len(expr.value), True) + inline_format(expr), remaining)
 
     if expr.contents and not expr.contains_comment and not is_multiline(expr):
         expr_str = inline_format(expr)
-        if len(expr_str) < min(MAX_EXPR_LENGTH, remaining):
+        if verify(expr_str, remaining)[1]:
             out1 = expr_str + make_comments(expr.comments, len(expr_str), False)
             out2 = make_comments(expr.comments, len(expr_str), True) + expr_str
-            if verify(out1, remaining)[1]:
+            if len(expr.comments) <= 1 and verify(out1, remaining)[1]:
                 return verify(out1, remaining)
             else:
                 return verify(out2, remaining)
@@ -95,7 +101,10 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
             return out
         elif not expr.contents:
             # nil expr
-            return verify("()" + make_comments(expr.comments, 2, False), remaining)
+            if len(expr.comments) <= 1:
+                return verify("()" + make_comments(expr.comments, 2, False), remaining)
+            else:
+                return verify(make_comments(expr.comments, 2, True) + "()", remaining)
         else:
             # call expr
             if isinstance(expr.contents[0], FormatAtom) \
@@ -151,7 +160,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                         break
                     operands.append(ret[0])
                 else:
-                    if not operands or len(operator) + len(operands[0]) < min(remaining, MAX_EXPR_LENGTH):
+                    if not operands or len(operator) + len(operands[0]) < remaining:
                         # successfully loaded operands
                         operand_string = indent(operands, len(operator) + 2)
                         out_str = "(" + operator + " " + operand_string.lstrip()
@@ -168,10 +177,13 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
 
 def prettify_data(expr: Formatted, remaining: int, is_data: bool, force_multiline: bool=False) -> Tuple[str, bool]:
     if isinstance(expr, FormatAtom):
-        return verify(inline_format(expr) + make_comments(expr.comments, len(expr.value), False), remaining)
+        if len(expr.comments) <= 1:
+            return verify(inline_format(expr) + make_comments(expr.comments, len(expr.value), False), remaining)
+        else:
+            return verify(make_comments(expr.comments, len(expr.value), True) + inline_format(expr), remaining)
 
     if is_data:
-        callback = lambda *args : prettify_data(*args, is_data=True)
+        callback = lambda *args: prettify_data(*args, is_data=True)
     else:
         callback = prettify_expr
 
@@ -184,10 +196,10 @@ def prettify_data(expr: Formatted, remaining: int, is_data: bool, force_multilin
 
     if not force_multiline and expr.contents and not expr.contains_comment:
         expr_str = inline_format(expr)
-        if len(expr_str) < MAX_EXPR_LENGTH:
+        if len(expr_str) < remaining:
             out1 = expr_str + make_comments(expr.comments, len(expr_str), False)
             out2 = make_comments(expr.comments, len(expr_str), True) + expr_str
-            if verify(out1, remaining)[1]:
+            if len(expr.comments) <= 1 and verify(out1, remaining)[1]:
                 return verify(out1, remaining)
             else:
                 return verify(out2, remaining)

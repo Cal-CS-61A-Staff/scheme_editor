@@ -12,6 +12,7 @@ function init() {
         console.log(text);
         $("#documentationModal").modal("show");
         $("#documentation-search-modal").focus();
+        render($("#documentation-search-modal").val());
     });
 
     $("#documentation-search-modal").on("input", function () {
@@ -27,7 +28,8 @@ function render(query) {
         console.log(data);
         $("#documentation-body").empty();
         for (let elem of data) {
-            $("#documentation-body").append(elem);
+            $("#documentation-body").append(
+                "<li class=\"list-group-item\">" + elem + "</li>");
         }
     });
 }

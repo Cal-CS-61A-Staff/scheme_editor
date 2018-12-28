@@ -1,128 +1,73 @@
 {
   "datamodel": {
     "numbers": "Numbers are built on top of Python's number types and can thus support a combination of arbitrarily-large integers and double-precision floating points.\n\nAny valid real number literal in the interpreter's host language should be properly read. You should not count on consistent results when floating point numbers are involved in any calculation or on any numbers with true division.\n\n",
-
     "booleans": "There are two boolean values: <#t> and <#f>. Scheme booleans may be input either as their canonical <#t> or <#f> or as the words true or false.\n\nAny expression may be evaluated in a boolean context, but <#f> is the only value that is false. All other values are treated as true in a boolean context.",
-
     "symbols": "Symbols are used as identifiers in Scheme. Valid symbols consist of some combination of alphanumeric characters and/or the following special characters: <code> !$%&*/:<=>?@^_~+- </code>. All symbols should be internally stored with lowercase letters. Symbols must not form a valid integer or floating-point number.",
-
     "strings": "Unlike other implementations, 61A Scheme has no concept of individual characters. Strings are considered atomic data types in their own right. Strings can be entered into the intepreter as a sequence of characters inside double quotes, with certain characters, such as line breaks and double quotes escaped. As a general rule, if a piece of text would be valid as a JSON key, it should work as a string in 61A Scheme. Strings in 61A Scheme are immutable, in contrast to most other Scheme implementations.",
-
     "pairs and lists": "Pairs are a built-in data structure consisting of two fields, a <car> and a <cdr> (also sometimes called first and second, or first and rest). Each of these two fields can contain any Scheme data type, including another pair. Pairs can be constructed by passing the values for the two fields as arguments to <cons>.\n\n<nil> is a special value in Scheme which represents the empty list. It can be inputted by typing <nil> or <()> into the interpreter.\n\nA *list* is defined as either <nil> or a pair whose <cdr> is another list. This may also be referred to as a *well-formed list*.\n\nPairs are displayed in the form <(a . b)> where <a> is the <car> and <b> is the <cdr>. If <b> is <nil>, it will be omitted along with the preceding dot, so a pair constructed as <(cons 1 nil)> would be displayed as <(1)>. If <b> is another pair, the dot preceding <b> and the parentheses wrapping around it are omitted, so a list constructed as <(cons 1 (cons 2 nil))> would be displayed as <(1 2)>. This works even for non-list pair structures: <(cons 1 (cons 2 3))> is displayed as <(1 2 . 3)>.\n\nPair/list literals can be constructed through the quote special form, so <(cons 1 (cons 'a nil))> and <'(1 a)> are equivalent.",
-
     "procedures": "cat"
   }, "special forms": [
   {
     "name": "define",
     "description": "Evaluates <expression> and binds the value to <name> in the current environment.",
-    "form": [
-      {"qualifiers": ["exact", "symbol"], "val": "define"},
-      {"qualifiers": ["symbol"], "val": "name"},
-      {"qualifiers": ["expression"], "val": "expression"}
-    ]
+    "form": "(define <name> <expression>)"
   }, {
     "name": "define",
     "description": "Constructs a new lambda procedure with <params> as its parameters and the <body> expressions as its body and binds it to <name> in the current environment.",
-    "form": [
-      {"qualifiers": ["exact", "symbol"], "val": "define"}, {
-        "qualifiers": ["group"], "val": "name-section", "contents": [
-          {"qualifiers": ["symbol"], "val": "name"},
-          {"qualifiers": ["symbol", "multiple", "optional"], "val": "params"}
-        ]
-      }, {"qualifiers": ["expression", "multiple"], "val": "body"}
-    ]
+    "form": "(define (<name> [params] ...) <body> ...)"
   }, {
     "name": "if",
     "description": "Evaluates <predicate>. If true, <consequent> is evaluated and returned. Otherwise, <alternative>, if it exists, is evaluated and returned. If <alternative> is not present, the return value is <undefined>).",
-    "form": [
-      {"qualifiers": ["exact", "symbol"], "val": "if"},
-      {"qualifiers": ["expression"], "val": "predicate"},
-      {"qualifiers": ["expression"], "val": "consequent"},
-      {"qualifiers": ["expression"], "val": "alternative"}
-    ]
+    "form": "(if <predicate> <consequent> <alternative>)"
   }, {
     "name": "cond",
     "description": "Starts with the first <clause>. Evaluates <test>. If true, evaluate the <expression>s in order, returning the last one. If there are none, return what <test> evaluated to instead. If <test> is false, proceed to the next <clause>. If there are no more <clause>s, the return value is <undefined>. The <test> of the last <clause> may also be the Symbol <else>, which is always treated as true.",
-    "form": [
-      {"qualifiers": ["exact", "symbol"], "val": "cond"}, {
-        "qualifiers": ["group", "multiple"], "val": "clause", "contents": [
-          {"qualifiers": ["expression"], "val": "test"},
-          {"qualifiers": ["expression", "multiple", "optional"], "val": "expression"}
-        ]
-      }
-    ]
+    "form": "(cond (<test> [expression] ...) ...)"
   }, {
     "name": "and",
     "description": "Evaluate the <test>s in order, returning the first false value. If no <test> is false, return the last <test>. If no arguments are provided, return <#t>.",
-    "form": [
-      {"qualifiers": ["exact", "symbol"], "val": "and"},
-      {"qualifiers": ["expression", "multiple", "optional"], "val": "test"}
-    ]
+    "form": "(and [test] ...)"
   }, {
     "name": "or",
     "description": "Evaluate the <test>s in order, returning the first true value. If no <test> is true and there are no more <test>s left, return #f.",
-    "form": [
-      {"qualifiers": ["exact", "symbol"], "val": "or"},
-      {"qualifiers": ["expression", "multiple", "optional"], "val": "test"}
-    ]
+    "form": "(or [test] ...)"
   }, {
     "name": "let",
     "description": "First, the expression of each <binding> is evaluated in the current frame. Next, a new frame that extends the current environment is created and each <name> is bound to its corresponding evaluated <expression>. Finally, the <body> expressions are evaluated in order, returning the evaluated last one.",
-    "form": [
-      {"qualifiers": ["exact", "symbol"], "val": "let"}, {
-        "qualifiers": ["group"], "val": "bindings", "contents": [
-          {
-            "qualifiers": ["group", "multiple", "optional"],
-            "val": "binding",
-            "contents": [
-              {"qualifiers": ["symbol"], "val": "name"},
-              {"qualifiers": ["expression"], "val": "expression"}
-            ]
-          }
-        ]
-      }, {"qualifiers": ["multiple"], "val": "body"}
+    "form": "(let ([(<name> <expression>)] ...) <body> ...)",
+    "example": [
+      "Consider the following:",
+      "scm> (let ((cat 1) (dog 2) (elephant 3)) (+ cat dog elephant))",
+      "What the above does is creates a new child frame of the current frame with <cat>, <dog>, and  <elephant> bound to their respective values (evaluated in the parent frame / environment), and then evaluates the body expression summing them up, which is then set to the final value of the let expression.",
+      "However, unlike define, as we make these bindings in a child frame, they disappear after we exit the let expression (unless we keep the frame around using a lambda or something!). So we can't access them outside the let expression, as seen here:",
+      "scm> cat"
     ]
   }, {
     "name": "begin",
     "description": "Evaluates each <expression> in order in the current environment, returning the evaluated last one.",
-    "form": [
-      {"qualifiers": ["exact", "symbol"], "val": "begin"},
-      {"qualifiers": ["expression", "multiple"], "val": "expression"}
-    ]
+    "form": "(begin <expression> ...)"
   }, {
     "name": "lambda",
     "description": "Creates a new lambda procedure with <params> as its parameters and the <body> expressions as its body. When the procedure this form creates is called, the call frame will extend the environment this lambda was defined in.",
-    "form": [
-      {"qualifiers": ["exact", "symbol"], "val": "lambda"}, {
-        "qualifiers": ["group"], "val": "param-section", "contents": [
-          {"qualifiers": ["symbol", "multiple", "optional"], "val": "params"}
-        ]
-      }, {"qualifiers": ["expression", "multiple"], "val": "body"}
+    "form": "(lambda ([params] ...) <body> ...)",
+    "example": [
+      "We assign <x> to a lambda that takes in no arguments and returns 5",
+      "scm> (define x (lambda () 5))",
+      "We now call <x>, which returns 5",
+      "scm> (x)"
     ]
   }, {
     "name": "mu",
     "description": "Creates a new mu procedure with <params> as its parameters and the <body> expressions as its body. When the procedure this form creates is called, the call frame will extend the environment this lambda is called in.",
-    "form": [
-      {"qualifiers": ["exact", "symbol"], "val": "mu"}, {
-        "qualifiers": ["group"], "val": "param-section", "contents": [
-          {"qualifiers": ["symbol", "multiple", "optional"], "val": "params"}
-        ]
-      }, {"qualifiers": ["expression", "multiple"], "val": "body"}
-    ]
+    "form": "(mu ([params] ...) <body> ...)"
   }, {
     "name": "quote",
     "description": "Returns the literal <expression> without evaluating it. <'expression> is equivalent to the above form.",
-    "form": [
-      {"qualifiers": ["exact", "symbol"], "val": "quote"},
-      {"qualifiers": ["expression"], "val": "expression"}
-    ]
+    "form": "(quote <expression>)"
   }, {
     "name": "delay",
     "description": "Returns a promise of <expression> to be evaluated in the current environment.",
-    "form": [
-      {"qualifiers": ["exact", "symbol"], "val": "delay"},
-      {"qualifiers": ["expression"], "val": "expression"}
-    ]
+    "form": "(delay <expression>)"
   }
 ]
 }
