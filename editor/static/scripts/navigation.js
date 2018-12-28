@@ -3,6 +3,41 @@ import {request_update} from "./event_handler";
 
 export {init_events};
 
+function fix_expr_i(i) {
+    for (let expr_i = 0; expr_i !== states[i].states.length; ++expr_i) {
+        if (states[i].states[expr_i][0] <= states[i].index &&
+            states[i].index < states[i].states[expr_i][1]) {
+            states[i].expr_i = expr_i;
+            states[i].start = states[i].states[states[i].expr_i][0];
+            states[i].end = states[i].states[states[i].expr_i][1];
+        }
+    }
+}
+
+function next_frame_update(i) {
+    console.log(states[i].index);
+    for (let new_i of states[i].frameUpdates) {
+        if (new_i > states[i].index) {
+            states[i].index = new_i;
+            break;
+        }
+    }
+    fix_expr_i(i);
+    request_update();
+}
+
+function prev_frame_update(i) {
+    let max_i = states[i].index;
+    for (let new_i of states[i].frameUpdates) {
+        if (new_i < states[i].index) {
+            max_i = new_i;
+        }
+    }
+    states[i].index = max_i;
+    fix_expr_i(i);
+    request_update();
+}
+
 function next_expr(i) {
     states[i].expr_i = Math.min(states[i].expr_i + 1, states[i].states.length - 1);
     states[i].start = states[i].states[states[i].expr_i][0];
@@ -61,5 +96,13 @@ function init_events() {
 
     $("#body").on("click", ".next-expr", function (e) {
         next_expr($(e.target).data("id"));
+    });
+
+    $("#body").on("click", ".next-update", function (e) {
+        next_frame_update($(e.target).data("id"));
+    });
+
+    $("#body").on("click", ".prev-update", function (e) {
+        prev_frame_update($(e.target).data("id"));
     });
 }

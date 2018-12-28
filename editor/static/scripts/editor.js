@@ -1,6 +1,6 @@
 import {saveState, states, temp_file} from "./state_handler";
 
-import {notify_open, notify_close, open} from "./layout";
+import {open} from "./layout";
 import {begin_slow, end_slow, make, request_update} from "./event_handler";
 
 export {register};
@@ -109,6 +109,7 @@ function register(layout) {
                     states[componentState.id].roots = data.roots;
                     states[componentState.id].globalFrameID = data.globalFrameID;
                     states[componentState.id].heap = data.heap;
+                    states[componentState.id].frameUpdates = data.frameUpdates;
 
                 } else {
                     states[componentState.id].out = data.out[0];
