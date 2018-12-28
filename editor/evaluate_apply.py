@@ -100,7 +100,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
             gui_holder.complete()
             ret = out
         elif isinstance(expr, Pair):
-            if tail_context and False:
+            if tail_context:
                 ret = Thunk(expr, frame, log_stack)
             else:
                 gui_holder.evaluate()

@@ -1,5 +1,6 @@
 import html
 import json
+from typing import List
 
 
 def search(query: str):
@@ -10,6 +11,7 @@ def search(query: str):
         print(query in elem["name"])
         if query in elem["name"]:
             out.append(build(elem))
+    print(data)
     return out
 
 
@@ -46,18 +48,33 @@ def apply_qualifiers(elem, qualifiers):
 def build_description(elem):
     return escape(elem).replace(escape("<"), "<code>").replace(escape(">"), "</code>")
 
+#
+# def build_example(elem):
+#     PREFIX = {
+#         "comment": "; ",
+#         "code": "scm> ",
+#         "output": ""
+#     }
+#     return "\n".join(PREFIX[line["type"]] + line["val"] for line in elem)
+
+
+def build_example(elem: List[str]):
+    out = []
+    for line in elem:
+        if line.startswith("scm> ") or line.startswith(".... "):
+            out.append("<pre>" + line + "</pre>")
+        else:
+            out.append(build_description(line))
+    return "\n".join(out)
+
 
 def build(elem):
-    code = "(" + " ".join(build_code(e) for e in elem["form"]) + ")"
+    code = elem["form"]  # """(" + " ".join(build_code(e) for e in elem["form"]) + ")"
     description = build_description(elem["description"])
+    # elem["form"] = code
+    demo = build_example(elem["example"]) if "example" in elem else ""
 
-    escaped_demo = """
-; assigns x to a lambda that takes in no arguments and returns 5
-scm> (define x (lambda () 5))
-; calls x, returning 5
-scm> (x)
-5"""
-    return f"""
+    out = f"""
 <h3><strong><code>{elem["name"]}</code></strong></h3>
 <p>
 <code>
@@ -67,6 +84,11 @@ scm> (x)
 <p>
     {description}
 </p>
-<h6>For example:</h6>
-<pre>{escaped_demo}</pre>
 """
+    if demo:
+        out += f"""
+<h6>For example:</h6>
+{demo}
+"""
+
+    return out
