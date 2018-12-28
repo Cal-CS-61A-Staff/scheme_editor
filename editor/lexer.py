@@ -120,11 +120,11 @@ def tokenize(string) -> List[Token]:
     while i != len(string):
         _get_token()
         while i != len(string) and string[i].isspace():
-            if string[i] == "\n":
+            if string[i] == "\n" and i and string[i - 1] == "\n":
                 first_in_line = True
             i += 1
 
     for key, val in comments.items():
-        tokens[key].comments = val
+        tokens[min(key, len(tokens) - 1)].comments.extend(val)
 
     return tokens
