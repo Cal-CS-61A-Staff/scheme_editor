@@ -9,6 +9,7 @@ let base_state = {
     moves: [],
     out: "",
     heap: {},
+    frameUpdates: [],
 
     index: 0,
     expr_i: 0,

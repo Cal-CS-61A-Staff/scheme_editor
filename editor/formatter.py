@@ -4,7 +4,7 @@ import lexer as lexer
 from format_parser import get_expression, Formatted, FormatAtom, FormatList
 
 LINE_LENGTH = 80
-MAX_EXPR_COUNT = 7
+MAX_EXPR_COUNT = 5
 INDENT = 4
 
 DEFINE_VALS = ["define", "define-macro"]

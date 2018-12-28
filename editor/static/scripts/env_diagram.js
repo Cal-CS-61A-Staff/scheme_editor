@@ -12,9 +12,9 @@ function register(myLayout) {
             <div class="header diagram-header">
                 <div class="btn-group">
                     <button type="button" data-id="${componentState.id}" 
-                            class="btn btn-sm btn-secondary prev">Prev</button>          
+                            class="btn btn-sm btn-secondary prev-update">Prev</button>          
                     <button type="button" data-id="${componentState.id}" 
-                            class="btn btn-sm btn-secondary next">Next</button>
+                            class="btn btn-sm btn-secondary next-update">Next</button>
                 </div>            
                 <div class="btn-group">
                     <button type="button" data-id="${componentState.id}" 
