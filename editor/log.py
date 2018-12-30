@@ -305,8 +305,6 @@ class Heap:
         return out
 
     def record(self, expr: Expression) -> Heap.HeapKey:
-        if isinstance(expr, evaluate_apply.Thunk):
-            return False, repr(expr)
         if expr.id not in self.prev:
             if isinstance(expr, ValueHolder):
                 return False, repr(expr)
@@ -314,6 +312,7 @@ class Heap:
                 val = [self.record(expr.first), self.record(expr.rest)]
             elif isinstance(expr, Promise):
                 val = [(False, repr(expr))]  # TODO: Make promises work!
+                expr.bind(val)
             elif isinstance(expr, NilType):
                 return False, "nil"
             else:

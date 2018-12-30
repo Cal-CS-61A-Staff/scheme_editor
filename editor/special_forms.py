@@ -447,5 +447,13 @@ class Force(Applicable):
         gui_holder.expression.set_entries([VisualExpression(operand.expr, gui_holder.expression.display_value)])
         gui_holder.apply()
         operand.expr = evaluate(operand.expr, operand.frame, gui_holder.expression.children[0])
-        operand.forced = True
+        operand.force()
         return operand.expr
+
+
+@global_attr("cons-stream")
+class ConsStream(Callable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+        verify_exact_callable_length(self, 2, len(operands))
+        operands[0] = evaluate(operands[0], frame, gui_holder.expression.children[1])
+        return Pair(operands[0], Delay().execute(operands[1:], frame, gui_holder))

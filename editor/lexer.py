@@ -47,14 +47,16 @@ def tokenize(string) -> List[Token]:
     comments = {}
     i = 0
     first_in_line = True
+    prev_newline = True
 
     def _get_token():
         """Always starts at a non-space character"""
-        nonlocal i, first_in_line
+        nonlocal i, first_in_line, prev_newline
         if i == len(string):
             return
         if string[i] == "\"":
             first_in_line = False
+            prev_newline = False
             tokens.append(Token(string[i]))
             i += 1
             _get_string()
@@ -66,6 +68,7 @@ def tokenize(string) -> List[Token]:
 
         elif string[i] in SPECIALS:
             first_in_line = False
+            prev_newline = False
             tokens.append(Token(string[i]))
             i += 1
 
@@ -77,6 +80,7 @@ def tokenize(string) -> List[Token]:
                 i += 1
             if curr:
                 first_in_line = False
+                prev_newline = False
                 tokens.append(Token(curr))
 
     def _get_comment():
@@ -120,8 +124,10 @@ def tokenize(string) -> List[Token]:
     while i != len(string):
         _get_token()
         while i != len(string) and string[i].isspace():
-            if string[i] == "\n" and i and string[i - 1] == "\n":
+            if string[i] == "\n" and i and prev_newline:
                 first_in_line = True
+            elif string[i] == "\n":
+                prev_newline = True
             i += 1
 
     for key, val in comments.items():
