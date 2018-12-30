@@ -19,8 +19,8 @@
                  (cons (func (car lst) (car (cdr lst)))
                        (cdr (cdr lst)))))))
 
-(define-macro (cons-stream first rest)
-  `(cons ,first (delay ,rest)))
+; (define-macro (cons-stream first rest)
+;   `(cons ,first (delay ,rest)))
 
 (define (cdr-stream stream)
   (force (cdr stream)))
