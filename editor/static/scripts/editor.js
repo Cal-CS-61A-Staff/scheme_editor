@@ -1,6 +1,6 @@
 import {saveState, states, temp_file} from "./state_handler";
 
-import {open} from "./layout";
+import {notify_close, open, open_prop} from "./layout";
 import {begin_slow, end_slow, make, request_update} from "./event_handler";
 
 export {register};
@@ -36,6 +36,9 @@ function register(layout) {
         let editorDiv;
         let editor;
 
+        let changed = false;
+        let saveTimer;
+
         container.setTitle(states[componentState.id].file_name);
 
         container.on("open", function () {
@@ -50,6 +53,8 @@ function register(layout) {
             editor.getSession().setUseSoftTabs(true);
             editor.container.style.background = "white";
             editor.focus();
+
+            saveTimer = setInterval(save, 5000);
 
             states[componentState.id].editor_open = true;
             // windows.editors.push(container);
@@ -76,7 +81,12 @@ function register(layout) {
 
             editor.getSession().on("change", function () {
                 container.getElement().find(".save-btn > .text").text("Save");
+                changed = true;
             });
+        });
+
+        container.on("destroy", function () {
+            clearInterval(saveTimer);
         });
 
         container.getElement().find(".run-btn").on("click", function () {
@@ -115,28 +125,17 @@ function register(layout) {
                     states[componentState.id].out = data.out[0];
                 }
 
-                open("output", componentState.id);
-                saveState();
-
-                $("*").trigger("reset");
-                request_update();
+                save(function () {
+                    open("output", componentState.id)
+                    saveState();
+                    $("*").trigger("reset");
+                    request_update();
+                });
             });
         });
 
         container.getElement().find(".save-btn").on("click", function () {
-            container.getElement().find(".save-btn > .text").text("Saving...");
-
-            let code = [editor.getValue()];
-            $.post("./save", {
-                code: code,
-                filename: states[componentState.id].file_name,
-            }).done(function (data) {
-                if (data === "success") {
-                    container.getElement().find(".save-btn > .text").text("Saved");
-                } else {
-                    alert("Save error - try copying code from editor to a file manually");
-                }
-            });
+            save();
         });
 
         container.getElement().find(".reformat-btn").on("click", function () {
@@ -154,11 +153,15 @@ function register(layout) {
         });
 
         container.getElement().find(".sub-btn").on("click", function () {
-            open("substitution_tree", componentState.id);
+            save(function () {
+                open("substitution_tree", componentState.id);
+            });
         });
 
         container.getElement().find(".env-btn").on("click", function () {
-            open("env_diagram", componentState.id);
+            save(function () {
+                open("env_diagram", componentState.id);
+            });
         });
 
         container.getElement().find(".test-btn").on("click", function () {
@@ -174,8 +177,36 @@ function register(layout) {
                 end_slow();
                 data = $.parseJSON(data);
                 states[componentState.id].test_results = data;
-                open("test_results", componentState.id);
+                save(function () {
+                    open("test_results", componentState.id);
+                });
             });
         });
+
+        function save(callback) {
+            if (!changed || states[componentState.id].file_name === temp_file) {
+                if (callback !== undefined) {
+                    callback();
+                }
+                return;
+            }
+            container.getElement().find(".save-btn > .text").text("Saving...");
+
+            let code = [editor.getValue()];
+            $.post("./save", {
+                code: code,
+                filename: states[componentState.id].file_name,
+            }).done(function (data) {
+                if (data === "success") {
+                    container.getElement().find(".save-btn > .text").text("Saved");
+                    changed = false;
+                    if (callback !== undefined) {
+                        callback();
+                    }
+                } else {
+                    alert("Save error - try copying code from editor to a file manually");
+                }
+            });
+        }
     });
 }

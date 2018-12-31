@@ -129,26 +129,61 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                 if operator == "let":
                     if len(expr.contents) < 3:
                         log("let statement with too few arguments")
-                    bindings = expr.contents[1]
-                    if not isinstance(bindings, FormatList):
-                        log("let bindings incorrectly formatted")
                     else:
-                        for binding in bindings.contents:
-                            if isinstance(binding, FormatAtom) or len(binding.contents) != 2:
-                                log("binding with incorrect number of elements")
+                        bindings = expr.contents[1]
+                        if not isinstance(bindings, FormatList):
+                            log("let bindings incorrectly formatted")
+                        else:
+                            for binding in bindings.contents:
+                                if isinstance(binding, FormatAtom) or len(binding.contents) != 2:
+                                    log("binding with incorrect number of elements")
+                                    break
+                            else:
+                                # let is well-formed (bearing in mind unquotes can change things)
+                                binding_str = prettify_data(bindings, remaining - len("(let "), False, True)[0]
+                                binding_str = indent(binding_str, len("(let "))
+                                body = []
+                                for body_expr in expr.contents[2:]:
+                                    body.append(prettify_expr(body_expr, remaining - INDENT // 2)[0])
+                                body_string = indent(body, INDENT // 2)
+                                out_str = "(let " + binding_str.lstrip() + "\n" + body_string
+                                if expr.contents[-1].comments:
+                                    out_str += "\n"
+                                out_str += ")"
+                                return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
+
+                if operator == "cond":
+                    if len(expr.contents) < 2:
+                        log("cond statement with too few arguments")
+                    else:
+                        clauses = expr.contents[1:]
+                        for clause in clauses:
+                            if not isinstance(clause, FormatList) \
+                                    or clause.last is not None \
+                                    or len(clause.contents) < 1:
+                                log("screwed up clause")
                                 break
                         else:
-                            # let is well-formed (bearing in mind unquotes can change things)
-                            binding_str = prettify_data(bindings, remaining - len("(let "), False, True)[0]
-                            binding_str = indent(binding_str, len("(let "))
-                            body = []
-                            for body_expr in expr.contents[2:]:
-                                body.append(prettify_expr(body_expr, remaining - INDENT // 2)[0])
-                            body_string = indent(body, INDENT // 2)
-                            out_str = "(let " + binding_str.lstrip() + "\n" + body_string
-                            if expr.contents[-1].comments:
-                                out_str += "\n"
-                            out_str += ")"
+                            # cond expr looks ok
+                            if all(len(clause.contents) == 2 for clause in clauses):
+                                # fancy cond fmt
+                                pass
+
+                            formatted_clauses = []
+                            for clause in clauses:
+                                pred_str = prettify_expr(clause.contents[0], remaining - 1)[0]
+                                val_strs = []
+                                for expr in clause.contents[1:]:
+                                    val_strs.append(prettify_expr(expr, remaining - INDENT // 2)[0])
+                                clause_str = "(" + pred_str + "\n" + \
+                                             indent("\n".join(val_strs), INDENT // 2)
+                                if len(clause.contents) > 1 and clause.contents[-1].comments:
+                                    clause_str += "\n"
+                                clause_str += ")"
+                                clause_str = make_comments(clause.comments, 0, True) + clause_str
+                                formatted_clauses.append(clause_str)
+
+                            out_str = "(cond \n" + indent("\n".join(formatted_clauses), 1) + ")"
                             return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
 
                 # assume no special forms
