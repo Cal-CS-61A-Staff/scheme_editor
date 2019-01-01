@@ -165,25 +165,54 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                                 break
                         else:
                             # cond expr looks ok
+                            fancy = False
                             if all(len(clause.contents) == 2 for clause in clauses):
                                 # fancy cond fmt
-                                pass
+                                formatted_clauses = []
+                                preds = []
+                                for clause in clauses:
+                                    preds.append(inline_format(clause.contents[0]))
+                                max_pred = max(len(pred) for pred in preds)
+
+                                for pred_fmt, clause in zip(preds, clauses):
+                                    pred, val = clause.contents
+                                    if pred.comments or pred.contains_comment or val.comments or val.contains_comment:
+                                        break
+                                    pred_str = pred_fmt
+                                    val_str = inline_format(val)
+                                    clause_str = "(" + pred_str + " " * (max_pred - len(pred_str) + 1) + val_str + ")"
+
+                                    ok = False
+                                    if len(clause.comments) > 1:
+                                        clause_str = make_comments(clause.comments, 0, True) + clause_str
+                                        ok = verify(clause_str, remaining - 1)[1]
+                                    if not ok:
+                                        clause_str = clause_str + make_comments(clause.comments, 0, False)
+
+                                    formatted_clauses.append(clause_str)
+                                else:
+                                    # success!
+                                    out_str = make_comments(expr.comments, 0, True) + \
+                                              "(cond\n" + indent("\n".join(formatted_clauses), 1) + ")"
+                                    out = verify(out_str, remaining)
+                                    if out[1]:
+                                        return out
 
                             formatted_clauses = []
                             for clause in clauses:
                                 pred_str = prettify_expr(clause.contents[0], remaining - 1)[0]
                                 val_strs = []
                                 for expr in clause.contents[1:]:
-                                    val_strs.append(prettify_expr(expr, remaining - INDENT // 2)[0])
+                                    val_strs.append(prettify_expr(expr, remaining - 1)[0])
                                 clause_str = "(" + pred_str + "\n" + \
-                                             indent("\n".join(val_strs), INDENT // 2)
+                                             indent("\n".join(val_strs), 1)
                                 if len(clause.contents) > 1 and clause.contents[-1].comments:
                                     clause_str += "\n"
                                 clause_str += ")"
                                 clause_str = make_comments(clause.comments, 0, True) + clause_str
                                 formatted_clauses.append(clause_str)
 
-                            out_str = "(cond \n" + indent("\n".join(formatted_clauses), 1) + ")"
+                            out_str = "(cond\n" + indent("\n".join(formatted_clauses), 1) + ")"
                             return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
 
                 # assume no special forms
