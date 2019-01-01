@@ -8,17 +8,16 @@
   (define (helper lst prev)
     (cond 
      ((null? lst)
-       (a ; comment
-       ))
+      nil)
      ((<= (car lst) prev)
-       (helper (cdr lst) prev))
+      (helper (cdr lst) prev))
      (else
-       (let ((yes (cons (car lst)
-                        (helper (cdr lst) (car lst))))
-             (no (helper (cdr lst) prev)))
-         (if (> (length yes) (length no))
-             yes
-             no)))))
+      (let ((yes (cons (car lst)
+                       (helper (cdr lst) (car lst))))
+            (no (helper (cdr lst) prev)))
+        (if (> (length yes) (length no))
+            yes
+            no)))))
   (helper lst -1))
 
 (define (cadr s) (car (cdr s)))
@@ -29,17 +28,17 @@
 (define (derive expr var)
   (cond 
    ((number? expr)
-     0)
+    0)
    ((variable? expr)
-     (if (same-variable? expr var) 1 0))
+    (if (same-variable? expr var) 1 0))
    ((sum? expr)
-     (derive-sum expr var))
+    (derive-sum expr var))
    ((product? expr)
-     (derive-product expr var))
+    (derive-product expr var))
    ((exp? expr)
-     (derive-exp expr var))
+    (derive-exp expr var))
    (else
-     'Error)))
+    'Error)))
 
 ; Variables are represented as symbols
 (define (variable? x) (symbol? x))
@@ -57,13 +56,13 @@
 (define (make-sum a1 a2)
   (cond 
    ((=number? a1 0)
-     a2)
+    a2)
    ((=number? a2 0)
-     a1)
+    a1)
    ((and (number? a1) (number? a2))
-     (+ a1 a2))
+    (+ a1 a2))
    (else
-     (list '+ a1 a2))))
+    (list '+ a1 a2))))
 
 (define (sum? x)
   (and (list? x) (eq? (car x) '+)))
@@ -76,15 +75,15 @@
 (define (make-product m1 m2)
   (cond 
    ((or (=number? m1 0) (=number? m2 0))
-     0)
+    0)
    ((=number? m1 1)
-     m2)
+    m2)
    ((=number? m2 1)
-     m1)
+    m1)
    ((and (number? m1) (number? m2))
-     (* m1 m2))
+    (* m1 m2))
    (else
-     (list '* m1 m2))))
+    (list '* m1 m2))))
 
 (define (product? x)
   (and (list? x) (eq? (car x) '*)))
