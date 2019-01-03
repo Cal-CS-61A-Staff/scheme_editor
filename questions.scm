@@ -6,6 +6,7 @@
     (append (reverse (cdr lst))
             (list (car lst))))))
 
+;;; bad
 (define (tail-reverse lst)
   (define (helper lst curr)
     (if (null? lst)
@@ -14,28 +15,14 @@
                 (cons (car lst) curr))))
   (helper lst '()))
 
-(let )
+(define (f x)
+  (if (< (g x) 3)
+      (h x 2)))
 
-(cond
- (#t 5))
+(define (prime? x)
+  (if
+   (<= x 1)
+   #f
+   (null? (filter (lambda (y) (= 0 (remainder x y))) (range 2 x)))))
 
-(+ (* 2 3) (/ 17 5))
-
-(+ 1 (foo 3.5 a) bar baz)
-
-(list (foo) (bar) (baz))
-
-(let ((pi 3.14)
-      (r 120))
-  (* pi r r))
-
-(define (factorial n)
-  (if (zero? n)
-      1 ; ONE
-      (* n (factorial (- n 1)))))
-
-(cond
- ((good? x) (handle-good x))
- ((bad? x)  (handle-bad x))
- ((ugly? x) (handle-ugly x))
- (else      (handle-default x)))
+(null? (filter (lambda (y) (= 0 (remainder x y))) (range 2 x)))

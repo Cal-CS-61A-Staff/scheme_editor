@@ -6,7 +6,7 @@
 
 (define (longest-increasing-subsequence lst)
   (define (helper lst prev)
-    (cond 
+    (cond
      ((null? lst)
       nil)
      ((<= (car lst) prev)
@@ -20,13 +20,15 @@
             no)))))
   (helper lst -1))
 
-(define (cadr s) (car (cdr s)))
+(define (cadr s)
+  (car (cdr s)))
 
-(define (caddr s) (cadr (cdr s)))
+(define (caddr s)
+  (cadr (cdr s)))
 
 ; derive returns the derivative of EXPR with respect to VAR
 (define (derive expr var)
-  (cond 
+  (cond
    ((number? expr)
     0)
    ((variable? expr)
@@ -50,11 +52,12 @@
 
 ; Numbers are compared with =
 (define (=number? expr num)
-  (and (number? expr) (= expr num)))
+  (and (number? expr)
+       (= expr num)))
 
 ; Sums are represented as lists that start with +.
 (define (make-sum a1 a2)
-  (cond 
+  (cond
    ((=number? a1 0)
     a2)
    ((=number? a2 0)
@@ -65,7 +68,8 @@
     (list '+ a1 a2))))
 
 (define (sum? x)
-  (and (list? x) (eq? (car x) '+)))
+  (and (list? x)
+       (eq? (car x) '+)))
 
 (define (addend s) (cadr s))
 
@@ -73,8 +77,9 @@
 
 ; Products are represented as lists that start with *.
 (define (make-product m1 m2)
-  (cond 
-   ((or (=number? m1 0) (=number? m2 0))
+  (cond
+   ((or (=number? m1 0)
+       (=number? m2 0))
     0)
    ((=number? m1 1)
     m2)
@@ -86,7 +91,8 @@
     (list '* m1 m2))))
 
 (define (product? x)
-  (and (list? x) (eq? (car x) '*)))
+  (and (list? x)
+       (eq? (car x) '*)))
 
 (define (multiplier p) (cadr p))
 
@@ -107,7 +113,8 @@
   (if (and (number? base) (number? exponent))
       (if (= exponent 0)
           1
-          (* base (make-exp base (- exponent 1))))
+          (* base
+             (make-exp base (- exponent 1))))
       (if (eq? exponent 1)
           base
           (if (eq? exponent 0)
@@ -130,6 +137,7 @@
 
 (define ; making exps is fun!
  (derive-exp exp var)
- (make-product (exponent exp)
-               (make-exp (base exp) ; base is nice
-                         (- (exponent exp) 1))))
+ (make-product
+  (exponent exp)
+  (make-exp (base exp) ; base is nice
+            (- (exponent exp) 1))))
