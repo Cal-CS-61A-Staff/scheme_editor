@@ -5,6 +5,7 @@ from format_parser import get_expression, Formatted, FormatAtom, FormatList
 
 LINE_LENGTH = 80
 MAX_EXPR_COUNT = 5
+MAX_EXPR_LEN = 50
 INDENT = 4
 
 DEFINE_VALS = ["define", "define-macro"]
@@ -37,10 +38,10 @@ def make_comments(comments: List[str], depth: int, newline: bool):
 
 
 def verify(out: str, remaining: int) -> Tuple[str, bool]:
-    total_length = max(map(len, out.split("\n"))) <= remaining
-    expr_length = max(sum(len(y) > 2 for y in x.split()) for x in out.split("\n")) <= MAX_EXPR_COUNT
+    total_length = max(map(len, out.split("\n"))) <= min(MAX_EXPR_LEN, remaining)
+    expr_length = max(sum(len(y) > 1 for y in x.split()) for x in out.split("\n")) <= MAX_EXPR_COUNT
     print(out)
-    print(max(sum(len(y) > 2 for y in x.split()) for x in out.split("\n")))
+    print(max(sum(len(y) > 1 for y in x.split()) for x in out.split("\n")))
     print(total_length and expr_length)
     return out, total_length and expr_length
 
@@ -82,7 +83,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
             out2 = make_comments(expr.comments, len(expr_str), True) + expr_str
             if len(expr.comments) <= 1 and verify(out1, remaining)[1]:
                 return verify(out1, remaining)
-            else:
+            elif verify(out2, remaining)[1]:
                 return verify(out2, remaining)
 
     if expr.last is None:
@@ -131,11 +132,11 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                         log("let statement with too few arguments")
                     else:
                         bindings = expr.contents[1]
-                        if not isinstance(bindings, FormatList):
+                        if not isinstance(bindings, FormatList) or bindings.prefix:
                             log("let bindings incorrectly formatted")
                         else:
                             for binding in bindings.contents:
-                                if isinstance(binding, FormatAtom) or len(binding.contents) != 2:
+                                if isinstance(binding, FormatAtom) or len(binding.contents) != 2 or binding.prefix:
                                     log("binding with incorrect number of elements")
                                     break
                             else:
@@ -160,12 +161,12 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                         for clause in clauses:
                             if not isinstance(clause, FormatList) \
                                     or clause.last is not None \
-                                    or len(clause.contents) < 1:
+                                    or len(clause.contents) < 1\
+                                    or clause.prefix:
                                 log("screwed up clause")
                                 break
                         else:
                             # cond expr looks ok
-                            fancy = False
                             if all(len(clause.contents) == 2 for clause in clauses):
                                 # fancy cond fmt
                                 formatted_clauses = []
@@ -240,6 +241,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
 
 
 def prettify_data(expr: Formatted, remaining: int, is_data: bool, force_multiline: bool=False) -> Tuple[str, bool]:
+    print("Here", inline_format(expr))
     if isinstance(expr, FormatAtom):
         if len(expr.comments) <= 1:
             return verify(inline_format(expr) + make_comments(expr.comments, len(expr.value), False), remaining)
