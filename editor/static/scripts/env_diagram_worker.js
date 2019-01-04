@@ -1,4 +1,5 @@
 import {charWidth, charHeight} from "./measure";
+import {hide_return_frames} from "./settings";
 
 export {display_env_pointers};
 
@@ -19,10 +20,12 @@ function display_env_pointers(environments, heap, container, i, pointers) {
             if (frame["bindings"][k][0] > i) {
                 break;
             }
-            // if (frame["bindings"][k][1][0] === "Return Value" && frame["bindings"][k][0] < i) {
-            //     k = 0;
-            //     break;
-            // }
+            if (hide_return_frames() &&
+                frame["bindings"][k][1][0] === "Return Value" &&
+                frame["bindings"][k][0] < i) {
+                k = 0;
+                break;
+            }
             let line = "   " + frame["bindings"][k][1][0];
             let data = frame["bindings"][k][2];
             if (pointers && data[0]) {

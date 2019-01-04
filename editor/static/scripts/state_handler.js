@@ -1,5 +1,6 @@
 import {begin_slow, end_slow} from "./event_handler";
 import {getLayout, open, setLayout} from "./layout";
+import {getAllSettings, setAllSettings} from "./settings";
 
 export {states, temp_file, loadState, saveState, make_new_state};
 
@@ -51,6 +52,7 @@ function loadState(callback) {
                 data = $.parseJSON(data);
                 states = data.states;
                 setLayout(data.layout);
+                setAllSettings(data.settings);
             }
             callback();
         });
@@ -69,7 +71,7 @@ function saveState(callback, layout=undefined) {
     }
     console.log(layout);
     $.post("./save_state", {
-        state: JSON.stringify({states: states, layout: layout}),
+        state: JSON.stringify({states: states, layout: layout, settings: getAllSettings()}),
     }).done(function () {
         end_slow();
         curr_saving = false;
