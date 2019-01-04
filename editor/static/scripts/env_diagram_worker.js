@@ -19,10 +19,10 @@ function display_env_pointers(environments, heap, container, i, pointers) {
             if (frame["bindings"][k][0] > i) {
                 break;
             }
-            if (frame["bindings"][k][1][0] === "Return Value" && frame["bindings"][k][0] < i) {
-                k = 0;
-                break;
-            }
+            // if (frame["bindings"][k][1][0] === "Return Value" && frame["bindings"][k][0] < i) {
+            //     k = 0;
+            //     break;
+            // }
             let line = "   " + frame["bindings"][k][1][0];
             let data = frame["bindings"][k][2];
             if (pointers && data[0]) {
