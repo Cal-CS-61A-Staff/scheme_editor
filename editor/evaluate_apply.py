@@ -39,10 +39,11 @@ class Frame:
 
 
 class Thunk:
-    def __init__(self, expr: Expression, frame: Frame, log_stack: bool = True):
+    def __init__(self, expr: Expression, frame: Frame, gui_holder: log.Holder, log_stack: bool):
         self.expr = expr
         self.frame = frame
         self.log_stack = log_stack
+        self.gui_holder = gui_holder
 
     def __repr__(self):
         return "thunk"
@@ -71,6 +72,9 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
     """
 
     depth = 0
+    frames = []
+    holders = []
+
     while True:
         if isinstance(gui_holder.expression, Expression):
             visual_expression = log.VisualExpression(expr)
@@ -82,13 +86,18 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
             log.logger.eval_stack.append(f"{repr(expr)} [frame = {frame.id}]")
             depth += 1
 
+        if not frames or frames[-1] is not frame:
+            frames.append(frame)
+        else:
+            frames.append(None)
+
+        holders.append(gui_holder)
+
         if isinstance(expr, Number) \
                 or isinstance(expr, Callable) \
                 or isinstance(expr, Boolean) \
                 or isinstance(expr, String) \
                 or isinstance(expr, Promise):
-            gui_holder.complete()
-            visual_expression.value = expr
             ret = expr
         elif isinstance(expr, Symbol):
             gui_holder.evaluate()
@@ -96,12 +105,10 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
             from special_forms import MacroObject
             if isinstance(out, Callable) and not isinstance(out, Applicable) and not isinstance(out, MacroObject):
                 raise SymbolLookupError(f"Variable not found in current environment: '{expr.value}'")
-            visual_expression.value = out
-            gui_holder.complete()
             ret = out
         elif isinstance(expr, Pair):
-            if tail_context and False:
-                ret = Thunk(expr, frame, log_stack)
+            if tail_context:
+                return Thunk(expr, frame, gui_holder, log_stack)
             else:
                 gui_holder.evaluate()
                 operator = expr.first
@@ -116,20 +123,28 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
                 out = apply(operator, operands, frame, gui_holder)
                 if isinstance(out, Thunk):
                     expr, frame = out.expr, out.frame
-                    gui_holder.expression.update(expr)
+                    gui_holder = out.gui_holder
                     continue
-                visual_expression.value = out
-                gui_holder.complete()
                 ret = out
         elif expr is Nil or expr is Undefined:
-            visual_expression.value = expr
-            gui_holder.complete()
             ret = expr
         else:
             raise Exception("Internal error. Please report to maintainer!")
 
         for _ in range(depth):
             log.logger.eval_stack.pop()
+
+        for frame, holder in zip(reversed(frames), reversed(holders)):
+            holder.expression.value = ret
+            holder.complete()
+
+            if frame is not None:
+                try:
+                    frame.lookup(log.return_symbol)
+                except SymbolLookupError:
+                    continue
+                else:
+                    frame.assign(log.return_symbol, ret)
 
         return ret
 

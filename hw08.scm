@@ -15,9 +15,10 @@
       (let ((yes (cons (car lst)
                        (helper (cdr lst) (car lst))))
             (no (helper (cdr lst) prev)))
-        (if (> (length yes) (length no))
-            yes
-            no)))))
+        (if
+         (> (length yes) (length no))
+         yes
+         no)))))
   (helper lst -1))
 
 (define (cadr s)
@@ -43,7 +44,8 @@
     'Error)))
 
 ; Variables are represented as symbols
-(define (variable? x) (symbol? x))
+(define (variable? x)
+  (symbol? x))
 
 (define (same-variable? v1 v2)
   (and (variable? v1)
@@ -105,21 +107,23 @@
 (define (derive-product expr var)
   (let ((left (multiplier expr))
         (right (multiplicand expr)))
-    (make-sum (make-product (derive left var) right)
-              (make-product left (derive right var)))))
+    (make-sum
+     (make-product (derive left var) right)
+     (make-product left (derive right var)))))
 
 ; Exponentiations are represented as lists that start with ^.
 (define (make-exp base exponent)
-  (if (and (number? base) (number? exponent))
-      (if (= exponent 0)
-          1
-          (* base
-             (make-exp base (- exponent 1))))
-      (if (eq? exponent 1)
-          base
-          (if (eq? exponent 0)
-              1
-              `(^ ,base ,exponent)))))
+  (if
+   (and (number? base) (number? exponent))
+   (if (= exponent 0)
+       1
+       (* base
+          (make-exp base (- exponent 1))))
+   (if (eq? exponent 1)
+       base
+       (if (eq? exponent 0)
+           1
+           `(^ ,base ,exponent)))))
 
 (define (base exp)
   (car (cdr exp)))
@@ -137,7 +141,7 @@
 
 (define ; making exps is fun!
  (derive-exp exp var)
- (make-product
-  (exponent exp)
-  (make-exp (base exp) ; base is nice
-            (- (exponent exp) 1))))
+ (make-product (exponent exp)
+               (make-exp ; base is nice
+                         (base exp)
+                         (- (exponent exp) 1))))
