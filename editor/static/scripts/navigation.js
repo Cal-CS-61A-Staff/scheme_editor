@@ -4,6 +4,10 @@ import {request_update} from "./event_handler";
 export {init_events};
 
 function fix_expr_i(i) {
+    if (states[i].states[states[i].expr_i][0] <= states[i].index &&
+            states[i].index < states[i].states[states[i].expr_i][1]) {
+        return;
+    }
     for (let expr_i = 0; expr_i !== states[i].states.length; ++expr_i) {
         if (states[i].states[expr_i][0] <= states[i].index &&
             states[i].index < states[i].states[expr_i][1]) {
@@ -14,27 +18,36 @@ function fix_expr_i(i) {
     }
 }
 
-function next_frame_update(i) {
-    console.log(states[i].index);
-    for (let new_i of states[i].frameUpdates) {
-        if (new_i > states[i].index) {
-            states[i].index = new_i;
-            break;
+// Largest i such that arr[i] < val
+function closest_left(val, arr) {
+    let low = 0;
+    let high = arr.length;
+
+    while (low + 1 < high) {
+        let mid = Math.floor((low + high) / 2);
+        if (arr[mid] >= val) {
+            high = mid;
+        } else {
+            low = mid;
         }
     }
+
+    return low;
+}
+
+// Smallest i such that arr[i] > val
+function closest_right(val, arr) {
+    return Math.min(arr.length - 1, closest_left(val, arr, false) + 1);
+}
+
+function next_frame_update(i) {
+    states[i].index = states[i].frameUpdates[closest_right(states[i].index + 1, states[i].frameUpdates)];
     fix_expr_i(i);
     request_update();
 }
 
 function prev_frame_update(i) {
-    console.log(states[i].index);
-    let max_i = states[i].index;
-    for (let new_i of states[i].frameUpdates) {
-        if (new_i < states[i].index) {
-            max_i = new_i;
-        }
-    }
-    states[i].index = max_i;
+    states[i].index = states[i].frameUpdates[closest_left(states[i].index, states[i].frameUpdates)];
     fix_expr_i(i);
     request_update();
 }
