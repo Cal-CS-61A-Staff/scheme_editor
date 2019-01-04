@@ -6,7 +6,7 @@ import * as output from "./output";
 import {states, saveState, make_new_state} from "./state_handler";
 import {init_complete, request_update} from "./event_handler";
 
-export {init, open, notify_open, notify_close, open_prop};
+export {init, open, notify_open, notify_close, open_prop, getLayout, setLayout};
 
 let layout;
 
@@ -41,6 +41,7 @@ function notify_close(type, component, id) {
             }
         }
         states[id] = make_new_state();
+        setTimeout(saveState, 0);
     }
 }
 
@@ -103,14 +104,23 @@ function open(type, index) {
                 title: "",
                 type: pos,
             };
-            localStorage.setItem('savedLayout', JSON.stringify(curr_config));
-            saveState(window.location.reload.bind(window.location));
+            saveState(
+                window.location.reload.bind(window.location),
+                JSON.stringify(curr_config));
         } else {
             layout.root.contentItems[0].addChild(config);
         }
     }
 
     request_update();
+}
+
+function getLayout() {
+    return JSON.stringify(layout.toConfig());
+}
+
+function setLayout(stored_layout) {
+    layout = new GoldenLayout(JSON.parse(stored_layout), $("#body"));
 }
 
 function init() {
@@ -127,17 +137,9 @@ function init() {
             isClosable: false,
         }]
     };
-    let savedLayout = localStorage.getItem('savedLayout');
-    if (savedLayout !== null) {
-        layout = new GoldenLayout(JSON.parse(savedLayout), $("#body"));
-    } else {
+    if (layout === undefined) {
         layout = new GoldenLayout(config, $("#body"));
     }
-
-    layout.on('stateChanged', function () {
-        localStorage.setItem('savedLayout', JSON.stringify(layout.toConfig()));
-        // saveState();
-    });
 
     $(window).resize(function () {
         layout.updateSize($("#body").width(), $("#body").height());

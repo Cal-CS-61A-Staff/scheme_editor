@@ -15,17 +15,14 @@
       (let ((yes (cons (car lst)
                        (helper (cdr lst) (car lst))))
             (no (helper (cdr lst) prev)))
-        (if
-         (> (length yes) (length no))
-         yes
-         no)))))
+        (if (> (length yes) (length no))
+            yes
+            no)))))
   (helper lst -1))
 
-(define (cadr s)
-  (car (cdr s)))
+(define (cadr s) (car (cdr s)))
 
-(define (caddr s)
-  (cadr (cdr s)))
+(define (caddr s) (cadr (cdr s)))
 
 ; derive returns the derivative of EXPR with respect to VAR
 (define (derive expr var)
@@ -80,8 +77,7 @@
 ; Products are represented as lists that start with *.
 (define (make-product m1 m2)
   (cond
-   ((or (=number? m1 0)
-       (=number? m2 0))
+   ((or (=number? m1 0) (=number? m2 0))
     0)
    ((=number? m1 1)
     m2)
@@ -121,12 +117,9 @@
           (make-exp base (- exponent 1))))
    (if (eq? exponent 1)
        base
-       (if (eq? exponent 0)
-           1
-           `(^ ,base ,exponent)))))
+       (if (eq? exponent 0) 1 `(^ ,base ,exponent)))))
 
-(define (base exp)
-  (car (cdr exp)))
+(define (base exp) (car (cdr exp)))
 
 (define (exponent exp)
   (car (cdr (cdr exp))))
@@ -143,5 +136,5 @@
  (derive-exp exp var)
  (make-product (exponent exp)
                (make-exp ; base is nice
-                         (base exp)
-                         (- (exponent exp) 1))))
+                (base exp)
+                (- (exponent exp) 1))))
