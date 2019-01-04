@@ -1,5 +1,5 @@
 import {begin_slow, end_slow} from "./event_handler";
-import {open} from "./layout";
+import {getLayout, open, setLayout} from "./layout";
 
 export {states, temp_file, loadState, saveState, make_new_state};
 
@@ -48,23 +48,28 @@ function loadState(callback) {
         .done(function (data) {
             end_slow();
             if (data !== "fail") {
-                states = $.parseJSON(data);
-            } else {
-                localStorage.clear();
+                data = $.parseJSON(data);
+                states = data.states;
+                setLayout(data.layout);
             }
             callback();
         });
 }
 
 let curr_saving = false;
-function saveState(callback) {
+function saveState(callback, layout=undefined) {
     if (curr_saving) {
         return;
     }
+    console.log("saving");
     begin_slow();
     curr_saving = true;
+    if (layout === undefined) {
+        layout = getLayout();
+    }
+    console.log(layout);
     $.post("./save_state", {
-        state: JSON.stringify(states),
+        state: JSON.stringify({states: states, layout: layout}),
     }).done(function () {
         end_slow();
         curr_saving = false;

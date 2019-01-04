@@ -13,6 +13,8 @@ DECLARE_VALS = ["lambda", "mu"]
 SHORTHAND = {"quote": "'", "quasiquote": "`", "unquote": ",", "unquote-splicing": ",@"}
 MULTILINE_VALS = ["let", "cond"]
 
+FREE_TOKENS = ["if", "define", "define-macro", "mu", "lambda"]
+
 
 def prettify(strings: List[str]) -> str:
     out = []
@@ -37,11 +39,22 @@ def make_comments(comments: List[str], depth: int, newline: bool):
         return " " + indent("\n".join(";" + x for x in comments), depth + 1).lstrip()
 
 
+def to_count(phrase):
+    while phrase and phrase[0] == "(":
+        phrase = phrase[1:]
+    while phrase and phrase[-1] == ")":
+        phrase = phrase[:-1]
+    return bool(phrase and not phrase.isdigit() and phrase.lower() not in FREE_TOKENS)
+
+
 def verify(out: str, remaining: int) -> Tuple[str, bool]:
     total_length = max(map(len, out.split("\n"))) <= min(MAX_EXPR_LEN, remaining)
-    expr_length = max(sum(not y.isdigit() for y in x.split()) for x in out.split("\n")) <= MAX_EXPR_COUNT
+    expr_count = max(sum(to_count(y) for y in x.split()) for x in out.split("\n"))
+
+    expr_length = expr_count <= MAX_EXPR_COUNT
     print(out)
-    print(max(sum(not y.isdigit() for y in x.split()) for x in out.split("\n")))
+    print(expr_length)
+
     print(total_length and expr_length)
     return out, total_length and expr_length
 

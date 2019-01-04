@@ -11,14 +11,14 @@ function make(container, type, id) {
     container.on("open", function () {
         notify_open(type, container, id);
         if (!initializing) {
-            saveState();
+            setTimeout(saveState, 0);
         }
     });
 
     container.on("destroy", function () {
         notify_close(type, container, id);
         states[id][open_prop.get(type)] = false;
-        saveState();
+        setTimeout(saveState, 0);
     });
 }
 
