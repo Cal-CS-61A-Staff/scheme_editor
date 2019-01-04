@@ -39,9 +39,9 @@ def make_comments(comments: List[str], depth: int, newline: bool):
 
 def verify(out: str, remaining: int) -> Tuple[str, bool]:
     total_length = max(map(len, out.split("\n"))) <= min(MAX_EXPR_LEN, remaining)
-    expr_length = max(sum(len(y) > 1 for y in x.split()) for x in out.split("\n")) <= MAX_EXPR_COUNT
+    expr_length = max(sum(not y.isdigit() for y in x.split()) for x in out.split("\n")) <= MAX_EXPR_COUNT
     print(out)
-    print(max(sum(len(y) > 1 for y in x.split()) for x in out.split("\n")))
+    print(max(sum(not y.isdigit() for y in x.split()) for x in out.split("\n")))
     print(total_length and expr_length)
     return out, total_length and expr_length
 
@@ -221,18 +221,18 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                 operands = []
                 for operand in expr.contents[1:]:
                     ret = prettify_expr(operand, remaining - len(operator) - 2)
-                    if not ret[1]:
-                        break
+                    # if not ret[1]:
+                    #     break
                     operands.append(ret[0])
                 else:
-                    if not operands or len(operator) + len(operands[0]) < remaining:
-                        # successfully loaded operands
-                        operand_string = indent(operands, len(operator) + 2)
-                        out_str = "(" + operator + " " + operand_string.lstrip()
-                        if expr.contents[-1].comments:
-                            out_str += "\n"
-                        out_str += ")"
-                        return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
+                    operand_string = indent(operands, len(operator) + 2)
+                    out_str = "(" + operator + " " + operand_string.lstrip()
+                    if expr.contents[-1].comments:
+                        out_str += "\n"
+                    out_str += ")"
+                    out = verify(make_comments(expr.comments, 0, True) + out_str, remaining)
+                    if out[1]:
+                        return out
             # but may have to go here anyway, if inlining takes up too much space
             return prettify_data(expr, remaining, False)
     else:
@@ -262,7 +262,7 @@ def prettify_data(expr: Formatted, remaining: int, is_data: bool, force_multilin
 
     if not force_multiline and expr.contents and not expr.contains_comment:
         expr_str = inline_format(expr)
-        if len(expr_str) < remaining:
+        if verify(expr_str, remaining)[1]:
             out1 = expr_str + make_comments(expr.comments, len(expr_str), False)
             out2 = make_comments(expr.comments, len(expr_str), True) + expr_str
             if len(expr.comments) <= 1 and verify(out1, remaining)[1]:

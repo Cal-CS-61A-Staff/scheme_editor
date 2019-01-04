@@ -27,6 +27,7 @@ function next_frame_update(i) {
 }
 
 function prev_frame_update(i) {
+    console.log(states[i].index);
     let max_i = states[i].index;
     for (let new_i of states[i].frameUpdates) {
         if (new_i < states[i].index) {

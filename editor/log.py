@@ -134,6 +134,7 @@ class Logger:
         if Root.set and self.start != self.i:
             self.export_states.append((self.start, self.i, {i: v.export() for i, v in self.node_cache.items()}))
             self.roots.append(Root.root.expression.id)
+            # self.i += 1
         self.start = self.i
         self.node_cache = {}
         Root.set = True
@@ -169,7 +170,7 @@ class Logger:
             "graphics": [],
             "globalFrameID": id(self.active_frames[0].base) if self.active_frames else -1,
             "heap": self.heap.export(),
-            "frameUpdates": self.frame_updates
+            "frameUpdates": sorted(set(self.frame_updates))
         }
 
     def out(self, val, end="\n"):
@@ -274,14 +275,29 @@ class StoredFrame:
         self.parent = base.parent
         self.bindings = []
         self.base = base
+        self.return_value = None
 
     def bind(self, name: str, value: Expression):
         value_key = logger.heap.record(value)
-        self.bindings.append((logger.i, (name, str(value)), value_key))
-        if not logger.frame_updates or logger.frame_updates[-1] != logger.i:
-            logger.frame_updates.append(logger.i)
+        data = (logger.i, (name, str(value)), value_key)
+        if name == return_symbol.value:
+            self.return_value = data
+            print(data)
+        else:
+            self.bindings.append(data)
+            self.add_index(logger.i)
+
+    @staticmethod
+    def add_index(i):
+        if not logger.frame_updates or logger.frame_updates[-1] != i:
+            logger.frame_updates.append(i)
 
     def export(self):
+        if self.return_value is not None:
+            self.bindings.append(self.return_value)
+            self.add_index(self.return_value[0])
+            self.return_value = None
+            # self.bindings.sort(key=lambda x: x[0])
         if id(self.parent) not in logger.frame_lookup:
             return None
         return {"name": self.name,
@@ -305,6 +321,8 @@ class Heap:
         return out
 
     def record(self, expr: Expression) -> Heap.HeapKey:
+        if isinstance(expr, evaluate_apply.Thunk):
+            return False, "thunk"
         if expr.id not in self.prev:
             if isinstance(expr, ValueHolder):
                 return False, repr(expr)

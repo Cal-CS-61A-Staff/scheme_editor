@@ -28,21 +28,25 @@
 (define (range a b)
   (if (>= a b)
       nil
-      (cons a (range (+ a 1) b))))
+      (cons a
+            (range (+ a 1) b))))
 
 ;; Sum elements of s
-(define (sum s) (reduce + s 0))
+(define (sum s)
+  (reduce + s 0))
 
 ;; Is x prime?
 (define (prime? x)
-  (if
-   (<= x 1)
-   #f
-   (null? (filter (lambda (y) (= 0 (remainder x y))) (range 2 x)))))
+  (if (<= x 1)
+      #f
+      (null? (filter (lambda (y)
+                             (= 0 (remainder x y)))
+                     (range 2 x)))))
 
 ;; Sum primes from a to b
 (define (sum-primes a b)
-  (sum (filter prime? (range a b))))
+  (sum
+   (filter prime? (range a b))))
 
 ;; Streams
 (define s (cons-stream 1 (cons-stream 2 nil)))
@@ -52,7 +56,8 @@
 (define (range-stream a b)
   (if (>= a b)
       nil
-      (cons-stream a (range-stream (+ a 1) b))))
+      (cons-stream a
+                   (range-stream (+ a 1) b))))
 
 ;; Infinite Streams
 (define (int-stream start)
@@ -63,18 +68,21 @@
   (if (= k 0)
       nil
       (cons (car s)
-            (prefix (cdr-stream s) (- k 1)))))
+            (prefix (cdr-stream s)
+                    (- k 1)))))
 
 ;; Processing
 (define ones (cons-stream 1 ones))
 
 (define (square-stream s)
-  (cons-stream (* (car s) (car s))
-               (square-stream (cdr-stream s))))
+  (cons-stream
+   (* (car s) (car s))
+   (square-stream (cdr-stream s))))
 
 (define (add-streams s t)
-  (cons-stream (+ (car s) (car t))
-               (add-streams (cdr-stream s) (cdr-stream t))))
+  (cons-stream
+   (+ (car s) (car t))
+   (add-streams (cdr-stream s) (cdr-stream t))))
 
 (define ints
   (cons-stream 1 (add-streams ones ints)))
@@ -102,12 +110,13 @@
 
 ;; Filter s by f.
 (define (filter-stream f s)
-  (if (null? s)
-      nil
-      (if (f (car s))
-          (cons-stream (car s)
-                       (filter-stream f (cdr-stream s)))
-          (filter-stream f (cdr-stream s)))))
+  (if
+   (null? s)
+   nil
+   (if (f (car s))
+       (cons-stream (car s)
+                    (filter-stream f (cdr-stream s)))
+       (filter-stream f (cdr-stream s)))))
 
 ;; Reduce s using f and start value.
 (define (reduce-stream f s start)
@@ -117,17 +126,19 @@
                      (cdr-stream s)
                      (f start (car s)))))
 
-(define (sum-stream s) (reduce-stream + s 0))
+(define (sum-stream s)
+  (reduce-stream + s 0))
 
 (define (sum-primes-stream a b)
-  (sum-stream (filter-stream prime? (range-stream a b))))
+  (sum-stream
+   (filter-stream prime? (range-stream a b))))
 
 (define (sieve s)
   (cons-stream
    (car s)
-   (sieve
-    (filter-stream (lambda (x)
-                           (< 0 (remainder x (car s))))
-                   (cdr-stream s)))))
+   (sieve (filter-stream
+           (lambda (x)
+                   (< 0 (remainder x (car s))))
+           (cdr-stream s)))))
 
 (define primes (sieve (int-stream 2)))
