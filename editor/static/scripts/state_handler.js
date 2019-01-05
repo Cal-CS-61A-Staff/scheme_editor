@@ -37,7 +37,7 @@ let base_state = {
 let states = [make_new_state()];
 states[0].file_name = $.parseJSON(start_data)["file"];
 
-let temp_file = "<temporary>";
+let temp_file = "__";
 
 function make_new_state() {
     return jQuery.extend({}, base_state);
