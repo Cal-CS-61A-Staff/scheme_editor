@@ -282,7 +282,6 @@ class StoredFrame:
         data = (logger.i, (name, str(value)), value_key)
         if name == return_symbol.value:
             self.return_value = data
-            print(data)
         else:
             self.bindings.append(data)
             self.add_index(logger.i)
@@ -320,17 +319,21 @@ class Heap:
         self.curr = {}
         return out
 
+    def modify(self, id):
+        if id in self.prev:
+            self.curr[id] = self.prev[id]
+        logger.frame_updates.append(logger.i)
+
     def record(self, expr: Expression) -> Heap.HeapKey:
         if isinstance(expr, evaluate_apply.Thunk):
             return False, "thunk"
-        if expr.id not in self.prev:
+        if expr.id not in self.prev and expr.id not in self.curr:
             if isinstance(expr, ValueHolder):
                 return False, repr(expr)
             elif isinstance(expr, Pair):
                 val = [self.record(expr.first), self.record(expr.rest)]
             elif isinstance(expr, Promise):
-                val = [(False, repr(expr))]  # TODO: Make promises work!
-                expr.bind(val)
+                val = expr.bind()
             elif isinstance(expr, NilType):
                 return False, "nil"
             else:

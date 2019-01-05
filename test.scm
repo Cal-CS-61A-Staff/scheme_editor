@@ -32,16 +32,15 @@
             (range (+ a 1) b))))
 
 ;; Sum elements of s
-(define (sum s)
-  (reduce + s 0))
+(define (sum s) (reduce + s 0))
 
 ;; Is x prime?
 (define (prime? x)
   (if (<= x 1)
       #f
-      (null? (filter (lambda (y)
-                             (= 0 (remainder x y)))
-                     (range 2 x)))))
+      (null? (filter
+              (lambda (y) (= 0 (remainder x y)))
+              (range 2 x)))))
 
 ;; Sum primes from a to b
 (define (sum-primes a b)
@@ -61,18 +60,15 @@
 
 ;; Infinite Streams
 (define (int-stream start)
-  (cons-stream start
-               (int-stream (+ start 1))))
+  (cons-stream start (int-stream (+ start 1))))
 
 (define (prefix s k)
   (if (= k 0)
       nil
       (cons (car s)
-            (prefix (cdr-stream s)
-                    (- k 1)))))
+            (prefix (cdr-stream s) (- k 1)))))
 
-;; Processing
-(define ones (cons-stream 1 ones))
+(define ones (cons-stream 1 ones)) ;; Processing
 
 (define (square-stream s)
   (cons-stream
@@ -126,8 +122,7 @@
                      (cdr-stream s)
                      (f start (car s)))))
 
-(define (sum-stream s)
-  (reduce-stream + s 0))
+(define (sum-stream s) (reduce-stream + s 0))
 
 (define (sum-primes-stream a b)
   (sum-stream
