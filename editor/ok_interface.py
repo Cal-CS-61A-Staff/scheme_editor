@@ -1,3 +1,4 @@
+import formatter
 import os
 import sys
 from dataclasses import dataclass
@@ -71,7 +72,7 @@ class TestCase:
                 for ret in elem[1]:
                     out.append(prefix + ret)
                     prefix = ";" + " " * (len(prefix) - 1)
-        return "\n".join(out)
+        return formatter.prettify(["\n".join(out)])
 
     def export(self):
         return {
