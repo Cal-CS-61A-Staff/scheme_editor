@@ -29,7 +29,7 @@ function begin_slow() {
     timer = setTimeout(function() {
         $("#loadingModal").modal("show");
         timer = -1;
-    }, 1000);
+    }, 300);
 }
 
 function end_slow() {

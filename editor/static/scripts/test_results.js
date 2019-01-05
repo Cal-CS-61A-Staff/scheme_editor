@@ -44,7 +44,7 @@ function register(myLayout) {
                         $(`#${random_id}`).find(".btn").last().click(function () {
                             let index = states.length;
                             let new_state = make_new_state();
-                            new_state.file_name = temp_file;
+                            new_state.file_name = temp_file + `${entry.problem} - Suite ${i + 1}, Case ${j + 1}`;
                             new_state.file_content = test.code;
                             states.push(new_state);
                             saveState();
