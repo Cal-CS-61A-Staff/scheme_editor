@@ -12,7 +12,7 @@ function register(layout) {
         container.getElement().html(`
         <div class="content">
             <div class="header">        
-                ${(states[componentState.id].file_name !== temp_file) ?
+                ${(!states[componentState.id].file_name.startsWith(temp_file)) ?
             `<button type="button" class="btn-default save-btn" aria-label="Save">
                     <span class="text"> Save </span>
                 </button>` : ``}
@@ -39,7 +39,11 @@ function register(layout) {
         let changed = false;
         let saveTimer;
 
-        container.setTitle(states[componentState.id].file_name);
+        if (states[componentState.id].file_name.startsWith(temp_file)) {
+            container.setTitle(states[componentState.id].file_name.slice(temp_file.length));
+        } else {
+            container.setTitle(states[componentState.id].file_name);
+        }
 
         container.on("open", function () {
             editorDiv = container.getElement().find(".editor").get(0);
@@ -68,7 +72,7 @@ function register(layout) {
                 states[componentState.id].file_name = decoded["file"];
             }
 
-            if (states[componentState.id].file_name === temp_file) {
+            if (states[componentState.id].file_name.startsWith(temp_file)) {
                 editor.setValue(states[componentState.id].file_content);
             } else {
                 $.post("/read_file", {
@@ -184,7 +188,7 @@ function register(layout) {
         });
 
         function save(callback) {
-            if (!changed || states[componentState.id].file_name === temp_file) {
+            if (!changed || states[componentState.id].file_name.startsWith(temp_file)) {
                 if (callback !== undefined) {
                     callback();
                 }

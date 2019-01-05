@@ -15,7 +15,7 @@
                        (- n 1)
                        term)))
 
-(define (partial-sutms stream)
+(define (partial-sums stream)
   (define (helper k stream)
     (if (null? stream)
         nil
