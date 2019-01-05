@@ -15,6 +15,7 @@ function display_env_pointers(environments, heap, container, i, pointers) {
 
     for (let frame of environments) {
         let curr = [["", false]];
+        let name_lookup = new Map();
         let k;
         for (k = 0; k !== frame["bindings"].length; ++k) {
             if (frame["bindings"][k][0] > i) {
@@ -34,7 +35,13 @@ function display_env_pointers(environments, heap, container, i, pointers) {
                 line += ": " + frame["bindings"][k][1][1];
                 data = false;
             }
-            curr.push([line, data]);
+
+            if (name_lookup.has(frame["bindings"][k][1][0])) {
+                curr[name_lookup.get(frame["bindings"][k][1][0])] = [line, data];
+            } else {
+                name_lookup.set(frame["bindings"][k][1][0], curr.length);
+                curr.push([line, data]);
+            }
             maxlen = Math.max(maxlen, line.length);
         }
         if (k === 0) {
@@ -67,6 +74,7 @@ function display_env_pointers(environments, heap, container, i, pointers) {
                     container,
                     0,
                     cache,
+                    i,
                     maxlen * charWidth,
                     curr_y + charHeight * k + charHeight * 3 / 4) + 1;
                 if (is_box) {
@@ -113,9 +121,22 @@ function curved_arrow(container, x1, y1, x2, y2) {
     straight_arrow(container, x1, y1, x2, y2);
 }
 
-function display_elem(x, y, id, all_data, container, depth, cache, x1=false, y1=false) {
+function display_elem(x, y, id, all_data, container, depth, cache, index, x1=false, y1=false) {
+    console.log(index);
     if (id[0]) {
         // non atomic
+        let data = all_data[id[1]];
+
+        if (data[0] === "promise") {
+            console.log(index);
+            console.log(data[1][0]);
+            if (index >= data[1][0]) {
+                data = [data[1][1]];
+                console.log(data);
+            } else {
+                data = [[false, "..."]];
+            }
+        }
         if (!x1) {
             x1 = x + minWidth / 2;
             y1 = y + minWidth / 2;
@@ -135,30 +156,39 @@ function display_elem(x, y, id, all_data, container, depth, cache, x1=false, y1=
             y2 = y + (minWidth + 15) * depth;
             y = y2;
         }
-        if (all_data[id[1]].length > 1) {
+        if (data.length > 1) {
             cache.set(id[1], [x2, y2]);
         } else {
             cache.set(id[1], [x, y + minWidth / 2]);
         }
+
         straight_arrow(container, x1, y1, ...cache.get(id[1]));
         let pos = 0;
         let lens = [];
-        for (let elem of all_data[id[1]]) {
+        for (let elem of data) {
             lens.push(pos);
             pos += calc_content_length(elem);
         }
+
         let new_depth = 0;
-        for (let i = all_data[id[1]].length - 1; i >= 0; --i) {
+        for (let i = data.length - 1; i >= 0; --i) {
             if (i !== 0) {
                 container.line(x + lens[i], y, x + lens[i], y + minWidth).stroke({color: "#000000", width: 2});
             }
-            let elem = all_data[id[1]][i];
-            if (i !== all_data[id[1]].length - 1 && elem[0] && !cache.has(elem[1])) {
+            let elem = data[i];
+            if (i !== data.length - 1 && elem[0] && !cache.has(elem[1])) {
                 new_depth += 1;
             }
-            new_depth += display_elem(x + lens[i], y, elem, all_data, container, new_depth, cache);
+            new_depth += display_elem(x + lens[i], y, elem, all_data, container, new_depth, cache, index);
         }
-        if (all_data[id[1]].length > 1) {
+
+        if (all_data[id[1]][0] === "promise") {
+            container.circle(minWidth)
+                .dx(x).dy(y)
+                .stroke({color: "#000000", width: 2})
+                .fill({color: "#FFFFFF"}).back();
+        }
+        else if (data.length > 1) {
             container.rect(pos, minWidth)
                 .dx(x).dy(y)
                 .stroke({color: "#000000", width: 2})

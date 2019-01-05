@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Union, TYPE_CHECKING
 from uuid import uuid4
 
-
 if TYPE_CHECKING:
     from evaluate_apply import Frame
     from log import Heap
@@ -110,26 +109,36 @@ class Promise(Expression):
     def __init__(self, expr: Expression, frame: Frame):
         super().__init__()
         self.forced = False
+        self.force_i = None
         self.expr = expr
         self.frame = frame
         self.targets = []
+
+    def __str__(self):
+        return "#[promise]"
 
     def __repr__(self):
         if self.forced:
             return "#[promise (forced)]"
         else:
-            return "#[promise (not forced when bound / displayed)]"
+            return "#[promise (not forced)]"
 
-    def bind(self, target: Heap.HeapObject):
+    def bind(self) -> Heap.HeapKey:
+        import log
+        if self.forced:
+            target = ["promise", [self.force_i, log.logger.heap.record(self.expr)]]
+        else:
+            target = ["promise", [99999999999999, None]]
         self.targets.append(target)
+        return target
 
     def force(self):
+        import log
         self.forced = True
+        self.force_i = log.logger.i
         for target in self.targets:
-            import log
-            target[:] = [(False, "forced"), log.logger.heap.record(self.expr)]
-            log.logger.heap.curr[self.id] = target
-            print("forcing")
+            target[:] = ["promise", [self.force_i, log.logger.heap.record(self.expr)]]
+        log.logger.heap.modify(self.id)
 
 
 SingletonTrue = Boolean(True)
