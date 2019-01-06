@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Optional
 
 from datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean, String, Promise
 import log
@@ -21,6 +21,10 @@ class Frame:
     def assign(self, varname: Symbol, varval: Expression):
         if log.logger.fragile and not self.temp:
             raise IrreversibleOperationError()
+        if isinstance(varval, Thunk):
+            assert varname == log.return_symbol
+            varval.bind(self)
+            return
         self.vars[varname.value] = varval
         log.logger.frame_store(self, varname.value, varval)
 
@@ -44,9 +48,18 @@ class Thunk:
         self.frame = frame
         self.log_stack = log_stack
         self.gui_holder = gui_holder
+        self.return_frame: Optional[Frame] = None
+        print("Thunking", expr)
 
     def __repr__(self):
         return "thunk"
+
+    def evaluate(self, expr: Expression):
+        if self.return_frame is not None:
+            self.return_frame.assign(log.return_symbol, expr)
+
+    def bind(self, return_frame: Frame):
+        self.return_frame = return_frame
 
 
 def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
@@ -72,7 +85,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
     """
 
     depth = 0
-    frames = []
+    thunks = []
     holders = []
 
     while True:
@@ -85,11 +98,6 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
         if log_stack:
             log.logger.eval_stack.append(f"{repr(expr)} [frame = {frame.id}]")
             depth += 1
-
-        if not frames or frames[-1] is not frame:
-            frames.append(frame)
-        else:
-            frames.append(None)
 
         holders.append(gui_holder)
 
@@ -124,6 +132,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
                 if isinstance(out, Thunk):
                     expr, frame = out.expr, out.frame
                     gui_holder = out.gui_holder
+                    thunks.append(out)
                     continue
                 ret = out
         elif expr is Nil or expr is Undefined:
@@ -134,17 +143,13 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
         for _ in range(depth):
             log.logger.eval_stack.pop()
 
-        for frame, holder in zip(reversed(frames), reversed(holders)):
+        for thunk, holder in zip(reversed(thunks), reversed(holders)):
             holder.expression.value = ret
             holder.complete()
+            thunk.evaluate(ret)
 
-            if frame is not None:
-                try:
-                    frame.lookup(log.return_symbol)
-                except SymbolLookupError:
-                    continue
-                else:
-                    frame.assign(log.return_symbol, ret)
+        holders[0].expression.value = ret
+        holders[0].complete()
 
         return ret
 
