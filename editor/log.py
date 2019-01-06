@@ -44,7 +44,14 @@ class VisualExpression:
         self.value = None
         self.children = [Holder(expression, self) for expression in expressions]
         if expressions and isinstance(expressions[0], VisualExpression):
-            logger.node_cache[self.id].modify(self, HolderState.EVALUATING)
+            if self.id in logger.node_cache:
+                if isinstance(logger.node_cache[self.id], StaticNode):
+                    curr_transition = HolderState[logger.node_cache[self.id].transition_type]
+                else:
+                    curr_transition = HolderState[logger.node_cache[self.id].transitions[-1][-1]]
+            else:
+                curr_transition = HolderState.EVALUATING
+            logger.node_cache[self.id].modify(self, curr_transition)
         return self
 
     def update(self, expression: Expression):
@@ -120,13 +127,13 @@ class Logger:
         self.strict_mode = False  # legacy - used for okpy testing of the interpreter
         self.fragile = False  # flag for if new assignments prohibited, like in previewing
 
-        self.node_cache = {}  # a cache of visual expressions
+        self.node_cache: Dict[str, Union[StaticNode, FatNode]] = {}  # a cache of visual expressions
         self.export_states = []  # all the nodes generated in the current evaluation, in exported form
         self.roots = []  # the root node of each expr we are currently evaluating
 
         self.eval_stack = []  # the eval stack for use in tracebacks
 
-        self.heap = Heap()  # heap of all non-atomic objects
+        self.heap: Heap = Heap()  # heap of all non-atomic objects
 
     def new_expr(self):
         # self.i = 0
@@ -280,11 +287,8 @@ class StoredFrame:
     def bind(self, name: str, value: Expression):
         value_key = logger.heap.record(value)
         data = (logger.i, (name, str(value)), value_key)
-        if name == return_symbol.value:
-            self.return_value = data
-        else:
-            self.bindings.append(data)
-            self.add_index(logger.i)
+        self.bindings.append(data)
+        self.add_index(logger.i)
 
     @staticmethod
     def add_index(i):
@@ -292,11 +296,6 @@ class StoredFrame:
             logger.frame_updates.append(i)
 
     def export(self):
-        if self.return_value is not None:
-            self.bindings.append(self.return_value)
-            self.add_index(self.return_value[0])
-            self.return_value = None
-            # self.bindings.sort(key=lambda x: x[0])
         if id(self.parent) not in logger.frame_lookup:
             return None
         return {"name": self.name,
