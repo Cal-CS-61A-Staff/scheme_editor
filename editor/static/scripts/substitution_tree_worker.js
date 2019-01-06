@@ -84,9 +84,9 @@ function _display_tree(data, container, x, y, level, starts) {
         let parent_len = child["parent_str"].length * charWidth;
         container.line(x + xDelta + parent_len / 2, y + charHeight + 5,
             Math.max(x + xDelta - 100000, starts[level + 1]) + child["str"].length * charWidth / 2 + 5,
-            y + 110)
+            y + 60)
             .stroke({width: 3, color: "#c8c8c8"}).back();
-        _display_tree(child, container, Math.max(x + xDelta - 100000, starts[level + 1]), y + 100, level + 1, starts);
+        _display_tree(child, container, Math.max(x + xDelta - 100000, starts[level + 1]), y + 50, level + 1, starts);
         xDelta += parent_len + charWidth;
     }
 }
