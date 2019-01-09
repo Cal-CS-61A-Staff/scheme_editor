@@ -33,7 +33,7 @@
       (if (null? (cdr-stream s))
           (cons cnt nil)
           (if (eq? (car s)
-                   (car (cdr-stream s)))
+                   (car (cdr s)))
               (helper (+ 1 cnt) (cdr-stream s))
               (cons cnt (cdr-stream s)))))
     (define ret (helper 1 s))

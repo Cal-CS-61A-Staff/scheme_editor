@@ -21,9 +21,9 @@ function register(layout) {
                 ${(componentState.id === 0) ?
             `<button type="button" class="btn-danger toolbar-btn test-btn">Test</button>` : ``}
 
-                <button type="button" class="btn-info toolbar-btn sub-btn">Subs</button>          
-                <button type="button" class="btn-info toolbar-btn env-btn">Envs</button>          
-                <button type="button" class="btn-primary toolbar-btn reformat-btn">Reformat</button>          
+                <button type="button" class="btn-primary toolbar-btn sub-btn">Debug</button>          
+                <button type="button" class="btn-info toolbar-btn env-btn">Environment</button>          
+                <button type="button" class="btn-secondary toolbar-btn reformat-btn">Reformat</button>          
             </div>
             <div class="editor-wrapper">
                 <div class="editor"></div>
