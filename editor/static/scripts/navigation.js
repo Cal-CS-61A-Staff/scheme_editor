@@ -1,7 +1,7 @@
 import {states} from "./state_handler";
 import {request_update} from "./event_handler";
 
-export {init_events};
+export {init_events, get_curr_frame};
 
 function fix_expr_i(i) {
     if (states[i].states[states[i].expr_i][0] <= states[i].index &&
@@ -93,19 +93,19 @@ function prev_i(i) {
     request_update();
 }
 
-function get_curr_frame(i) {
+function get_curr_frame(environments, i) {
     let latestFrame;
-    for (let frame of states[i].environments) {
+    for (let frame of environments) {
         // frame is meaningless
         if (frame["bindings"].length === 0) {
             continue;
         }
         // frame is closed
-        if (frame["bindings"][frame["bindings"].length - 1][0] < states[i].index) {
+        if (frame["bindings"][frame["bindings"].length - 1][0] < i) {
             continue;
         }
         // frame not yet open
-        if (frame["bindings"][0][0] > states[i].index) {
+        if (frame["bindings"][0][0] > i) {
             continue;
         }
         latestFrame = frame;
@@ -115,7 +115,7 @@ function get_curr_frame(i) {
 
 // Acts on the latest frame that is open
 function skip_frame(i) {
-    let latestFrame = get_curr_frame(i);
+    let latestFrame = get_curr_frame(states[i].environments, states[i].index);
     if (latestFrame === undefined) {
         return;
     }
@@ -131,7 +131,7 @@ function skip_frame(i) {
 
 // Acts on the latest frame that is open
 function restart_frame(i) {
-    let latestFrame = get_curr_frame(i);
+    let latestFrame = get_curr_frame(states[i].environments, states[i].index);
     if (latestFrame === undefined) {
         return;
     }
