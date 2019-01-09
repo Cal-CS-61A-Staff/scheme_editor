@@ -93,3 +93,7 @@ html, body{
 .fas {
     pointer-events: none;
 }
+
+.lm_active .messageCounter{
+    background: #ee7813;
+}

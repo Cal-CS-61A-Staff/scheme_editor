@@ -26,6 +26,32 @@ function make(container, type, id) {
         title = type_title[type] + " (" + title + ")";
     }
 
+    let color;
+    let icon;
+    if (type === "editor") {
+        if (id === 0) {
+            color = "orange";
+        } else if (states[id].file_name.startsWith(temp_file)) {
+            color = "red";
+        } else {
+            color = "grey";
+        }
+        icon = "file-code";
+    } else if (type === "test_results") {
+        color = "red";
+        icon = "vials";
+    } else if (type === "output") {
+        color = "red";
+        icon = "align-justify";
+    } else if (type === "substitution_tree") {
+        color = "purple";
+        icon = "bug";
+    } else if (type === "env_diagram") {
+        color = "blue";
+        icon = "project-diagram";
+    }
+    title = `<span style="color: ${color};" class="fa fa-${icon}" aria-hidden=\"true\"></span> ` + title;
+
     container.setTitle(title);
 
     container.on("open", function () {
@@ -40,6 +66,10 @@ function make(container, type, id) {
         states[id][open_prop.get(type)] = false;
         setTimeout(saveState, 0);
     });
+
+    setTimeout(function () { $('[data-toggle="tooltip"]').tooltip({
+        trigger: "hover"
+    }); }, 0);
 }
 
 let timer;

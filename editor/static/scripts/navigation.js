@@ -93,6 +93,58 @@ function prev_i(i) {
     request_update();
 }
 
+function get_curr_frame(i) {
+    let latestFrame;
+    for (let frame of states[i].environments) {
+        // frame is meaningless
+        if (frame["bindings"].length === 0) {
+            continue;
+        }
+        // frame is closed
+        if (frame["bindings"][frame["bindings"].length - 1][0] < states[i].index) {
+            continue;
+        }
+        // frame not yet open
+        if (frame["bindings"][0][0] > states[i].index) {
+            continue;
+        }
+        latestFrame = frame;
+    }
+    return latestFrame;
+}
+
+// Acts on the latest frame that is open
+function skip_frame(i) {
+    let latestFrame = get_curr_frame(i);
+    if (latestFrame === undefined) {
+        return;
+    }
+    let newIndex = latestFrame["bindings"][latestFrame["bindings"].length - 1][0];
+    if (states[i].index === newIndex) {
+        next_frame_update(i);
+    } else {
+        states[i].index = newIndex;
+    }
+    fix_expr_i(i);
+    request_update();
+}
+
+// Acts on the latest frame that is open
+function restart_frame(i) {
+    let latestFrame = get_curr_frame(i);
+    if (latestFrame === undefined) {
+        return;
+    }
+    let newIndex = latestFrame["bindings"][0][0];
+    if (states[i].index === newIndex) {
+        prev_frame_update(i);
+    } else {
+        states[i].index = newIndex;
+    }
+    fix_expr_i(i);
+    request_update();
+}
+
 function init_events() {
     console.log("init events!");
     $("#body").on("click", ".prev", function (e) {
@@ -118,5 +170,13 @@ function init_events() {
 
     $("#body").on("click", ".prev-update", function (e) {
         prev_frame_update($(e.target).data("id"));
+    });
+
+    $("#body").on("click", ".skip-frame", function (e) {
+        skip_frame($(e.target).data("id"));
+    });
+
+    $("#body").on("click", ".restart-frame", function (e) {
+        restart_frame($(e.target).data("id"));
     });
 }
