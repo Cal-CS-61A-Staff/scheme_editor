@@ -18,9 +18,9 @@ function register(myLayout) {
                 </div>            
                 <div class="btn-group">
                     <button type="button" data-id="${componentState.id}" 
-                            class="btn btn-sm btn-secondary prev-expr">Prev Expr</button>          
+                            class="btn btn-sm btn-secondary prev-expr">Restart Frame</button>          
                     <button type="button" data-id="${componentState.id}" 
-                            class="btn btn-sm btn-secondary next-expr">Next Expr</button>
+                            class="btn btn-sm btn-secondary next-expr">Complete Frame</button>
                 </div>
                 <div class="btn-group float-right">
                     <div class="custom-control custom-checkbox header-checkbox">

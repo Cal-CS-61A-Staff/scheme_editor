@@ -39,12 +39,6 @@ function register(layout) {
         let changed = false;
         let saveTimer;
 
-        if (states[componentState.id].file_name.startsWith(temp_file)) {
-            container.setTitle(states[componentState.id].file_name.slice(temp_file.length));
-        } else {
-            container.setTitle(states[componentState.id].file_name);
-        }
-
         container.on("open", function () {
             editorDiv = container.getElement().find(".editor").get(0);
             editor = ace.edit(editorDiv);
