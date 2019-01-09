@@ -1,5 +1,6 @@
 import {charWidth, charHeight} from "./measure";
 import {hide_return_frames} from "./settings";
+import {get_curr_frame} from "./navigation";
 
 export {display_env_pointers};
 
@@ -12,6 +13,9 @@ function display_env_pointers(environments, heap, container, i, pointers) {
 
     let frame_data = [];
     let maxlen = 0;
+
+    let active_frame = get_curr_frame(environments, i);
+    let active_frame_data;
 
     for (let frame of environments) {
         let curr = [["", false]];
@@ -55,6 +59,10 @@ function display_env_pointers(environments, heap, container, i, pointers) {
         maxlen = Math.max(maxlen, title.length);
         curr[0] = [title, false];
         frame_data.push(curr);
+
+        if (frame === active_frame) {
+            active_frame_data = curr;
+        }
     }
 
     maxlen += 5;
@@ -90,6 +98,10 @@ function display_env_pointers(environments, heap, container, i, pointers) {
             .stroke({color: "#000000", width: 2})
             .fill({color: "#FFFFFF"})
             .radius(10).back();
+
+        if (frame !== active_frame_data) {
+            rect.attr("stroke-dasharray", "4");
+        }
 
         curr_y += charHeight * frame.length + 20;
     }
