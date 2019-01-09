@@ -41,9 +41,6 @@ function register(myLayout) {
                 </div>
             </div>
         `);
-        setTimeout(function () { $('[data-toggle="tooltip"]').tooltip({
-            trigger: "hover"
-        }); }, 0);
 
         make(container, "substitution_tree", componentState.id);
 

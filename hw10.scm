@@ -21,7 +21,7 @@
         nil
         (cons-stream (+ k (car stream))
                      (helper (+ k (car stream))
-                             (cdr-stream stream)))))
+                             (cdr-strdeam stream)))))
   (helper 0 stream))
 
 (define (rle s)
@@ -33,7 +33,7 @@
       (if (null? (cdr-stream s))
           (cons cnt nil)
           (if (eq? (car s)
-                   (car (cdr s)))
+                   (car (cdr-stream s)))
               (helper (+ 1 cnt) (cdr-stream s))
               (cons cnt (cdr-stream s)))))
     (define ret (helper 1 s))

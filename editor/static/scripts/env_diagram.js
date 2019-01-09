@@ -24,13 +24,13 @@ function register(myLayout) {
                 <button type="button" data-toggle="tooltip"
                         title="Go back to the opening of the frame." 
                         data-id="${componentState.id}" 
-                        class="btn btn-sm btn-light prev-expr">
+                        class="btn btn-sm btn-light restart-frame">
                     <i class="fas fa-angle-double-left"></i>
                 </button>          
                 <button type="button" data-toggle="tooltip"
                         title="Skip to the exit of the frame." 
                         data-id="${componentState.id}" 
-                        class="btn btn-sm btn-light next-expr">
+                        class="btn btn-sm btn-light skip-frame">
                     <i class="fas fa-angle-double-right"></i>
                 </button>
                 <span data-toggle="tooltip" data-target="${random_id}"
