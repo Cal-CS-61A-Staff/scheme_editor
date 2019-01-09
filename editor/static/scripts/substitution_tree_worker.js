@@ -43,7 +43,7 @@ function display_tree(id, svg) {
             states[id].states[states[id].expr_i][2],
             states[id].roots[states[id].expr_i],
             states[id].index),
-        svg, 10, 10, 0, [0]);
+        svg, 10, 15, 0, [0]);
 }
 
 function _display_tree(data, container, x, y, level, starts) {

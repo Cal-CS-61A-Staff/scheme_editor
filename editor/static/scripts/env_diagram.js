@@ -9,25 +9,40 @@ function register(myLayout) {
         let random_id = Math.random().toString(36).replace(/[^a-z]+/g, '');
         container.getElement().html(`
         <div class="content">
-            <div class="header diagram-header">
-                <div class="btn-group">
-                    <button type="button" data-id="${componentState.id}" 
-                            class="btn btn-sm btn-secondary prev-update">Prev</button>          
-                    <button type="button" data-id="${componentState.id}" 
-                            class="btn btn-sm btn-secondary next-update">Next</button>
-                </div>            
-                <div class="btn-group">
-                    <button type="button" data-id="${componentState.id}" 
-                            class="btn btn-sm btn-secondary prev-expr">Restart Frame</button>          
-                    <button type="button" data-id="${componentState.id}" 
-                            class="btn btn-sm btn-secondary next-expr">Complete Frame</button>
-                </div>
-                <div class="btn-group float-right">
-                    <div class="custom-control custom-checkbox header-checkbox">
-                      <input type="checkbox" class="custom-control-input" id="${random_id}">
-                      <label class="custom-control-label" for="${random_id}">Show box and pointer diagrams</label>
+        <div class="header">
+            <div class="btn-toolbar bg-light">
+                <button type="button" data-toggle="tooltip"
+                        title="Step backward." data-id="${componentState.id}" 
+                        class="btn btn-sm btn-light prev-update">
+                        <i class="fas fa-arrow-left"></i>
+                </button>          
+                <button type="button" data-toggle="tooltip"
+                        title="Step forward." data-id="${componentState.id}" 
+                        class="btn btn-sm btn-light next-update">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+                <button type="button" data-toggle="tooltip"
+                        title="Go back to the opening of the frame." 
+                        data-id="${componentState.id}" 
+                        class="btn btn-sm btn-light prev-expr">
+                    <i class="fas fa-angle-double-left"></i>
+                </button>          
+                <button type="button" data-toggle="tooltip"
+                        title="Skip to the exit of the frame." 
+                        data-id="${componentState.id}" 
+                        class="btn btn-sm btn-light next-expr">
+                    <i class="fas fa-angle-double-right"></i>
+                </button>
+                <span data-toggle="tooltip" data-target="${random_id}"
+                      title="Toggle box and pointer visualization.">
+                    <div class="btn-group-toggle" data-toggle="buttons">
+                      <label class="btn btn-sm btn-light" id="${random_id}">
+                        <input type="checkbox" autocomplete="off" class="box-pointer-checkbox">
+                        <i class="fas fa-th-large "></i>
+                      </label>
                     </div>
-                </div>
+                </span>
+            </div>
             </div>
             <div class="envs">
                 <svg></svg>
@@ -52,7 +67,7 @@ function register(myLayout) {
                 states[componentState.id].heap,
                 svg,
                 states[componentState.id].index,
-                $(`#${random_id}`).is(":checked"));
+                container.getElement().find(".box-pointer-checkbox").is(":checked"));
             svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
             if (isNaN(zoom)) {
                 svgPanZoom(rawSVG).reset();
@@ -67,7 +82,8 @@ function register(myLayout) {
         });
 
         container.getElement().find(`#${random_id}`).on("click", function () {
-            request_update();
+            setTimeout(request_update, 0);
+            console.log("CLICKING");
         });
 
         container.on("resize", function () {

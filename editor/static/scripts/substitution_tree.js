@@ -11,30 +11,28 @@ function register(myLayout) {
         container.getElement().html(`
             <div class="content">
                 <div class="header">
-                <div class="btn-group">
+                <div class="btn-toolbar bg-light">
                     <button type="button" data-toggle="tooltip"
                             title="Step backward." data-id="${componentState.id}" 
-                            class="btn btn-sm btn-secondary prev">
+                            class="btn btn-sm btn-light prev">
                             <i class="fas fa-arrow-left"></i>
                     </button>          
                     <button type="button" data-toggle="tooltip"
                             title="Step forward." data-id="${componentState.id}" 
-                            class="btn btn-sm btn-secondary next">
+                            class="btn btn-sm btn-light next">
                         <i class="fas fa-arrow-right"></i>
                     </button>
-                </div>            
-                <div class="btn-group">
                     <button type="button" data-toggle="tooltip"
                             title="Go to the start of the evaluation of the current expression." 
                             data-id="${componentState.id}" 
-                            class="btn btn-sm btn-secondary prev-expr">
-                        Restart Expr
+                            class="btn btn-sm btn-light prev-expr">
+                        <i class="fas fa-angle-double-left"></i>
                     </button>          
                     <button type="button" data-toggle="tooltip"
                             title="Finish evaluating the current expression." 
-                             data-id="${componentState.id}" 
-                            class="btn btn-sm btn-secondary next-expr">
-                        Complete Expr
+                            data-id="${componentState.id}" 
+                            class="btn btn-sm btn-light next-expr">
+                        <i class="fas fa-angle-double-right"></i>
                     </button>
                 </div>
                 </div>
@@ -43,7 +41,9 @@ function register(myLayout) {
                 </div>
             </div>
         `);
-        setTimeout(function () { $('[data-toggle="tooltip"]').tooltip(); }, 0);
+        setTimeout(function () { $('[data-toggle="tooltip"]').tooltip({
+            trigger: "hover"
+        }); }, 0);
 
         make(container, "substitution_tree", componentState.id);
 
