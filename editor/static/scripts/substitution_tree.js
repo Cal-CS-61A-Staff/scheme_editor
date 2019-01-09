@@ -12,16 +12,30 @@ function register(myLayout) {
             <div class="content">
                 <div class="header">
                 <div class="btn-group">
-                    <button type="button" data-id="${componentState.id}" 
-                            class="btn btn-sm btn-secondary prev">Prev</button>          
-                    <button type="button" data-id="${componentState.id}" 
-                            class="btn btn-sm btn-secondary next">Next</button>
+                    <button type="button" data-toggle="tooltip"
+                            title="Step backward." data-id="${componentState.id}" 
+                            class="btn btn-sm btn-secondary prev">
+                            <i class="fas fa-arrow-left"></i>
+                    </button>          
+                    <button type="button" data-toggle="tooltip"
+                            title="Step forward." data-id="${componentState.id}" 
+                            class="btn btn-sm btn-secondary next">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
                 </div>            
                 <div class="btn-group">
-                    <button type="button" data-id="${componentState.id}" 
-                            class="btn btn-sm btn-secondary prev-expr">Prev Expr</button>          
-                    <button type="button" data-id="${componentState.id}" 
-                            class="btn btn-sm btn-secondary next-expr">Next Expr</button>
+                    <button type="button" data-toggle="tooltip"
+                            title="Go to the start of the evaluation of the current expression." 
+                            data-id="${componentState.id}" 
+                            class="btn btn-sm btn-secondary prev-expr">
+                        Restart Expr
+                    </button>          
+                    <button type="button" data-toggle="tooltip"
+                            title="Finish evaluating the current expression." 
+                             data-id="${componentState.id}" 
+                            class="btn btn-sm btn-secondary next-expr">
+                        Complete Expr
+                    </button>
                 </div>
                 </div>
                 <div class="tree">
@@ -29,6 +43,7 @@ function register(myLayout) {
                 </div>
             </div>
         `);
+        setTimeout(function () { $('[data-toggle="tooltip"]').tooltip(); }, 0);
 
         make(container, "substitution_tree", componentState.id);
 
