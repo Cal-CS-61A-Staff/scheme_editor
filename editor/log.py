@@ -4,7 +4,7 @@ from enum import Enum, auto
 from typing import List, Union, Dict, Tuple
 from uuid import uuid4
 
-from datamodel import Expression, ValueHolder, Pair, Nil, Symbol, Undefined, Promise, NilType
+from datamodel import Expression, ValueHolder, Pair, Nil, Symbol, Undefined, Promise, NilType, UndefinedType
 import evaluate_apply
 from helper import pair_to_list
 from scheme_exceptions import OperandDeduceError
@@ -335,6 +335,8 @@ class Heap:
                 val = expr.bind()
             elif isinstance(expr, NilType):
                 return False, "nil"
+            elif isinstance(expr, UndefinedType):
+                return False, "undefined"
             else:
                 # assume the repr method is good enough
                 val = [(False, repr(expr))]

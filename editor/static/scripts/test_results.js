@@ -16,7 +16,7 @@ function register(myLayout) {
                 let hideshow = (!expanded && !entry.passed) ? "show" : "hide";
                 expanded |= !entry.passed;
                 $("#accordion").append(`
-                <div class="card ">
+                <div class="card">
                     <div class="card-header ${card_style} text-white" id="${random_id + "x"}" data-toggle="collapse" 
                     data-target="#${random_id}"> ${entry.problem} </div>
                     <div id="${random_id}" class="collapse ${hideshow}" aria-labelledby="${random_id + "x"}" data-parent="#accordion">
