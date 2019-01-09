@@ -1,13 +1,33 @@
 import {notify_close, notify_open, open_prop} from "./layout";
-import {saveState, states} from "./state_handler";
+import {saveState, states, temp_file} from "./state_handler";
 
 export {request_update, make, begin_slow, end_slow, init_complete}
+
+const type_title = {
+    "env_diagram": "Environments",
+    "substitution_tree": "Debugger",
+    "output": "Output",
+    "test_results": "Test Results"
+};
 
 function request_update() {
     $("*").trigger("update");
 }
 
 function make(container, type, id) {
+    let title;
+    if (states[id].file_name.startsWith(temp_file)) {
+        title = states[id].file_name.slice(temp_file.length);
+    } else {
+        title = states[id].file_name;
+    }
+
+    if (type !== "editor") {
+        title = type_title[type] + " (" + title + ")";
+    }
+
+    container.setTitle(title);
+
     container.on("open", function () {
         notify_open(type, container, id);
         if (!initializing) {
