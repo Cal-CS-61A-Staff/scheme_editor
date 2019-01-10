@@ -83,7 +83,9 @@ def string_exec(strings, out, global_frame=None):
                     for i, expr in enumerate(log.logger.eval_stack):
                         log.logger.raw_out(str(i).ljust(3) + " " + expr + "\n")
                 log.logger.out(e)
+                break
             except TimeLimitException:
                 if not log.logger.fragile:
                     log.logger.out("Time limit exceeded.")
+                break
         log.logger.new_expr()

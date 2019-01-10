@@ -1,10 +1,8 @@
-import * as state_handler from "./state_handler";
-import * as measure from "./measure";
 import {states} from "./state_handler";
 import {charWidth} from "./measure";
 import {charHeight} from "./measure";
 
-export { display_tree };
+export { display_tree, get_i };
 
 function get_i(all_data, curr, i) {
     let labels = [
@@ -29,6 +27,8 @@ function get_i(all_data, curr, i) {
             break;
         }
     }
+
+    data["id"] = curr;
 
     data["children"] = [];
     for (let child of all_data[curr]["children"][j][1]) {

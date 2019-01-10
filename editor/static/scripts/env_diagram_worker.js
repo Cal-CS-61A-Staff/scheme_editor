@@ -134,7 +134,6 @@ function curved_arrow(container, x1, y1, x2, y2) {
 }
 
 function display_elem(x, y, id, all_data, container, depth, cache, index, x1=false, y1=false) {
-    console.log(index);
     if (id[0]) {
         // non atomic
         let data = all_data[id[1]];
@@ -144,7 +143,6 @@ function display_elem(x, y, id, all_data, container, depth, cache, index, x1=fal
             console.log(data[1][0]);
             if (index >= data[1][0]) {
                 data = [data[1][1]];
-                console.log(data);
             } else {
                 data = [[false, "..."]];
             }
@@ -169,12 +167,12 @@ function display_elem(x, y, id, all_data, container, depth, cache, index, x1=fal
             y = y2;
         }
         if (data.length > 1) {
-            cache.set(id[1], [x2, y2]);
+            straight_arrow(container, x1, y1, x2, y2);
         } else {
-            cache.set(id[1], [x, y + minWidth / 2]);
+            straight_arrow(container, x1, y1, x, y + minWidth / 2);
         }
+        cache.set(id[1], [x, y + minWidth / 2]);
 
-        straight_arrow(container, x1, y1, ...cache.get(id[1]));
         let pos = 0;
         let lens = [];
         for (let elem of data) {

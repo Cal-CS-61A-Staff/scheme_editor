@@ -49,7 +49,6 @@ class Thunk:
         self.log_stack = log_stack
         self.gui_holder = gui_holder
         self.return_frame: Optional[Frame] = None
-        print("Thunking", expr)
 
     def __repr__(self):
         return "thunk"
