@@ -17,13 +17,22 @@ function register(layout) {
                     <span class="text"> Save </span>
                 </button>` : ``}
 
-                <button type="button" class="btn-success toolbar-btn run-btn">Run</button>
+                <button type="button" data-toggle="tooltip"
+                            title="Open a console and run the program locally."
+                            class="btn-success toolbar-btn run-btn">Run</button>
                 ${(componentState.id === 0) ?
-            `<button type="button" class="btn-danger toolbar-btn test-btn">Test</button>` : ``}
-
-                <button type="button" class="btn-primary toolbar-btn sub-btn">Debug</button>          
-                <button type="button" class="btn-info toolbar-btn env-btn">Environment</button>          
-                <button type="button" class="btn-secondary toolbar-btn reformat-btn">Reformat</button>          
+                `<button type="button" data-toggle="tooltip"
+                            title="Run all ok.py tests locally."
+                            class="btn-danger toolbar-btn test-btn">Test</button>` : ``}
+                <button type="button" data-toggle="tooltip"
+                            title="Step through the program's execution."
+                            class="btn-primary toolbar-btn sub-btn">Debug</button>          
+                <button type="button" data-toggle="tooltip"
+                            title="View environment diagram."
+                            class="btn-info toolbar-btn env-btn">Environments</button>          
+                <button type="button" data-toggle="tooltip"
+                            title="Reformat code and fix (some) minor mistakes."
+                            class="btn-secondary toolbar-btn reformat-btn">Reformat</button>          
             </div>
             <div class="editor-wrapper">
                 <div class="editor"></div>
