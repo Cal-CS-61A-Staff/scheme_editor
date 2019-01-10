@@ -32,6 +32,18 @@ function register(myLayout) {
                         data-id="${componentState.id}" 
                         class="btn btn-sm btn-light skip-frame">
                     <i class="fas fa-angle-double-right"></i>
+                </button>          
+                <button type="button" data-toggle="tooltip"
+                        title="Go to the start of the program.." 
+                        data-id="${componentState.id}" 
+                        class="btn btn-sm btn-light go-to-start">
+                    <i class="fas fa-arrow-alt-circle-left"></i>
+                </button>          
+                <button type="button" data-toggle="tooltip"
+                        title="Finish executing the program." 
+                        data-id="${componentState.id}" 
+                        class="btn btn-sm btn-light go-to-end">
+                    <i class="fas fa-arrow-alt-circle-right"></i>
                 </button>
                 <span data-toggle="tooltip" data-target="${random_id}"
                       title="Toggle box and pointer visualization.">

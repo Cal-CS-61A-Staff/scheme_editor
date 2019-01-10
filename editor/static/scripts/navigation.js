@@ -1,11 +1,12 @@
 import {states} from "./state_handler";
 import {request_update} from "./event_handler";
+import {get_i} from "./substitution_tree_worker";
 
 export {init_events, get_curr_frame};
 
 function fix_expr_i(i) {
     if (states[i].states[states[i].expr_i][0] <= states[i].index &&
-            states[i].index < states[i].states[states[i].expr_i][1]) {
+        states[i].index < states[i].states[states[i].expr_i][1]) {
         return;
     }
     for (let expr_i = 0; expr_i !== states[i].states.length; ++expr_i) {
@@ -145,6 +146,74 @@ function restart_frame(i) {
     request_update();
 }
 
+function get_active_node(i) {
+    let pos = get_i(states[i].states[states[i].expr_i][2],
+          states[i].roots[states[i].expr_i],
+          states[i].index);
+
+    console.log(pos);
+
+    outer:
+    while (true) {
+        console.log("Loop");
+        for (let child of pos.children) {
+            if (child["transition_type"] !== "EVALUATED" && child["transition_type"] !== "UNEVALUATED")
+            {
+                pos = child;
+                continue outer;
+            }
+        }
+        break;
+    }
+
+    return states[i].states[states[i].expr_i][2][pos["id"]];
+}
+
+function go_to_end(i) {
+    states[i].index = states[i].states[states[i].states.length - 1][1] - 1;
+    fix_expr_i(i);
+    request_update();
+}
+
+function go_to_start(i) {
+    states[i].index = states[i].states[0][0];
+    fix_expr_i(i);
+    request_update();
+}
+
+function finish_eval(i) {
+    let node = get_active_node(i);
+    console.log(node);
+    let newIndex = node["transitions"][node["transitions"].length - 1][0];
+    if (states[i].index >= newIndex || node["transitions"][node["transitions"].length - 1][1] !== "EVALUATED") {
+        if (states[i].expr_i === states[i].states.length - 1) {
+            go_to_end(i);
+        } else {
+            next_expr(i);
+        }
+    } else {
+        states[i].index = newIndex;
+        fix_expr_i(i);
+        request_update();
+    }
+}
+
+function restart_eval(i) {
+    let node = get_active_node(i);
+    let newIndex = node["transitions"][0][0];
+    if (states[i].index === newIndex) {
+        prev_i(i);
+        if (states[i].index === newIndex) {
+            return;
+        }
+        restart_eval(i);
+    } else {
+        states[i].index = newIndex;
+        fix_expr_i(i);
+        request_update();
+    }
+}
+
 function init_events() {
     console.log("init events!");
     $("#body").on("click", ".prev", function (e) {
@@ -178,5 +247,21 @@ function init_events() {
 
     $("#body").on("click", ".restart-frame", function (e) {
         restart_frame($(e.target).data("id"));
+    });
+
+    $("#body").on("click", ".finish-eval", function (e) {
+        finish_eval($(e.target).data("id"));
+    });
+
+    $("#body").on("click", ".restart-eval", function (e) {
+        restart_eval($(e.target).data("id"));
+    });
+
+    $("#body").on("click", ".go-to-end", function (e) {
+        go_to_end($(e.target).data("id"));
+    });
+
+    $("#body").on("click", ".go-to-start", function (e) {
+        go_to_start($(e.target).data("id"));
     });
 }

@@ -50,7 +50,7 @@ class VisualExpression:
                 else:
                     curr_transition = HolderState[logger.node_cache[self.id].transitions[-1][-1]]
             else:
-                curr_transition = HolderState.EVALUATING
+                curr_transition = HolderState.UNEVALUATED
             logger.node_cache[self.id].modify(self, curr_transition)
         return self
 

@@ -25,14 +25,26 @@ function register(myLayout) {
                     <button type="button" data-toggle="tooltip"
                             title="Go to the start of the evaluation of the current expression." 
                             data-id="${componentState.id}" 
-                            class="btn btn-sm btn-light prev-expr">
+                            class="btn btn-sm btn-light restart-eval">
                         <i class="fas fa-angle-double-left"></i>
                     </button>          
                     <button type="button" data-toggle="tooltip"
                             title="Finish evaluating the current expression." 
                             data-id="${componentState.id}" 
-                            class="btn btn-sm btn-light next-expr">
+                            class="btn btn-sm btn-light finish-eval">
                         <i class="fas fa-angle-double-right"></i>
+                    </button>          
+                    <button type="button" data-toggle="tooltip"
+                            title="Go to the start of the program.." 
+                            data-id="${componentState.id}" 
+                            class="btn btn-sm btn-light go-to-start">
+                        <i class="fas fa-arrow-alt-circle-left"></i>
+                    </button>          
+                    <button type="button" data-toggle="tooltip"
+                            title="Finish executing the program." 
+                            data-id="${componentState.id}" 
+                            class="btn btn-sm btn-light go-to-end">
+                        <i class="fas fa-arrow-alt-circle-right"></i>
                     </button>
                 </div>
                 </div>

@@ -21,7 +21,7 @@
         nil
         (cons-stream (+ k (car stream))
                      (helper (+ k (car stream))
-                             (cdr-strdeam stream)))))
+                             (cdr-stream stream)))))
   (helper 0 stream))
 
 (define (rle s)
