@@ -65,15 +65,20 @@ function display_env_pointers(environments, heap, container, i, pointers) {
         }
     }
 
+    console.log(frame_data);
+
     maxlen += 5;
 
     let curr_y = 10;
+
+    console.log("Start");
 
     for (let frame of frame_data) {
         for (let k = 1; k < frame.length; ++k) {
             container.text(frame[k][0]).font("family", "Monaco, monospace").font("size", 14).dx(35).dy(curr_y + charHeight * k);
             if (frame[k][1]) {
                 let is_box = (heap[frame[k][1][1]].length > 1);
+                let valid = !cache.has(frame[k][1][1]);
                 let depth = display_elem(
                     maxlen * charWidth + 45,
                     h + (is_box ? charHeight / 2 : 0),
@@ -85,11 +90,20 @@ function display_env_pointers(environments, heap, container, i, pointers) {
                     i,
                     maxlen * charWidth,
                     curr_y + charHeight * k + charHeight * 3 / 4) + 1;
-                if (is_box) {
-                    h += depth * (minWidth + 15);
-                } else {
-                    h += charHeight;
+
+                console.log("delta");
+                console.log(frame[k]);
+                console.log(heap[frame[k][1][1]][0]);
+
+                if (valid) {
+                    if (is_box) {
+                        console.log(depth);
+                        h += depth * (minWidth + 15);
+                    } else {
+                        h += charHeight;
+                    }
                 }
+                console.log(h);
             }
         }
         container.text(frame[0][0]).font("family", "Monaco, monospace").font("size", 14).dx(25).dy(curr_y);
@@ -139,8 +153,8 @@ function display_elem(x, y, id, all_data, container, depth, cache, index, x1=fal
         let data = all_data[id[1]];
 
         if (data[0] === "promise") {
-            console.log(index);
-            console.log(data[1][0]);
+            // console.log(index);
+            // console.log(data[1][0]);
             if (index >= data[1][0]) {
                 data = [data[1][1]];
             } else {
@@ -213,6 +227,7 @@ function display_elem(x, y, id, all_data, container, depth, cache, index, x1=fal
             .font("family", "Monaco, monospace").font("size", 14)
             .cx(x + width / 2)
             .cy(y + minWidth / 2);
+        // container.text("0").dx(x).dy(y);
         return 0;
     }
 }
