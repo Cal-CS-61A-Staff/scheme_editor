@@ -54,14 +54,6 @@ class VisualExpression:
             logger.node_cache[self.id].modify(self, curr_transition)
         return self
 
-    def update(self, expression: Expression):
-        old_id = self.id
-        old_base_expr = self.base_expr
-        self.__init__(expression)
-        self.id = old_id
-        self.base_expr = old_base_expr
-        logger.node_cache[self.id].modify(self, HolderState.EVALUATING)
-
     def __repr__(self):
         if self.value is not None:
             return repr(self.value)
