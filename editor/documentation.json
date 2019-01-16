@@ -53,7 +53,7 @@
     "example": [
       "We assign <x> to a lambda that takes in no arguments and returns 5",
       "scm> (define x (lambda () 5))",
-      "We now call <x, which returns 5",
+      "We now call <x>, which returns 5",
       "scm> (x)"
     ]
   }, {
