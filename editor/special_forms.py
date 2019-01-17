@@ -25,8 +25,6 @@ class LambdaObject(Applicable):
             operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
         verify_exact_callable_length(self, len(self.params), len(operands))
 
-        gui_holder.apply()
-
         if len(self.body) > 1:
             body = [Pair(Symbol("begin"), make_list(self.body))]
         else:
@@ -37,6 +35,9 @@ class LambdaObject(Applicable):
         out = None
         gui_holder.expression.set_entries(
             [VisualExpression(expr, gui_holder.expression.display_value) for expr in body])
+
+        gui_holder.apply()
+
         for i, expression in enumerate(body):
             out = evaluate(expression, new_frame, gui_holder.expression.children[i],
                            i == len(body) - 1, log_stack=len(self.body) == 1)
@@ -266,8 +267,6 @@ class MuObject(Applicable):
             operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
         verify_exact_callable_length(self, len(self.params), len(operands))
 
-        gui_holder.apply()
-
         if len(self.body) > 1:
             body = [Pair(Symbol("begin"), make_list(self.body))]
         else:
@@ -278,6 +277,9 @@ class MuObject(Applicable):
         out = None
         gui_holder.expression.set_entries(
             [VisualExpression(expr, gui_holder.expression.display_value) for expr in body])
+
+        gui_holder.apply()
+
         for i, expression in enumerate(body):
             out = evaluate(expression, new_frame, gui_holder.expression.children[i],
                            i == len(body) - 1, log_stack=len(self.body) == 1)
