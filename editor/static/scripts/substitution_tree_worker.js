@@ -13,10 +13,22 @@ export {
 	get_i
 };
 
+function display_str(elem) {
+    if (elem["children"].length === 0 || elem["transition_type"] !== "EVALUATING") {
+        return elem["str"];
+    }
+    let out = "(";
+    for (let child of elem["children"]) {
+        out += display_str(child) + " ";
+    }
+    out = out.slice(0, -1) + ")";
+    return out;
+}
+
 function locate(data) {
-	_locate(data, data["parent_str"], 0, 0, 0);
-	console.log(data);
+	_locate(data, data["str"], 0, 0, 0);
 	data["root"] = true;
+	console.log(data);
 }
 
 function _locate(elem, base_str, i, row, col) {
@@ -30,17 +42,17 @@ function _locate(elem, base_str, i, row, col) {
 
 	elem["root"] = (elem["parent_str"] !== elem["str"]);
 
-	while (base_str[i] === " " || base_str[i] === "\n" || base_str[i] === elem["parent_str"][pos]) {
-		if (base_str[i] === elem["parent_str"][pos] && start_row === -1) {
+	while (base_str[i] === " " || base_str[i] === "\n" || base_str[i] === elem["str"][pos]) {
+		if (base_str[i] === elem["str"][pos] && start_row === -1) {
 			start_row = row;
 			start_col = col;
 			max_col = col;
 			start_i = i;
 		}
-		if (base_str[i] === elem["parent_str"][pos]) {
+		if (base_str[i] === elem["str"][pos]) {
 			++pos;
 		}
-		if (pos === elem["parent_str"].length) {
+		if (pos === elem["str"].length) {
 			break;
 		}
 		if (base_str[i] === "\n") {
@@ -64,10 +76,14 @@ function _locate(elem, base_str, i, row, col) {
 	let child_row = start_row;
 	let child_col = start_col + 1;
 	for (let child of elem["children"]) {
-		_locate(child, base_str, child_i, child_row, child_col);
-		child_i = child["end_i"] + 1;
-		child_row = child["end_row"];
-		child_col = child["end_col"] + 1;
+	    if (elem["transition_type"] === "APPLYING") {
+            locate(child);
+        } else {
+            _locate(child, base_str, child_i, child_row, child_col);
+            child_i = child["end_i"] + 1;
+            child_row = child["end_row"];
+            child_col = child["end_col"] + 1;
+        }
 	}
 }
 
@@ -103,18 +119,12 @@ function get_i(all_data, curr, i, callback) {
 	}
 	if (callback !== undefined) {
 		$.post("./reformat", {
-			code: [data["parent_str"]],
+			code: [display_str(data)],
 		}).done(function (response) {
-			response = $.parseJSON(response);
-			data["parent_str"] = response["formatted"];
-			$.post("./reformat", {
-				code: [data["str"]],
-			}).done(function (response) {
-				response = $.parseJSON(response);
-				data["str"] = response["formatted"];
-				locate(data);
-				callback(data);
-			});
+            response = $.parseJSON(response);
+            data["str"] = response["formatted"];
+            locate(data);
+            callback(data);
 		});
 	}
 	return data;
@@ -126,13 +136,16 @@ function display_tree(id, svg, callback) {
 		states[id].roots[states[id].expr_i],
 		states[id].index,
 		(data) => {
-			_display_tree(data, svg);
+			_display_tree(data, svg, 10);
 			callback();
 		}
 	);
 }
 
-function _display_tree(data, container) {
+function _display_tree(data, container, base_y, base_h) {
+    if (base_h === undefined) {
+        base_h = data["str"].split("\n").length * charHeight;
+    }
 	let color;
 	switch (data["transition_type"]) {
 		case "UNEVALUATED":
@@ -154,10 +167,10 @@ function _display_tree(data, container) {
 	let width = charWidth * (data["end_col"] - data["start_col"] + 1);
 	let height = charHeight * (data["end_row"] - data["start_row"] + 1);
 
-	let x = data["start_col"] * charWidth;
-	let y = data["start_row"] * charHeight;
+	let x = data["start_col"] * charWidth + 10;
+	let y = data["start_row"] * charHeight + base_y;
 
-	let rect = container.rect(width, height).dx(x).dy(y + 3)
+	let rect = container.rect(width + 5, height + 5).dx(x - 3).dy(y)
 		.stroke({
 			color: color,
 			width: 2
@@ -180,9 +193,11 @@ function _display_tree(data, container) {
 
 	for (let child of data["children"]) {
 		let parent_len = child["parent_str"].length * charWidth;
-		_display_tree(child, container,
-			child["start_col"] * charWidth,
-			child["start_row"] * charHeight);
+		if (data["transition_type"] === "APPLYING") {
+    		_display_tree(child, container, base_y + base_h + 10);
+        } else {
+    		_display_tree(child, container, base_y, base_h);
+        }
 		xDelta += parent_len + charWidth;
 	}
 }

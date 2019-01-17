@@ -118,6 +118,7 @@ class Promise(Expression):
         return "#[promise]"
 
     def __repr__(self):
+        return str(self)
         if self.forced:
             return "#[promise (forced)]"
         else:
