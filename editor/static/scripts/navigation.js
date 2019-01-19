@@ -148,23 +148,23 @@ function restart_frame(i) {
 
 function get_active_node(i) {
     let pos = get_i(states[i].states[states[i].expr_i][2],
-          states[i].roots[states[i].expr_i],
-          states[i].index);
+        states[i].roots[states[i].expr_i],
+        states[i].index);
 
     console.log(pos);
 
     outer:
-    while (true) {
-        console.log("Loop");
-        for (let child of pos.children) {
-            if (child["transition_type"] !== "EVALUATED" && child["transition_type"] !== "UNEVALUATED")
-            {
-                pos = child;
-                continue outer;
+        while (true) {
+            for (let child of pos.children) {
+                if (child["transition_type"] !== "EVALUATED" && child["transition_type"] !== "UNEVALUATED") {
+                    pos = child;
+                    continue outer;
+                }
             }
+            break;
         }
-        break;
-    }
+
+    console.log(pos);
 
     return states[i].states[states[i].expr_i][2][pos["id"]];
 }

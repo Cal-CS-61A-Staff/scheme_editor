@@ -68,16 +68,16 @@ function open(type, index) {
     let pos;
     let friends;
 
-    if (type === "editor") {
+    if (type === "editor" || type === "substitution_tree") {
         pos = "column";
-        friends = ["editor"]
+        friends = [type, "editor", "substitution_tree"]
     } else if (type === "test_results") {
         pos = "row";
         friends = [];
     } else {
         // output, visualizations
         pos = "column";
-        friends = [type, "substitution_tree", "env_diagram", "output"];
+        friends = [type, "env_diagram", "output"];
     }
 
     let ok = false;

@@ -14,11 +14,23 @@ export {
 };
 
 function display_str(elem) {
-    if (elem["children"].length === 0 || elem["transition_type"] !== "EVALUATING") {
+    if (elem["transition_type"] === "EVALUATED") {
         return elem["str"];
     }
+
+    let children;
+    if (elem["transition_type"] === "APPLYING") {
+        children = elem["prev_children"];
+    } else {
+        children = elem["children"]
+    }
+
+    if (children.length === 0) {
+        return elem["str"];
+    }
+
     let out = "(";
-    for (let child of elem["children"]) {
+    for (let child of children) {
         out += display_str(child) + " ";
     }
     out = out.slice(0, -1) + ")";
@@ -35,10 +47,10 @@ async function locate(data) {
     );
     await _locate(data, data["str"], 0, 0, 0);
     data["root"] = true;
+    console.log(data);
 }
 
 async function _locate(elem, base_str, i, row, col) {
-    console.log(elem["str"] + " " + i + " " + row + " " + col);
     let pos = 0;
     let start_row = -1;
     let start_col = -1;
@@ -48,17 +60,19 @@ async function _locate(elem, base_str, i, row, col) {
 
     elem["root"] = (elem["parent_str"] !== elem["str"]);
 
-    while (base_str[i] === " " || base_str[i] === "\n" || base_str[i] === elem["str"][pos]) {
-        if (base_str[i] === elem["str"][pos] && start_row === -1) {
+    let display_elem_str = display_str(elem);
+
+    while (base_str[i] === " " || base_str[i] === "\n" || base_str[i] === display_elem_str[pos]) {
+        if (base_str[i] === display_elem_str[pos] && start_row === -1) {
             start_row = row;
             start_col = col;
             max_col = col;
             start_i = i;
         }
-        if (base_str[i] === elem["str"][pos]) {
+        if (base_str[i] === display_elem_str[pos]) {
             ++pos;
         }
-        if (pos === elem["str"].length) {
+        if (pos === display_elem_str.length) {
             break;
         }
         if (base_str[i] === "\n") {
@@ -69,6 +83,10 @@ async function _locate(elem, base_str, i, row, col) {
             max_col = Math.max(max_col, col);
         }
         ++i;
+    }
+
+    if (pos !== display_elem_str.length) {
+        console.error("Misaligned debug output!");
     }
 
     elem["start_row"] = start_row;
@@ -125,10 +143,17 @@ function get_i(all_data, curr, i) {
         data["children"].push(get_i(all_data, child, i));
     }
 
+    data["prev_children"] = [];
+    if (data["transition_type"] === "APPLYING") {
+        for (let child of all_data[curr]["children"][j - 1][1]) {
+            data["prev_children"].push(get_i(all_data, child, i));
+        }
+    }
+
     return data;
 }
 
-async function display_tree(id, svg) {
+async function display_tree(id, svg, clear_svg) {
     let data = get_i(
         states[id].states[states[id].expr_i][2],
         states[id].roots[states[id].expr_i],
@@ -137,6 +162,8 @@ async function display_tree(id, svg) {
 
     await locate(data);
 
+    clear_svg();
+    svg.clear();
     _display_tree(data, svg, 10);
 }
 
