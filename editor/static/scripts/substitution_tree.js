@@ -63,7 +63,7 @@ function register(myLayout) {
         console.log("adopted");
         let ready = false;
 
-        container.getElement().find(".flag").on("update", () => {
+        container.getElement().find(".flag").on("update", async () => {
             let zoom = svgPanZoom(rawSVG).getZoom();
             let pan = svgPanZoom(rawSVG).getPan();
             svgPanZoom(rawSVG).destroy();
@@ -74,22 +74,22 @@ function register(myLayout) {
                 console.log("SKIP");
             }
             console.log("starting");
-            substitution_tree_worker.display_tree(componentState.id, svg).then(
-                () => {
-                    svgPanZoom(rawSVG, {
-                        fit: false,
-                        zoomEnabled: true,
-                        center: false,
-                        controlIconsEnabled: true
-                    });
-                    console.log("cat");
-                    if (isNaN(zoom)) {
-                        svgPanZoom(rawSVG).reset();
-                    } else {
-                        svgPanZoom(rawSVG).zoom(zoom);
-                        svgPanZoom(rawSVG).pan(pan);
-                    }
-                });
+
+            await substitution_tree_worker.display_tree(componentState.id, svg);
+
+            svgPanZoom(rawSVG, {
+                fit: false,
+                zoomEnabled: true,
+                center: false,
+                controlIconsEnabled: true
+            });
+
+            if (isNaN(zoom)) {
+                svgPanZoom(rawSVG).reset();
+            } else {
+                svgPanZoom(rawSVG).zoom(zoom);
+                svgPanZoom(rawSVG).pan(pan);
+            }
         });
 
         container.getElement().find(".tree").on("reset", function () {
