@@ -43,9 +43,9 @@ function make_new_state() {
     return jQuery.extend({}, base_state);
 }
 
-function loadState(callback) {
+async function loadState() {
     begin_slow();
-    $.post("./load_state", {})
+    await $.post("./load_state", {})
         .done(function (data) {
             end_slow();
             if (data !== "fail") {
@@ -54,12 +54,11 @@ function loadState(callback) {
                 setLayout(data.layout);
                 setAllSettings(data.settings);
             }
-            callback();
         });
 }
 
 let curr_saving = false;
-function saveState(callback, layout=undefined) {
+async function saveState(layout=undefined) {
     if (curr_saving) {
         return;
     }
@@ -70,13 +69,10 @@ function saveState(callback, layout=undefined) {
         layout = getLayout();
     }
     console.log(layout);
-    $.post("./save_state", {
+    await $.post("./save_state", {
         state: JSON.stringify({states: states, layout: layout, settings: getAllSettings()}),
     }).done(function () {
         end_slow();
         curr_saving = false;
-        if (callback !== undefined) {
-            callback();
-        }
     });
 }
