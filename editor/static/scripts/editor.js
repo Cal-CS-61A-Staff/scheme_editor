@@ -107,7 +107,7 @@ function register(layout) {
                 globalFrameID: -1,
                 curr_i: 0,
                 curr_f: 0,
-            }).done(function (data) {
+            }).done(async function (data) {
                 end_slow();
                 data = $.parseJSON(data);
                 console.log(data);
@@ -132,13 +132,13 @@ function register(layout) {
                     states[componentState.id].out = data.out[0];
                 }
 
-                save().then(function () {
-                    open("output", componentState.id);
-                    // noinspection JSIgnoredPromiseFromCall
-                    saveState();
-                    $("*").trigger("reset");
-                    request_update();
-                });
+                await save();
+
+                open("output", componentState.id);
+                // noinspection JSIgnoredPromiseFromCall
+                saveState();
+                $("*").trigger("reset");
+                request_update();
             });
         });
 
@@ -161,16 +161,14 @@ function register(layout) {
             });
         });
 
-        container.getElement().find(".sub-btn").on("click", function () {
-            save().then(() => {
-                open("substitution_tree", componentState.id);
-            });
+        container.getElement().find(".sub-btn").on("click", async function () {
+            await save();
+            open("substitution_tree", componentState.id);
         });
 
-        container.getElement().find(".env-btn").on("click", function () {
-            save().then(function () {
-                open("env_diagram", componentState.id);
-            });
+        container.getElement().find(".env-btn").on("click", async function () {
+            await save();
+            open("env_diagram", componentState.id);
         });
 
         container.getElement().find(".test-btn").on("click", function () {
@@ -182,13 +180,12 @@ function register(layout) {
             $.post("./test", {
                 code: code,
                 filename: states[componentState.id].file_name,
-            }).done(function (data) {
+            }).done(async function (data) {
                 end_slow();
                 data = $.parseJSON(data);
                 states[componentState.id].test_results = data;
-                save().then(function () {
-                    open("test_results", componentState.id);
-                });
+                await save();
+                open("test_results", componentState.id);
             });
         });
 

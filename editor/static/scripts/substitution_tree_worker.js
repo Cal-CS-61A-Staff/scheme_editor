@@ -25,13 +25,19 @@ function display_str(elem) {
     return out;
 }
 
-function locate(data) {
-    _locate(data, data["str"], 0, 0, 0);
+async function locate(data) {
+    await $.post("./reformat",
+        {code: [display_str(data)]}).done(
+        (response) => {
+            response = $.parseJSON(response);
+            data["str"] = response["formatted"];
+        }
+    );
+    await _locate(data, data["str"], 0, 0, 0);
     data["root"] = true;
-    console.log(data);
 }
 
-function _locate(elem, base_str, i, row, col) {
+async function _locate(elem, base_str, i, row, col) {
     console.log(elem["str"] + " " + i + " " + row + " " + col);
     let pos = 0;
     let start_row = -1;
@@ -78,9 +84,9 @@ function _locate(elem, base_str, i, row, col) {
 
     for (let child of elem["children"]) {
         if (elem["transition_type"] === "APPLYING") {
-            locate(child);
+            await locate(child);
         } else {
-            _locate(child, base_str, child_i, child_row, child_col);
+            await _locate(child, base_str, child_i, child_row, child_col);
             child_i = child["end_i"] + 1;
             child_row = child["end_row"];
             child_col = child["end_col"] + 1;
@@ -88,7 +94,7 @@ function _locate(elem, base_str, i, row, col) {
     }
 }
 
-async function get_i(all_data, curr, i) {
+function get_i(all_data, curr, i) {
     let labels = [
         ["transitions", "transition_type"],
         ["strs", "str"],
@@ -118,22 +124,18 @@ async function get_i(all_data, curr, i) {
     for (let child of all_data[curr]["children"][j][1]) {
         data["children"].push(get_i(all_data, child, i));
     }
-    await $.post("./reformat", {
-        code: [display_str(data)],
-    }).done(function (response) {
-        response = $.parseJSON(response);
-        data["str"] = response["formatted"];
-        locate(data);
-    });
+
     return data;
 }
 
 async function display_tree(id, svg) {
-    await get_i(
+    let data = get_i(
         states[id].states[states[id].expr_i][2],
         states[id].roots[states[id].expr_i],
         states[id].index,
     );
+
+    await locate(data);
 
     _display_tree(data, svg, 10);
 }
