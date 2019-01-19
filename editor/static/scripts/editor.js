@@ -132,8 +132,9 @@ function register(layout) {
                     states[componentState.id].out = data.out[0];
                 }
 
-                save(function () {
-                    open("output", componentState.id)
+                save().then(function () {
+                    open("output", componentState.id);
+                    // noinspection JSIgnoredPromiseFromCall
                     saveState();
                     $("*").trigger("reset");
                     request_update();
@@ -142,6 +143,7 @@ function register(layout) {
         });
 
         container.getElement().find(".save-btn").on("click", function () {
+            // noinspection JSIgnoredPromiseFromCall
             save();
         });
 
@@ -160,13 +162,13 @@ function register(layout) {
         });
 
         container.getElement().find(".sub-btn").on("click", function () {
-            save(function () {
+            save().then(() => {
                 open("substitution_tree", componentState.id);
             });
         });
 
         container.getElement().find(".env-btn").on("click", function () {
-            save(function () {
+            save().then(function () {
                 open("env_diagram", componentState.id);
             });
         });
@@ -184,32 +186,26 @@ function register(layout) {
                 end_slow();
                 data = $.parseJSON(data);
                 states[componentState.id].test_results = data;
-                save(function () {
+                save().then(function () {
                     open("test_results", componentState.id);
                 });
             });
         });
 
-        function save(callback) {
+        async function save() {
             if (!changed || states[componentState.id].file_name.startsWith(temp_file)) {
-                if (callback !== undefined) {
-                    callback();
-                }
                 return;
             }
             container.getElement().find(".save-btn > .text").text("Saving...");
 
             let code = [editor.getValue()];
-            $.post("./save", {
+            await $.post("./save", {
                 code: code,
                 filename: states[componentState.id].file_name,
             }).done(function (data) {
                 if (data === "success") {
                     container.getElement().find(".save-btn > .text").text("Saved");
                     changed = false;
-                    if (callback !== undefined) {
-                        callback();
-                    }
                 } else {
                     alert("Save error - try copying code from editor to a file manually");
                 }

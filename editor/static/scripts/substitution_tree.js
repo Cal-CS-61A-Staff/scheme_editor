@@ -74,8 +74,8 @@ function register(myLayout) {
                 console.log("SKIP");
             }
             console.log("starting");
-            substitution_tree_worker.display_tree(componentState.id, svg,
-                function () {
+            substitution_tree_worker.display_tree(componentState.id, svg).then(
+                () => {
                     svgPanZoom(rawSVG, {
                         fit: false,
                         zoomEnabled: true,
