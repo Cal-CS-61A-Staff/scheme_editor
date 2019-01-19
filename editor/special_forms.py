@@ -50,8 +50,8 @@ class LambdaObject(Applicable):
         return f"({self.name} {' '.join(map(repr, self.params))}) [parent = {self.frame.id}]"
 
     def __str__(self):
-        return repr(self)
-        # return f"#[{self.name}]"
+        # return repr(self)
+        return f"#[{self.name}]"
 
 
 @global_attr("lambda")
@@ -292,8 +292,8 @@ class MuObject(Applicable):
         return f"({self.name} {' '.join(map(repr, self.params))})"
 
     def __str__(self):
-        return repr(self)
-        # return f"#[{self.name}]"
+        # return repr(self)
+        return f"#[{self.name}]"
 
 
 class MacroObject(Callable):
@@ -331,8 +331,8 @@ class MacroObject(Callable):
         return f"({self.name} {' '.join(map(repr, self.params))}) [parent = {self.frame.id}]"
 
     def __str__(self):
-        return repr(self)
-        # return f"#[{self.name}]"
+        # return repr(self)
+        return f"#[{self.name}]"
 
 
 @global_attr("define-macro")

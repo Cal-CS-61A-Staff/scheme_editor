@@ -56,8 +56,8 @@ class VisualExpression:
 
     def __repr__(self):
         if self.value is not None:
-            return repr(self.value)
-        return repr(self.display_value)
+            return str(self.value)
+        return str(self.display_value)
 
 
 class Holder:

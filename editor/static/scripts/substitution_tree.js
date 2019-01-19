@@ -9,6 +9,7 @@ export {
 
 function register(myLayout) {
     myLayout.registerComponent('substitution_tree', function (container, componentState) {
+        let random_id = Math.random().toString(36).replace(/[^a-z]+/g, '');
         container.getElement().html(`
             <div class="content">
                 <div class="header">
@@ -46,7 +47,16 @@ function register(myLayout) {
                             data-id="${componentState.id}" 
                             class="btn btn-sm btn-light go-to-end">
                         <i class="fas fa-arrow-alt-circle-right"></i>
-                    </button>
+                    </button>                    
+                    <span data-toggle="tooltip" data-target="${random_id}"
+                          title="Toggle tree visualization.">
+                        <div class="btn-group-toggle" data-toggle="buttons">
+                          <label class="btn btn-sm btn-light" id="${random_id}">
+                            <input type="checkbox" autocomplete="off" class="tree-checkbox">
+                            <i class="fas fa-sitemap"></i>
+                          </label>
+                        </div>
+                    </span>
                 </div>
                 </div>
                 <div class="tree">
@@ -63,19 +73,28 @@ function register(myLayout) {
         console.log("adopted");
         let ready = false;
 
-        container.getElement().find(".flag").on("update", async () => {
-            let zoom = svgPanZoom(rawSVG).getZoom();
-            let pan = svgPanZoom(rawSVG).getPan();
-            svgPanZoom(rawSVG).destroy();
-            if (ready) {
-                svg.clear();
-            } else {
-                ready = true;
-                console.log("SKIP");
-            }
-            console.log("starting");
+        let working = false;
 
-            await substitution_tree_worker.display_tree(componentState.id, svg);
+        container.getElement().find(".flag").on("update", async () => {
+            if (working) {
+                return;
+            }
+            working = true;
+
+            let zoom;
+            let pan;
+
+            let clearSVG = function () {
+                zoom = svgPanZoom(rawSVG).getZoom();
+                pan = svgPanZoom(rawSVG).getPan();
+                svgPanZoom(rawSVG).destroy();
+
+                if (!ready) {
+                    ready = true;
+                }
+            };
+
+            await substitution_tree_worker.display_tree(componentState.id, svg, clearSVG);
 
             svgPanZoom(rawSVG, {
                 fit: false,
@@ -90,6 +109,8 @@ function register(myLayout) {
                 svgPanZoom(rawSVG).zoom(zoom);
                 svgPanZoom(rawSVG).pan(pan);
             }
+
+            working = false;
         });
 
         container.getElement().find(".tree").on("reset", function () {
