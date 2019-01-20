@@ -1,15 +1,4 @@
-(define (reverse lst)
-  (if (null? lst)
-      nil
-      (cons (reverse (cdr lst))
-            (car lst))))
+(define demo
+    '(cat dog meow woof bob the cat is a very nice kitty cat))
 
-(define (iota n)
-  (define (loop acc k)
-    (if (= k n)
-        (reverse acc)
-        (loop (append (list k) acc)
-              (+ 1 k))))
-  (loop nil 0))
-
-(iota 5)
+(begin demo 1 2 3)
