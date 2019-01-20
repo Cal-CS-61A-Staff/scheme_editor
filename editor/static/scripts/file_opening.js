@@ -1,9 +1,28 @@
 import {make_new_state, saveState, states} from "./state_handler";
 import {open} from "./layout";
 
-export { init };
+export {init};
 
 function init() {
+    $("#new-btn").click(function () {
+        $("#fileNameInput").val("");
+        $("#newFileModal").modal();
+    });
+
+    $("#newFileButton").click(async function () {
+        let fileName = $("#fileNameInput").val();
+        let success;
+        await $.post("./new_file", {filename: $("#fileNameInput").val()}).done(function (data) {
+            data = $.parseJSON(data);
+            success = data["success"];
+        });
+        if (success) {
+            open_file(fileName + ".scm");
+        } else {
+
+        }
+    });
+
     $("#open-btn").click(function () {
         $.post("./list_files").done(function (data) {
             let files = new Set();
@@ -31,15 +50,20 @@ function init() {
                         </tr>
                     `);
                 $("#file-list").children().last().find(".btn").click(function () {
-                    let index = states.length;
-                    let new_state = make_new_state();
-                    new_state.file_name = file;
-                    states.push(new_state);
-                    open("editor", index);
-                    saveState();
+                    open_file(file);
                     $("#fileChooserModal").modal("hide");
                 });
             }
         })
     });
+}
+
+function open_file(file) {
+    let index = states.length;
+    let new_state = make_new_state();
+    new_state.file_name = file;
+    states.push(new_state);
+    open("editor", index);
+    // noinspection JSIgnoredPromiseFromCall
+    saveState();
 }
