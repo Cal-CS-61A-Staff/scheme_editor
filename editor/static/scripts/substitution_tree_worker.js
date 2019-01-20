@@ -58,7 +58,7 @@ async function _locate(elem, base_str, i, row, col) {
 
     let max_col = -1;
 
-    elem["root"] = (elem["parent_str"] !== elem["str"]);
+    elem["root"] = false;
 
     let display_elem_str = display_str(elem);
 
@@ -163,6 +163,8 @@ async function display_tree(id, svg, clear_svg, is_tree) {
     if (!is_tree) {
         await locate(data);
     }
+
+    console.log(data);
 
     let active_node = get_active_node(id, true);
 
