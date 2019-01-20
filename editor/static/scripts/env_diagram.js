@@ -95,7 +95,6 @@ function register(myLayout) {
 
         container.getElement().find(`#${random_id}`).on("click", function () {
             setTimeout(request_update, 0);
-            console.log("CLICKING");
         });
 
         container.on("resize", function () {

@@ -2,7 +2,7 @@ import {states} from "./state_handler";
 import {request_update} from "./event_handler";
 import {get_i} from "./substitution_tree_worker";
 
-export {init_events, get_curr_frame};
+export {init_events, get_curr_frame, get_active_node};
 
 function fix_expr_i(i) {
     if (states[i].states[states[i].expr_i][0] <= states[i].index &&
@@ -146,25 +146,29 @@ function restart_frame(i) {
     request_update();
 }
 
-function get_active_node(i) {
+function get_active_node(i, id_only) {
     let pos = get_i(states[i].states[states[i].expr_i][2],
         states[i].roots[states[i].expr_i],
         states[i].index);
 
-    console.log(pos);
+    let next = pos;
 
-    outer:
-        while (true) {
-            for (let child of pos.children) {
-                if (child["transition_type"] !== "EVALUATED" && child["transition_type"] !== "UNEVALUATED") {
-                    pos = child;
-                    continue outer;
-                }
+    while (true) {
+        for (let child of pos.children) {
+            if (child["transition_type"] !== "UNEVALUATED") {
+                next = child;
             }
-            break;
         }
+        if (next !== pos) {
+            pos = next;
+            continue;
+        }
+        break;
+    }
 
-    console.log(pos);
+    if (id_only) {
+        return pos["id"];
+    }
 
     return states[i].states[states[i].expr_i][2][pos["id"]];
 }
@@ -189,7 +193,7 @@ function finish_eval(i) {
         if (states[i].expr_i === states[i].states.length - 1) {
             go_to_end(i);
         } else {
-            next_expr(i);
+            next_i(i);
         }
     } else {
         states[i].index = newIndex;
@@ -199,14 +203,11 @@ function finish_eval(i) {
 }
 
 function restart_eval(i) {
+    console.log("restart_eval");
     let node = get_active_node(i);
     let newIndex = node["transitions"][0][0];
     if (states[i].index === newIndex) {
         prev_i(i);
-        if (states[i].index === newIndex) {
-            return;
-        }
-        restart_eval(i);
     } else {
         states[i].index = newIndex;
         fix_expr_i(i);

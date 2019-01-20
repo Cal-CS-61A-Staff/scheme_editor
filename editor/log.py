@@ -158,7 +158,7 @@ class Logger:
         self.i += 1
 
     def export(self):
-        print(f"Generated {len(self.export_states[-1][2])} nodes")
+        # print(f"Generated {len(self.export_states[-1][2])} nodes")
         return {
             "success": True,
             "roots": self.roots,
@@ -179,7 +179,7 @@ class Logger:
         if self._out:
             self._out[-1].append(val)
         else:
-            print(val, end="")
+            self._out = [[val]]
 
     def frame_create(self, frame: evaluate_apply.Frame):
         self.frame_lookup[id(frame)] = stored = StoredFrame(len(self.active_frames), frame)
