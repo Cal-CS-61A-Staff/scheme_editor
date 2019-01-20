@@ -7,6 +7,7 @@ import {
 import {
     charHeight
 } from "./measure";
+import {get_active_node} from "./navigation";
 
 export {
     display_tree,
@@ -47,7 +48,6 @@ async function locate(data) {
     );
     await _locate(data, data["str"], 0, 0, 0);
     data["root"] = true;
-    console.log(data);
 }
 
 async function _locate(elem, base_str, i, row, col) {
@@ -153,33 +153,82 @@ function get_i(all_data, curr, i) {
     return data;
 }
 
-async function display_tree(id, svg, clear_svg) {
+async function display_tree(id, svg, clear_svg, is_tree) {
     let data = get_i(
         states[id].states[states[id].expr_i][2],
         states[id].roots[states[id].expr_i],
         states[id].index,
     );
 
-    await locate(data);
+    if (!is_tree) {
+        await locate(data);
+    }
+
+    let active_node = get_active_node(id, true);
 
     clear_svg();
     svg.clear();
-    _display_tree(data, svg, 10);
+
+    if (is_tree) {
+        _display_tree(data, svg, 10, 15, 0, [0]);
+    } else {
+        _display_debug(data, svg, active_node, 10);
+    }
 }
 
-function _display_tree(data, container, base_y, base_h) {
+function _display_tree(data, container, x, y, level, starts) {
+    let color;
+    switch (data["transition_type"]) {
+        case "UNEVALUATED":
+            color = "#536dff";
+            break;
+        case "EVALUATING":
+            color = "#ff0f00";
+            break;
+        case "EVALUATED":
+            color = "#44ff51";
+            break;
+        case "APPLYING":
+            color = "#ffa500";
+            break;
+    }
+
+    container.rect(data["str"].length * charWidth + 10, charHeight + 10)
+        .dx(x - 5).dy(y)
+        .stroke({color: color, width: 2})
+        .fill({color: "#FFFFFF"})
+        .radius(10);
+
+    container.text(data["str"]).font("family", "Monaco, monospace").font("size", 14).dx(x).dy(y);
+    let xDelta = charWidth;
+
+    starts[level] = x + charWidth * (data["str"].length + 1);
+    for (let child of data["children"]) {
+        if (starts.length === level + 1) {
+            starts.push([10]);
+        }
+        let parent_len = child["parent_str"].length * charWidth;
+        container.line(x + xDelta + parent_len / 2, y + charHeight + 5,
+            Math.max(x + xDelta - 100000, starts[level + 1]) + child["str"].length * charWidth / 2 + 5,
+            y + 60)
+            .stroke({width: 3, color: "#c8c8c8"}).back();
+        _display_tree(child, container, Math.max(x + xDelta - 100000, starts[level + 1]), y + 50, level + 1, starts);
+        xDelta += parent_len + charWidth;
+    }
+}
+
+
+function _display_debug(data, container, active_id, base_y, base_h) {
     if (base_h === undefined) {
         base_h = data["str"].split("\n").length * charHeight;
     }
     let color;
     switch (data["transition_type"]) {
         case "UNEVALUATED":
-            color = "#536dff";
             color = "transparent";
             break;
         case "EVALUATING":
             color = "#ff0f00";
-            // color = "transparent";
             break;
         case "EVALUATED":
             color = "#44ff51";
@@ -203,6 +252,12 @@ function _display_tree(data, container, base_y, base_h) {
         .radius(5)
         .fill("transparent");
 
+    let is_important = data["id"] === active_id || data["transition_type"] === "APPLYING";
+
+    if (!is_important) {
+        rect.attr("stroke-dasharray", "1 3");
+    }
+
     if (data["root"]) {
         rect.fill({
             color: "#FFFFFF"
@@ -219,10 +274,14 @@ function _display_tree(data, container, base_y, base_h) {
     for (let child of data["children"]) {
         let parent_len = child["parent_str"].length * charWidth;
         if (data["transition_type"] === "APPLYING") {
-            _display_tree(child, container, base_y + base_h + 10);
+            _display_debug(child, container, active_id, base_y + base_h + 10);
         } else {
-            _display_tree(child, container, base_y, base_h);
+            _display_debug(child, container, active_id, base_y, base_h);
         }
         xDelta += parent_len + charWidth;
+    }
+
+    if (is_important && !data["root"]) {
+        rect.front();
     }
 }

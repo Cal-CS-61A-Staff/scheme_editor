@@ -31,6 +31,8 @@ class TokenBuffer:
         self.i = 0
 
     def get_next_token(self) -> Token:
+        if self.done:
+            raise ParseError("Incomplete expression, probably due to unmatched parentheses.")
         return self.tokens[self.i]
 
     def pop_next_token(self) -> Token:

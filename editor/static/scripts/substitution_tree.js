@@ -1,6 +1,6 @@
 import * as substitution_tree_worker from "./substitution_tree_worker"
 import {
-    make
+    make, request_update
 } from "./event_handler";
 
 export {
@@ -76,11 +76,6 @@ function register(myLayout) {
         let working = false;
 
         container.getElement().find(".flag").on("update", async () => {
-            if (working) {
-                return;
-            }
-            working = true;
-
             let zoom;
             let pan;
 
@@ -94,7 +89,8 @@ function register(myLayout) {
                 }
             };
 
-            await substitution_tree_worker.display_tree(componentState.id, svg, clearSVG);
+            await substitution_tree_worker.display_tree(componentState.id, svg, clearSVG,
+                container.getElement().find(".tree-checkbox").is(":checked"));
 
             svgPanZoom(rawSVG, {
                 fit: false,
@@ -116,6 +112,10 @@ function register(myLayout) {
         container.getElement().find(".tree").on("reset", function () {
             svgPanZoom(rawSVG).reset();
             console.log("reset!");
+        });
+
+        container.getElement().find(`#${random_id}`).on("click", function () {
+            setTimeout(request_update, 0);
         });
 
         container.on("resize", function () {
