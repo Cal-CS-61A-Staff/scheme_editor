@@ -9,7 +9,7 @@ from http import HTTPStatus
 import execution
 import log
 from documentation import search
-from file_manager import get_scm_files, save, read_file
+from file_manager import get_scm_files, save, read_file, new_file
 from formatter import prettify
 from ok_interface import run_tests, parse_test_data
 from runtime_limiter import TimeLimitException, limiter
@@ -87,6 +87,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
             self.wfile.write(bytes(json.dumps(read_file(filename)), "utf-8"))
+
+        elif path == "/new_file":
+            filename = data[b"filename"][0].decode("utf-8")
+            self.send_response(HTTPStatus.OK, 'test')
+            self.send_header("Content-type", "application/JSON")
+            self.end_headers()
+            self.wfile.write(bytes(json.dumps({"success": new_file(filename)}), "utf-8"))
 
         elif path == "/save_state":
             global state
