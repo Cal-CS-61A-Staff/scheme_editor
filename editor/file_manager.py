@@ -17,3 +17,10 @@ def save(code, filename):
 def read_file(filename):
     with open(filename, "r") as file:
         return "".join([x for x in file])
+
+
+def new_file(filename):
+    if filename + ".scm" in get_scm_files():
+        return False
+    open(filename + ".scm", "w")
+    return True
