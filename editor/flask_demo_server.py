@@ -1,9 +1,9 @@
 import json
 import os
 
- from flask import Flask, request
+from flask import Flask, request
 
- import execution
+import execution
 import log
 from documentation import search
 from file_manager import get_scm_files, save, read_file
@@ -13,14 +13,14 @@ from runtime_limiter import TimeLimitException, limiter
 from scheme_exceptions import SchemeError, ParseError
 
 
- main_file = "/hw10.scm"
+main_file = "/hw10.scm"
 
- app = Flask(__name__)
+app = Flask(__name__)
 
- state = None
+state = None
 
 
- @app.route("/process2", methods=["POST"])
+@app.route("/process2", methods=["POST"])
 def process2():
     code = request.form.getlist("code[]")
     curr_i = int(request.form.get("curr_i"))
@@ -29,64 +29,64 @@ def process2():
     return handle(code, curr_i, curr_f, global_frame_id)
 
 
- @app.route("/save", methods=["POST"])
+@app.route("/save", methods=["POST"])
 def save_handler():
     code = request.form.getlist("code[]")
 
-     filename = request.form.get("filename")
+    filename = request.form.get("filename")
 
-     save(code, filename)
+    save(code, filename)
 
-     return "success"
+    return "success"
 
 
- @app.route("/instant", methods=["POST"])
+@app.route("/instant", methods=["POST"])
 def instant_handler():
     code = request.form.getlist("code[]")
 
-     global_frame_id = int(request.form.get("globalFrameID"))
+    global_frame_id = int(request.form.get("globalFrameID"))
 
-     return instant(code, global_frame_id)
+    return instant(code, global_frame_id)
 
 
- @app.route("/reformat", methods=["POST"])
+@app.route("/reformat", methods=["POST"])
 def reformat_handler():
     code = request.form.getlist("code[]")
 
-     return json.dumps({"result": "success",
+    return json.dumps({"result": "success",
                        "formatted": prettify(code)})
 
 
- @app.route("/test", methods=["POST"])
+@app.route("/test", methods=["POST"])
 def test_handler():
     code = request.form.getlist("code[]")
 
-     filename = request.form.get("filename")
+    filename = request.form.get("filename")
 
-     save(code, filename)
+    save(code, filename)
 
-     return json.dumps(parse_test_data(run_tests()))
+    return json.dumps(parse_test_data(run_tests()))
 
 
- @app.route("/list_files", methods=["POST"])
+@app.route("/list_files", methods=["POST"])
 def list_files_handler():
     return json.dumps(get_scm_files())
 
 
- @app.route("/read_file", methods=["POST"])
+@app.route("/read_file", methods=["POST"])
 def read_file_handler():
     filename = request.form.get("filename")
 
-     return json.dumps(read_file(filename))
+    return json.dumps(read_file(filename))
 
 
- @app.route("/save_state", methods=["POST"])
+@app.route("/save_state", methods=["POST"])
 def save_state():
     global state
     state = request.form.get("state")
 
 
- @app.route("/load_state", methods=["POST"])
+@app.route("/load_state", methods=["POST"])
 def load_state():
     if state is None:
         return "fail"
@@ -94,13 +94,13 @@ def load_state():
         return state
 
 
- @app.route("/documentation", methods=["POST"])
+@app.route("/documentation", methods=["POST"])
 def documentation():
     query = request.form.get("query")
     return json.dumps(search(query))
 
 
- @app.route('/')
+@app.route('/')
 def do_GET():
     try:
         APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -110,7 +110,7 @@ def do_GET():
         raise
 
 
- def handle(code, curr_i, curr_f, global_frame_id):
+def handle(code, curr_i, curr_f, global_frame_id):
     # file.truncate(0)
     # file.seek(0)
     # file.write("\n".join(code))
@@ -125,11 +125,11 @@ def do_GET():
     except ParseError as e:
         return json.dumps({"success": False, "out": [str(e)]})
 
-     out = log.logger.export()
+    out = log.logger.export()
     return json.dumps(out)
 
 
- def instant(code, global_frame_id):
+def instant(code, global_frame_id):
     log.logger.new_query()
     try:
         log.logger.preview_mode(True)
