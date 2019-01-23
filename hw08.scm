@@ -132,9 +132,7 @@
 
 (define x^3 (make-exp 'x 3))
 
-(define ; making exps is fun!
- (derive-exp exp var)
- (make-product (exponent exp)
-               (make-exp ; base is nice
-                (base exp)
-                (- (exponent exp) 1))))
+(define (derive-exp exp var)
+  (make-product (exponent exp)
+                (make-exp (base exp)
+                          (- (exponent exp) 1))))
