@@ -68,11 +68,19 @@ function register(myLayout) {
         // svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
         let svg = SVG.adopt(rawSVG).size(container.width, container.height);
 
+        let ready = false;
+
         container.getElement().find(".envs").on("update", function () {
-            let zoom = svgPanZoom(rawSVG).getZoom();
-            let pan = svgPanZoom(rawSVG).getPan();
-            svgPanZoom(rawSVG).destroy();
+            let zoom;
+            let pan;
+
+            if (ready) {
+                zoom = svgPanZoom(rawSVG).getZoom();
+                pan = svgPanZoom(rawSVG).getPan();
+                svgPanZoom(rawSVG).destroy();
+            }
             svg.clear();
+            ready = true;
             // env_diagram_worker.display_env(states[componentState.id].environments, svg, states[componentState.id].index);
             env_diagram_worker.display_env_pointers(
                 states[componentState.id].environments,
@@ -98,9 +106,14 @@ function register(myLayout) {
         });
 
         container.on("resize", function () {
-            let zoom = svgPanZoom(rawSVG).getZoom();
-            let pan = svgPanZoom(rawSVG).getPan();
-            svgPanZoom(rawSVG).destroy();
+            let zoom;
+            let pan;
+
+            if (ready) {
+                zoom = svgPanZoom(rawSVG).getZoom();
+                pan = svgPanZoom(rawSVG).getPan();
+                svgPanZoom(rawSVG).destroy();
+            }
             svg.size(container.width, container.height);
             svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
             if (isNaN(zoom)) {
@@ -109,6 +122,8 @@ function register(myLayout) {
                 svgPanZoom(rawSVG).zoom(zoom);
                 svgPanZoom(rawSVG).pan(pan);
             }
+
+            ready = true;
         });
 
         container.on("shown", function () {

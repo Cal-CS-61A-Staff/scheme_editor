@@ -7,7 +7,7 @@ from log import Holder, VisualExpression, return_symbol, logger
 from helper import pair_to_list, verify_exact_callable_length, verify_min_callable_length, \
     make_list
 from lexer import TokenBuffer
-from parser import get_expression
+from execution_parser import get_expression
 from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError
 
 
