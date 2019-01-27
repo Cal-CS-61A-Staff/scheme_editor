@@ -30,7 +30,7 @@
     nil)
    (else
     (define (helper cnt s)
-      (if (null? (cdr-stream s))
+      (if (null? (cdr s))
           (cons cnt nil)
           (if (eq? (car s)
                    (car (cdr-stream s)))

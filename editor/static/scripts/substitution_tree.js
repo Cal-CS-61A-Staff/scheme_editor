@@ -71,22 +71,20 @@ function register(myLayout) {
         let rawSVG = container.getElement().find(".tree > svg").get(0);
         let svg = SVG.adopt(rawSVG).size(container.width, container.height);
         console.log("adopted");
-        let ready = false;
 
-        let working = false;
+        let ready = false;
 
         container.getElement().find(".flag").on("update", async () => {
             let zoom;
             let pan;
 
             let clearSVG = function () {
-                zoom = svgPanZoom(rawSVG).getZoom();
-                pan = svgPanZoom(rawSVG).getPan();
-                svgPanZoom(rawSVG).destroy();
-
-                if (!ready) {
-                    ready = true;
+                if (ready) {
+                    zoom = svgPanZoom(rawSVG).getZoom();
+                    pan = svgPanZoom(rawSVG).getPan();
+                    svgPanZoom(rawSVG).destroy();
                 }
+                ready = false;
             };
 
             await substitution_tree_worker.display_tree(componentState.id, svg, clearSVG,
@@ -105,8 +103,7 @@ function register(myLayout) {
                 svgPanZoom(rawSVG).zoom(zoom);
                 svgPanZoom(rawSVG).pan(pan);
             }
-
-            working = false;
+            ready = true;
         });
 
         container.getElement().find(".tree").on("reset", function () {
@@ -119,11 +116,15 @@ function register(myLayout) {
         });
 
         container.on("resize", function () {
-            let zoom = svgPanZoom(rawSVG).getZoom();
-            let pan = svgPanZoom(rawSVG).getPan();
-            svgPanZoom(rawSVG).destroy();
+            let zoom;
+            let pan;
+            if (ready) {
+                zoom = svgPanZoom(rawSVG).getZoom();
+                pan = svgPanZoom(rawSVG).getPan();
+                svgPanZoom(rawSVG).destroy();
+            }
             svg.size(container.width, container.height);
-            console.log("ready!");
+            ready = true;
             svgPanZoom(rawSVG, {
                 fit: false,
                 zoomEnabled: true,

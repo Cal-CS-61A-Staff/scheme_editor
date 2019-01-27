@@ -15,7 +15,7 @@ from ok_interface import run_tests, parse_test_data
 from runtime_limiter import TimeLimitException, limiter
 from scheme_exceptions import SchemeError, ParseError
 
-PORT = 8000
+PORT = 8012
 
 main_file = ""
 
