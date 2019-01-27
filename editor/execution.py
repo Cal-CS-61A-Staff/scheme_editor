@@ -3,7 +3,7 @@ from __future__ import annotations
 from datamodel import Undefined
 from evaluate_apply import evaluate
 from log import Holder, Root
-from parser import get_expression
+from execution_parser import get_expression
 from lexer import TokenBuffer
 from runtime_limiter import TimeLimitException
 from scheme_exceptions import SchemeError
