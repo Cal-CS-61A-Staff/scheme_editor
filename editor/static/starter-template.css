@@ -94,6 +94,14 @@ html, body{
     pointer-events: none;
 }
 
-.lm_active .messageCounter{
+.lm_active .messageCounter {
     background: #ee7813;
 }
+
+button {
+    border-style: solid;
+    border-width: 1px;
+    padding: 1px 7px 2px;
+    color: buttontext;
+}
+

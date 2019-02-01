@@ -4,6 +4,7 @@ import signal
 import socketserver
 import sys
 import urllib.parse
+import webbrowser
 from http import HTTPStatus
 
 import execution
@@ -191,10 +192,13 @@ def exit_handler(signal, frame):
 signal.signal(signal.SIGINT, exit_handler)
 
 
-def start(file_arg=None):
+def start(file_arg, port):
     global main_file
     main_file = file_arg
+    global PORT
+    PORT = port
     print(f"http://localhost:{PORT}")
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("localhost", PORT), Handler) as httpd:
+        webbrowser.open(f"http://localhost:{PORT}", new=0, autoraise=True)
         httpd.serve_forever()
