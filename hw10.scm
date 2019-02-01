@@ -1,2 +1,3 @@
-(define x '(1 2 3 4 5))
-
+(define (factorial x)
+    (if (= x 1) 1
+        (* x (factorial (- x 1)))))
