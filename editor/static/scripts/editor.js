@@ -13,9 +13,10 @@ function register(layout) {
         <div class="content">
             <div class="header">        
                 ${(!states[componentState.id].file_name.startsWith(temp_file)) ?
-            `<button type="button" class="btn-default save-btn" aria-label="Save">
+            `<button type="button" class="btn-light save-btn" aria-label="Save">
                     <span class="text"> Save </span>
                 </button>` : ``}
+
 
                 <button type="button" data-toggle="tooltip"
                             title="Open a console and run the program locally."
