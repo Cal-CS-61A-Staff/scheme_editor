@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from typing import Union, TYPE_CHECKING
-from uuid import uuid4
+
+from log_utils import get_id
 
 if TYPE_CHECKING:
     from evaluate_apply import Frame
@@ -10,7 +11,7 @@ if TYPE_CHECKING:
 
 class Expression:
     def __init__(self):
-        self.id = uuid4().hex[:10]
+        self.id = get_id()
 
 
 class ValueHolder(Expression):
