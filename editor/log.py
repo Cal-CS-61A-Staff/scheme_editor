@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from enum import Enum, auto
 from typing import List, Union, Dict, Tuple
-from uuid import uuid4
 
 from datamodel import Expression, ValueHolder, Pair, Nil, Symbol, Undefined, Promise, NilType, UndefinedType
 import evaluate_apply
 from helper import pair_to_list
+from log_utils import get_id
 from scheme_exceptions import OperandDeduceError
 
 
@@ -23,7 +23,7 @@ class VisualExpression:
         self.base_expr = base_expr if true_base_expr is None else true_base_expr
         self.value: Expression = None
         self.children: List[Holder] = []
-        self.id = uuid4().hex[:10]
+        self.id = get_id()
         if base_expr is None:
             return
         if isinstance(base_expr, ValueHolder) \
@@ -191,7 +191,7 @@ class Logger:
 
     def new_node(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
         if isinstance(expr, Expression):
-            key = uuid4().hex[:10]
+            key = get_id()
             self.node_cache[key] = StaticNode(expr, transition_type)
             return key
         if expr.id in self.node_cache:
