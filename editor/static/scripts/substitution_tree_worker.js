@@ -119,11 +119,13 @@ function get_i(all_data, curr, i) {
         ["parent_strs", "parent_str"],
     ];
     let data = {};
+    let transition_time = {};
     for (let label of labels) {
         for (let val of all_data[curr][label[0]]) {
             if (val[0] > i) {
                 break;
             }
+            transition_time[label[1]] = val[0];
             data[label[1]] = val[1];
         }
     }
@@ -145,6 +147,11 @@ function get_i(all_data, curr, i) {
 
     data["prev_children"] = [];
     if (data["transition_type"] === "APPLYING") {
+        for (j = 0; true; ++j) {
+            if (all_data[curr]["children"][j][0] >= transition_time["transition_type"]) {
+                break;
+            }
+        }
         for (let child of all_data[curr]["children"][j - 1][1]) {
             data["prev_children"].push(get_i(all_data, child, i));
         }
