@@ -316,8 +316,12 @@ class MacroObject(Callable):
         for param, value in zip(self.params, operands):
             new_frame.assign(param, value)
         out = None
+
         gui_holder.expression.set_entries(
             [VisualExpression(expr, gui_holder.expression.display_value) for expr in body])
+
+        gui_holder.apply()
+
         for i, expression in enumerate(body):
             out = evaluate(expression, new_frame, gui_holder.expression.children[i], log_stack=len(self.body) == 1)
 
