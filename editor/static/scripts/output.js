@@ -153,12 +153,12 @@ function register(myLayout) {
                 name: "uparrow",
                 bindKey: { win: "Up", mac: "Up" },
                 exec: function(editor, ...rest) {
-                    console.log(editor.getCursorPosition().row);
                     if (editor.getCursorPosition().row === 0) {
                         if (i > 0) {
                             --i;
                         }
                         editor.setValue(history[i]);
+                        editor.selection.moveCursorFileEnd();
                     } else {
                         old_up_arrow.exec(editor, ...rest);
                     }
@@ -174,12 +174,12 @@ function register(myLayout) {
                     console.log(editor.getCursorPosition().row);
                     console.log(editor.getSession().getDocument());
                     let numLines = editor.getSession().getLength();
-                    console.log(editor.getSession().getLength());
                     if (editor.getCursorPosition().row === numLines - 1) {
                         if (i < history.length - 1) {
                             ++i;
                         }
                         editor.setValue(history[i]);
+                        editor.selection.moveCursorFileEnd();
                     } else {
                         old_down_arrow.exec(editor, ...rest);
                     }
