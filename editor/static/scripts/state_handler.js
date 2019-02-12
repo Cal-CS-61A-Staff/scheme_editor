@@ -61,13 +61,11 @@ async function saveState(layout=undefined) {
     if (curr_saving) {
         return;
     }
-    console.log("saving");
     begin_slow();
     curr_saving = true;
     if (layout === undefined) {
         layout = getLayout();
     }
-    console.log(layout);
     await $.post("./save_state", {
         state: JSON.stringify({states: states, layout: layout, settings: getAllSettings()}),
     }).done(function () {
