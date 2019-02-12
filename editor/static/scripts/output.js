@@ -158,7 +158,7 @@ function register(myLayout) {
                             --i;
                         }
                         editor.setValue(history[i]);
-                        editor.selection.moveCursorFileEnd();
+                        editor.selection.clearSelection();
                     } else {
                         old_up_arrow.exec(editor, ...rest);
                     }
@@ -179,7 +179,7 @@ function register(myLayout) {
                             ++i;
                         }
                         editor.setValue(history[i]);
-                        editor.selection.moveCursorFileEnd();
+                        editor.selection.clearSelection();
                     } else {
                         old_down_arrow.exec(editor, ...rest);
                     }
