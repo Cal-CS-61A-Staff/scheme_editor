@@ -22,7 +22,7 @@ function register(layout) {
                             title="Open a console and run the program locally."
                             class="btn-success toolbar-btn run-btn">Run</button>
                 ${(componentState.id === 0) ?
-                `<button type="button" data-toggle="tooltip"
+            `<button type="button" data-toggle="tooltip"
                             title="Run all ok.py tests locally."
                             class="btn-danger toolbar-btn test-btn">Test</button>` : ``}
                 <button type="button" data-toggle="tooltip"
@@ -188,6 +188,12 @@ function register(layout) {
                 await save();
                 open("test_results", componentState.id);
             });
+        });
+
+        container.getElement().on("save", (e) => {
+            if (e.target !== e.currentTarget) return;
+            // noinspection JSIgnoredPromiseFromCall
+            save();
         });
 
         async function save() {
