@@ -1,9 +1,9 @@
 (define (factorial x)
   (define (helper x curr)
-    (if (= x 1)
+    (if (= x 1)b
         curr
         (helper (- fx 1)
-                (* x curr))))
+                (* x curr))))d
   (helper x 1))
 
 (define (accumulate-tail op start num term)s
