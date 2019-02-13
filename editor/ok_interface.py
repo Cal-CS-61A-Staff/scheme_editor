@@ -1,10 +1,10 @@
-import formatter
 import os
-import sys
 import re
+import sys
 from dataclasses import dataclass
-from io import StringIO
 from typing import Tuple, List
+
+import formatter
 
 newdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/ok"
 sys.path.append(newdir)
@@ -27,13 +27,11 @@ from client.utils import output
 from client.utils import software_update
 
 from datetime import datetime
-import argparse
 # noinspection PyUnresolvedReferences
 import client
 import logging
-import os
 import sys
-import struct
+
 #############
 
 SCHEME_INPUT = "scheme_input"
@@ -46,8 +44,8 @@ LOAD_ERROR_HEADER = "load_error_header"
 CASE_DATA = "case_data"
 ERROR = "error"
 
-
 ERROR_EOF_MESSAGE = "Error: unexpected end of file"
+
 
 @dataclass
 class TestCase:
@@ -145,6 +143,7 @@ def categorize_test_lines(lines):
         else:
             yield OUTPUT, line
 
+
 def collapse_test_lines(categorized_lines):
     collapsed = []
     for category, line in categorized_lines:
@@ -153,6 +152,7 @@ def collapse_test_lines(categorized_lines):
         else:
             collapsed[-1][1].append(line)
     return collapsed
+
 
 def process_test_errors(collapsed):
     elements = []
@@ -173,6 +173,7 @@ def process_test_errors(collapsed):
         elements.append((category, data))
     return elements, error
 
+
 def create_test_case_from_block(block):
     lines = block.strip().split("\n")
 
@@ -188,6 +189,7 @@ def create_test_case_from_block(block):
     suite = int(match.group(2))
     case = int(match.group(3))
     return TestCase(problem, suite, case, not error, this_case)
+
 
 def parse_test_data(raw_out):
     blocks = raw_out.split("-" * 69)
