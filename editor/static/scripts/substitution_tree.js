@@ -58,11 +58,13 @@ function register(myLayout) {
                         </div>
                     </span>
                 </div>
+                <div class="output-warning">
+                    This session may be out of date! Hit "Run" to refresh contents.
+                </div>
                 </div>
                 <div class="tree">
                     <svg></svg>
                 </div>
-                <div class="flag"></div>
             </div>
         `);
 
@@ -112,7 +114,6 @@ function register(myLayout) {
 
         container.getElement().find(".tree").on("reset", function () {
             svgPanZoom(rawSVG).reset();
-            console.log("reset!");
         });
 
         container.getElement().find(`#${random_id}`).on("click", function () {
