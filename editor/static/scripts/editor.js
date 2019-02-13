@@ -97,6 +97,24 @@ function register(layout) {
             });
         });
 
+        container.getElement().on("update", function (e) {
+            if (e.target !== e.currentTarget) {
+                return;
+            }
+            if (states[componentState.id].environments.length === 0) {
+                // program has never been run
+                container.getElement().find(".env-btn")//.prop("disabled", true)
+                .attr('data-original-title', "To use the environment diagram, press Run first.");
+                container.getElement().find(".sub-btn")//.prop("disabled", true)
+                .attr('data-original-title', "To use the debugger, press Run first.");
+            } else {
+                container.getElement().find(".env-btn")//.prop("disabled", false)
+                .attr('data-original-title', "View environment diagram.");
+                container.getElement().find(".sub-btn")//.prop("disabled", false)
+                .attr('data-original-title', "Step through the program's execution.");
+            }
+        });
+
         container.on("destroy", function () {
             clearInterval(saveTimer);
         });
