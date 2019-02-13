@@ -145,7 +145,7 @@ function register(layout) {
         container.getElement().find(".test-btn").on("click", run_tests);
 
         async function save(running) {
-            if (!running && (!changed || states[componentState.id].file_name.startsWith(temp_file))) {
+            if (states[componentState.id].file_name.startsWith(temp_file) || (!running && (!changed))) {
                 return;
             }
             container.getElement().find(".save-btn > .text").text("Saving...");
