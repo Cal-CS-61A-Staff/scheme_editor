@@ -9,8 +9,8 @@
     width: 100%;
 }
 
-html, body{
-  height: 100%;
+html, body {
+    height: 100%;
 }
 
 #body {
@@ -43,17 +43,26 @@ html, body{
     min-height: 75px;
 }
 
-.navbar { margin-bottom: 0 }
+.navbar {
+    margin-bottom: 0
+}
 
-.output-wrapper{
+.output-wrapper {
     padding-top: 5px;
     height: 100%;
-    position: absolute;
+    position: relative;
     width: 100%;
     bottom: 0;
     overflow-y: scroll;
     overflow-x: hidden;
     background: white;
+}
+
+.output-warning {
+    padding-left: 5px;
+    font-family: Monaco, monospace;
+    font-size: 14px;
+    background: yellow;
 }
 
 .console-wrapper {
@@ -63,7 +72,7 @@ html, body{
 }
 
 .font-bold {
-  font-weight: bold;
+    font-weight: bold;
 }
 
 .diagram-header {
@@ -84,10 +93,10 @@ html, body{
 }
 
 .btn-group-xs > .btn, .btn-xs {
-  padding  : .25rem .4rem;
-  font-size  : .875rem;
-  line-height  : .5;
-  border-radius : .2rem;
+    padding: .25rem .4rem;
+    font-size: .875rem;
+    line-height: .5;
+    border-radius: .2rem;
 }
 
 .fas {
