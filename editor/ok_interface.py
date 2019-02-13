@@ -174,26 +174,26 @@ def process_test_errors(collapsed):
         elements.append((category, data))
     return elements, error
 
+def create_test_case_from_block(block):
+    lines = block.strip().split("\n")
+
+    categorized_lines = list(categorize_test_lines(lines))
+    collapsed = collapse_test_lines(categorized_lines)
+    elements, error = process_test_errors(collapsed)
+
+    (_, [header]), *this_case = elements
+
+    match = re.match(r'(\S+) > Suite (\S+) > Case (\S+)', header)
+
+    problem = match.group(1).replace("-", " ").title()
+    suite = int(match.group(2))
+    case = int(match.group(3))
+    return TestCase(problem, suite, case, not error, this_case)
+
 def parse_test_data(raw_out):
     blocks = raw_out.split("-" * 69)
     blocks = blocks[1:-1]  # cut off the header + footer
-    cases = []
-    for block in blocks:
-        lines = block.strip().split("\n")
-
-        categorized_lines = list(categorize_test_lines(lines))
-        collapsed = collapse_test_lines(categorized_lines)
-        elements, error = process_test_errors(collapsed)
-
-        (_, [header]), *this_case = elements
-
-        match = re.match(r'(\S+) > Suite (\S+) > Case (\S+)', header)
-
-        problem = match.group(1).replace("-", " ").title()
-        suite = int(match.group(2))
-        case = int(match.group(3))
-
-        cases.append(TestCase(problem, suite, case, not error, this_case))
+    cases = [create_test_case_from_block(block) for block in blocks]
 
     out = []
     for case in cases:
