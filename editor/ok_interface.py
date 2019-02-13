@@ -41,9 +41,12 @@ ACTUAL_OUTPUT = "actual_output"
 EXPECTED_OUTPUT = "expected_output"
 
 ERROR_HEADER = "error_header"
+LOAD_ERROR_HEADER = "load_error_header"
 CASE_DATA = "case_data"
 ERROR = "error"
 
+
+ERROR_EOF_MESSAGE = "Error: unexpected end of file"
 
 @dataclass
 class TestCase:
@@ -141,6 +144,8 @@ def parse_test_data(raw_out):
             elif line.startswith("# "):
                 if line[1:].strip() == "Error: expected" or line[1:].strip() == "but got":
                     categorized_lines.append((ERROR_HEADER, line[1:].strip()))
+                elif line[1:].strip() == ERROR_EOF_MESSAGE:
+                    categorized_lines.append((LOAD_ERROR_HEADER, line[1:].strip()))
                 else:
                     categorized_lines.append((ERROR, line[1:].strip()))
             else:
@@ -162,6 +167,11 @@ def parse_test_data(raw_out):
                 elements.pop()
                 elements.append((EXPECTED_OUTPUT, collapsed[i + 1][1]))
                 elements.append((ACTUAL_OUTPUT, collapsed[i + 3][1]))
+                break
+            elif category == LOAD_ERROR_HEADER:
+                error = True
+                elements.append((EXPECTED_OUTPUT, ['']))
+                elements.append((ACTUAL_OUTPUT, [ERROR_EOF_MESSAGE]))
                 break
 
             elements.append((category, data))
