@@ -10,6 +10,7 @@ from http import HTTPStatus
 import execution
 import log
 from documentation import search
+from execution_parser import strip_comments
 from file_manager import get_scm_files, save, read_file, new_file
 from formatter import prettify
 from ok_interface import run_tests, parse_test_data
@@ -50,7 +51,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
-            self.wfile.write(bytes("success", "utf-8"))
+            self.wfile.write(bytes(json.dumps({"result": "success", "stripped": strip_comments(code)}), "utf-8"))
 
         elif path == "/instant":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
