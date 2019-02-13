@@ -1,6 +1,7 @@
 import formatter
 import os
 import sys
+import re
 from dataclasses import dataclass
 from io import StringIO
 from typing import Tuple, List
@@ -184,12 +185,15 @@ def parse_test_data(raw_out):
         collapsed = collapse_test_lines(categorized_lines)
         elements, error = process_test_errors(collapsed)
 
-        vals = elements[0][1][0].split(" > ")
-        problem = vals[0]
-        suite = int(vals[1].split()[1])
-        case = int(vals[2].split()[1])
+        (_, [header]), *this_case = elements
 
-        cases.append(TestCase(problem.replace("-", " ").title(), suite, case, not error, elements[1:]))
+        match = re.match(r'(\S+) > Suite (\S+) > Case (\S+)', header)
+
+        problem = match.group(1).replace("-", " ").title()
+        suite = int(match.group(2))
+        case = int(match.group(3))
+
+        cases.append(TestCase(problem, suite, case, not error, this_case))
 
     out = []
     for case in cases:
