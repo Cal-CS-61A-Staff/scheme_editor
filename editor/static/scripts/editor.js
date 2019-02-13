@@ -97,7 +97,59 @@ function register(layout) {
             clearInterval(saveTimer);
         });
 
-        container.getElement().find(".run-btn").on("click", function () {
+
+        container.getElement().keydown(function (event) {
+            if ((event.ctrlKey || event.metaKey) && event.keyCode === 13) {
+                event.preventDefault();
+                // noinspection JSIgnoredPromiseFromCall
+                run();
+            }
+            if ((event.ctrlKey || event.metaKey) && event.keyCode === 83) {
+                event.preventDefault();
+                // noinspection JSIgnoredPromiseFromCall
+                save();
+            }
+        });
+
+        container.getElement().find(".run-btn").on("click", run);
+
+        container.getElement().find(".save-btn").on("click", save);
+
+        container.getElement().find(".reformat-btn").on("click", reformat);
+
+        container.getElement().find(".sub-btn").on("click", async function () {
+            await save();
+            open("substitution_tree", componentState.id);
+        });
+
+        container.getElement().find(".env-btn").on("click", async function () {
+            await save();
+            open("env_diagram", componentState.id);
+        });
+
+        container.getElement().find(".test-btn").on("click", run_tests);
+
+        async function save() {
+            if (!changed || states[componentState.id].file_name.startsWith(temp_file)) {
+                return;
+            }
+            container.getElement().find(".save-btn > .text").text("Saving...");
+
+            let code = [editor.getValue()];
+            await $.post("./save", {
+                code: code,
+                filename: states[componentState.id].file_name,
+            }).done(function (data) {
+                if (data === "success") {
+                    container.getElement().find(".save-btn > .text").text("Saved");
+                    changed = false;
+                } else {
+                    alert("Save error - try copying code from editor to a file manually");
+                }
+            });
+        }
+
+        function run() {
             if (editor.getValue().trim() === "") {
                 return;
             }
@@ -141,14 +193,9 @@ function register(layout) {
                 $("*").trigger("reset");
                 request_update();
             });
-        });
+        }
 
-        container.getElement().find(".save-btn").on("click", function () {
-            // noinspection JSIgnoredPromiseFromCall
-            save();
-        });
-
-        container.getElement().find(".reformat-btn").on("click", function () {
+        function reformat() {
             let code = [editor.getValue()];
             $.post("./reformat", {
                 code: code,
@@ -160,19 +207,9 @@ function register(layout) {
                     alert("An error occurred!");
                 }
             });
-        });
+        }
 
-        container.getElement().find(".sub-btn").on("click", async function () {
-            await save();
-            open("substitution_tree", componentState.id);
-        });
-
-        container.getElement().find(".env-btn").on("click", async function () {
-            await save();
-            open("env_diagram", componentState.id);
-        });
-
-        container.getElement().find(".test-btn").on("click", function () {
+        function run_tests() {
             if (editor.getValue().trim() === "") {
                 return;
             }
@@ -187,32 +224,6 @@ function register(layout) {
                 states[componentState.id].test_results = data;
                 await save();
                 open("test_results", componentState.id);
-            });
-        });
-
-        container.getElement().on("save", (e) => {
-            if (e.target !== e.currentTarget) return;
-            // noinspection JSIgnoredPromiseFromCall
-            save();
-        });
-
-        async function save() {
-            if (!changed || states[componentState.id].file_name.startsWith(temp_file)) {
-                return;
-            }
-            container.getElement().find(".save-btn > .text").text("Saving...");
-
-            let code = [editor.getValue()];
-            await $.post("./save", {
-                code: code,
-                filename: states[componentState.id].file_name,
-            }).done(function (data) {
-                if (data === "success") {
-                    container.getElement().find(".save-btn > .text").text("Saved");
-                    changed = false;
-                } else {
-                    alert("Save error - try copying code from editor to a file manually");
-                }
             });
         }
     });

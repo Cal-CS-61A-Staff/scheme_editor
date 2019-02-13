@@ -159,7 +159,7 @@ function register(myLayout) {
                         }
                         editor.setValue(history[i]);
                         editor.selection.clearSelection();
-                    } else {
+a                    } else {
                         old_up_arrow.exec(editor, ...rest);
                     }
                 },
