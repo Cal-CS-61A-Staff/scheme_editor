@@ -23,6 +23,9 @@ function escapeHtml(string) {
 function register(myLayout) {
     myLayout.registerComponent('output', function (container, componentState) {
         container.getElement().html(`
+        <div class="output-warning">
+            This session may be out of date! Hit "Run" to refresh contents.
+        </div>
         <div class="output-wrapper">
             <div class="output-holder">
                 <div class="output">[click Run to start!]</div>
@@ -174,16 +177,13 @@ a                    } else {
                 name: "uparrow",
                 bindKey: { win: "Ctrl+Enter", mac: "Cmd+Enter"},
                 exec: function(editor, ...rest) {enter_key_pressed(editor.getValue().replace(/\r/g, ""));}
-            })
+            });
 
             let old_down_arrow = editor.commands.commandKeyBinding.down;
             editor.commands.addCommand({
                 name: "downarrow",
                 bindKey: { win: "Down", mac: "Down" },
                 exec: function(editor, ...rest) {
-                    console.log(history);
-                    console.log(editor.getCursorPosition().row);
-                    console.log(editor.getSession().getDocument());
                     let numLines = editor.getSession().getLength();
                     if (editor.getCursorPosition().row === numLines - 1) {
                         if (i < history.length - 1) {
