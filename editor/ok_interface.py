@@ -58,22 +58,21 @@ class TestCase:
     elements: List[Tuple[str, List[str]]]
 
     def get_full_str(self):
-        inp = []
         out = []
-        for elem in self.elements:
-            if elem[0] == SCHEME_INPUT:
-                out.append("\n".join(elem[1]))
-            elif elem[0] in (OUTPUT, EXPECTED_OUTPUT):
+        for tag, lines in self.elements:
+            if tag == SCHEME_INPUT:
+                out.append("\n".join(lines))
+            elif tag in (OUTPUT, EXPECTED_OUTPUT):
                 prefix = "; expect "
-                for ret in elem[1]:
+                for ret in lines:
                     out.append(prefix + ret)
                     prefix = ";" + " " * (len(prefix) - 1)
-            elif elem[0] == ACTUAL_OUTPUT:
+            elif tag == ACTUAL_OUTPUT:
                 prefix = "; actually received "
-                if elem[1][0].startswith("Traceback"):
-                    elem[1][2] = elem[1][2].split(": ", 2)[1]
-                    elem[1][:] = ["SchemeError:\n; " + "\n; ".join(elem[1][2:])]
-                for ret in elem[1]:
+                if lines[0].startswith("Traceback"):
+                    lines[2] = lines[2].split(": ", 2)[1]
+                    lines[:] = ["SchemeError:\n; " + "\n; ".join(lines[2:])]
+                for ret in lines:
                     out.append(prefix + ret)
                     prefix = ";" + " " * (len(prefix) - 1)
         return formatter.prettify(["\n".join(out)])
