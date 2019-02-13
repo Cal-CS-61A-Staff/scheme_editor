@@ -90,6 +90,10 @@ function register(layout) {
             editor.getSession().on("change", function () {
                 container.getElement().find(".save-btn > .text").text("Save");
                 changed = true;
+                if (states[componentState.id].up_to_date) {
+                    states[componentState.id].up_to_date = false;
+                    request_update();
+                }
             });
         });
 
@@ -186,6 +190,8 @@ function register(layout) {
                 }
 
                 await save();
+
+                states[componentState.id].up_to_date = true;
 
                 open("output", componentState.id);
                 // noinspection JSIgnoredPromiseFromCall

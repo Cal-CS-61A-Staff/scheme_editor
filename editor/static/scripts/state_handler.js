@@ -28,6 +28,8 @@ let base_state = {
     out_open: false,
     tests_open: false,
 
+    up_to_date: true,
+
     test_results: undefined,
 
     file_name: "",
