@@ -51,7 +51,13 @@ function register(myLayout) {
             container.getElement().find(".preview").html("<i>" + escapeHtml(preview) + "</i>");
             container.getElement().find(".output-wrapper").scrollTop(
             container.getElement().find(".output-wrapper")[0].scrollHeight);
+            if (states[componentState.id].up_to_date) {
+                container.getElement().find(".output-warning").hide();
+            } else {
+                container.getElement().find(".output-warning").show();
+            }
         });
+
         container.getElement().on("click", function () {
             editor.focus();
         });
@@ -79,6 +85,34 @@ function register(myLayout) {
 
             container.on("resize", function () {
                 editor.resize();
+            });
+
+            editor.getSession().on("change", function () {
+                let val = editor.getValue();
+                val = val.replace(/\r/g, "");
+                if (val.trim()) {
+                    history[i] = val.trim();
+                }
+                if (val.slice(-1) === "\n") {
+                    enter_key_pressed(val);
+                } else {
+                    $.post("./instant", {
+                        code: [editor.getValue()],
+                        globalFrameID: states[componentState.id].globalFrameID,
+                    }).done(function (data) {
+                        preview = "";
+                        if (!data) {
+                            request_update();
+                        }
+                        data = $.parseJSON(data);
+                        if (data.success) {
+                            preview = data.content;
+                        } else {
+                            preview = "";
+                        }
+                        request_update();
+                    })
+                }
             });
 
             function enter_key_pressed(val) {
@@ -125,36 +159,6 @@ function register(myLayout) {
                     request_update();
                 });
             }
-
-
-            editor.getSession().on("change", function () {
-                let val = editor.getValue();
-                val = val.replace(/\r/g, "");
-                if (val.trim()) {
-                    history[i] = val.trim();
-                }
-                console.log(history);
-                if (val.slice(-1) === "\n") {
-                    enter_key_pressed(val);
-                } else {
-                    $.post("./instant", {
-                        code: [editor.getValue()],
-                        globalFrameID: states[componentState.id].globalFrameID,
-                    }).done(function (data) {
-                        preview = "";
-                        if (!data) {
-                            request_update();
-                        }
-                        data = $.parseJSON(data);
-                        if (data.success) {
-                            preview = data.content;
-                        } else {
-                            preview = "";
-                        }
-                        request_update();
-                    })
-                }
-            });
 
             let old_up_arrow = editor.commands.commandKeyBinding.up;
             editor.commands.addCommand({

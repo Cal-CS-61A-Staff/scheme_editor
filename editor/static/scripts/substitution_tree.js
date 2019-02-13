@@ -74,7 +74,11 @@ function register(myLayout) {
 
         let ready = false;
 
-        container.getElement().find(".flag").on("update", async () => {
+        container.getElement().on("update", async (e) => {
+            if (e.target !== e.currentTarget) {
+                return;
+            }
+
             let zoom;
             let pan;
 
