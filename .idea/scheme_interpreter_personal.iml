@@ -7,6 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/editor" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/editor/static/scripts" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/editor/static" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/editor/libraries" />
       <excludeFolder url="file://$MODULE_DIR$/editor/static/ace" />
       <excludeFolder url="file://$MODULE_DIR$/ok_copy" />
     </content>
