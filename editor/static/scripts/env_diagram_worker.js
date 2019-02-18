@@ -1,10 +1,11 @@
 import {charWidth, charHeight} from "./measure";
 import {hide_return_frames} from "./settings";
 import {get_curr_frame} from "./navigation";
+import {states} from "./state_handler";
 
 export {display_env_pointers};
 
-function display_env_pointers(environments, heap, container, i, pointers) {
+function display_env_pointers(environments, heap, container, i, pointers, vert_offset) {
     container.clear();
 
     let cache = new Map();
@@ -65,13 +66,9 @@ function display_env_pointers(environments, heap, container, i, pointers) {
         }
     }
 
-    console.log(frame_data);
-
     maxlen += 5;
 
-    let curr_y = 10;
-
-    console.log("Start");
+    let curr_y = 10 + vert_offset * 25;
 
     for (let frame of frame_data) {
         for (let k = 1; k < frame.length; ++k) {

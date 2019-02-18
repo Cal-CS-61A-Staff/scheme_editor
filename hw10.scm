@@ -1,6 +1,6 @@
 (define (factorial x)
   (define (helper x curr)
-    (if (= x 1)
+    (if (= x 1)b
         curr
         (helper (- fx 1)
                 (* x curr))))

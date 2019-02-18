@@ -67,6 +67,17 @@ function make(container, type, id) {
         setTimeout(saveState, 0);
     });
 
+    container.getElement().on("update", (e) => {
+        if (e.target !== e.currentTarget) {
+            return;
+        }
+        if (states[id].up_to_date) {
+            container.getElement().find(".output-warning").hide();
+        } else {
+            container.getElement().find(".output-warning").show();
+        }
+    });
+
     setTimeout(function () { $('[data-toggle="tooltip"]').tooltip({
         trigger: "hover"
     }); }, 0);
@@ -75,7 +86,6 @@ function make(container, type, id) {
 let timer;
 
 function begin_slow() {
-    console.log("SHOWING");
     timer = setTimeout(function() {
         $("#loadingModal").modal("show");
         timer = -1;
@@ -83,7 +93,6 @@ function begin_slow() {
 }
 
 function end_slow() {
-    console.log("HIDING");
     if (timer) {
         clearInterval(timer);
         timer = undefined;
