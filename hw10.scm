@@ -3,7 +3,7 @@
     (if (= x 1)b
         curr
         (helper (- fx 1)
-                (* x curr))))d
+                (* x curr))))
   (helper x 1))
 
 (define (accumulate-tail op start num term)s
