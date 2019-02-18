@@ -23,6 +23,9 @@ function escapeHtml(string) {
 function register(myLayout) {
     myLayout.registerComponent('output', function (container, componentState) {
         container.getElement().html(`
+        <div class="output-warning">
+            This session may be out of date! Hit "Run" to refresh contents.
+        </div>
         <div class="output-wrapper">
             <div class="output-holder">
                 <div class="output">[click Run to start!]</div>
@@ -49,6 +52,7 @@ function register(myLayout) {
             container.getElement().find(".output-wrapper").scrollTop(
             container.getElement().find(".output-wrapper")[0].scrollHeight);
         });
+
         container.getElement().on("click", function () {
             editor.focus();
         });
@@ -76,6 +80,34 @@ function register(myLayout) {
 
             container.on("resize", function () {
                 editor.resize();
+            });
+
+            editor.getSession().on("change", function () {
+                let val = editor.getValue();
+                val = val.replace(/\r/g, "");
+                if (val.trim()) {
+                    history[i] = val.trim();
+                }
+                if (val.slice(-1) === "\n") {
+                    enter_key_pressed(val);
+                } else {
+                    $.post("./instant", {
+                        code: [editor.getValue()],
+                        globalFrameID: states[componentState.id].globalFrameID,
+                    }).done(function (data) {
+                        preview = "";
+                        if (!data) {
+                            request_update();
+                        }
+                        data = $.parseJSON(data);
+                        if (data.success) {
+                            preview = data.content;
+                        } else {
+                            preview = "";
+                        }
+                        request_update();
+                    })
+                }
             });
 
             function enter_key_pressed(val) {
@@ -123,36 +155,6 @@ function register(myLayout) {
                 });
             }
 
-
-            editor.getSession().on("change", function () {
-                let val = editor.getValue();
-                val = val.replace(/\r/g, "");
-                if (val.trim()) {
-                    history[i] = val.trim();
-                }
-                console.log(history);
-                if (val.slice(-1) === "\n") {
-                    enter_key_pressed(val);
-                } else {
-                    $.post("./instant", {
-                        code: [editor.getValue()],
-                        globalFrameID: states[componentState.id].globalFrameID,
-                    }).done(function (data) {
-                        preview = "";
-                        if (!data) {
-                            request_update();
-                        }
-                        data = $.parseJSON(data);
-                        if (data.success) {
-                            preview = data.content;
-                        } else {
-                            preview = "";
-                        }
-                        request_update();
-                    })
-                }
-            });
-
             let old_up_arrow = editor.commands.commandKeyBinding.up;
             editor.commands.addCommand({
                 name: "uparrow",
@@ -174,16 +176,13 @@ a                    } else {
                 name: "uparrow",
                 bindKey: { win: "Ctrl+Enter", mac: "Cmd+Enter"},
                 exec: function(editor, ...rest) {enter_key_pressed(editor.getValue().replace(/\r/g, ""));}
-            })
+            });
 
             let old_down_arrow = editor.commands.commandKeyBinding.down;
             editor.commands.addCommand({
                 name: "downarrow",
                 bindKey: { win: "Down", mac: "Down" },
                 exec: function(editor, ...rest) {
-                    console.log(history);
-                    console.log(editor.getCursorPosition().row);
-                    console.log(editor.getSession().getDocument());
                     let numLines = editor.getSession().getLength();
                     if (editor.getCursorPosition().row === numLines - 1) {
                         if (i < history.length - 1) {
