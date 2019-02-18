@@ -6,6 +6,17 @@ from lexer import TokenBuffer, SPECIALS
 from scheme_exceptions import ParseError
 
 
+def strip_comments(code):
+    out = ""
+    for string in code:
+        if not string.strip():
+            continue
+        buff = TokenBuffer([string])
+        while not buff.done:
+            out += str(get_expression(buff))
+    return out
+
+
 def tokenize(buffer: TokenBuffer):
     """
     >>> buff = TokenBuffer(["(1 (2 cat) (cat+dog-2 (5 6)  ) )"])

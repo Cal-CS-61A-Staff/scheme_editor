@@ -24,7 +24,6 @@ def prettify(strings: List[str]) -> str:
         buff = lexer.TokenBuffer([string])
         while not buff.done:
             expr = get_expression(buff)
-            # print(expr)
             out.append(prettify_expr(expr, LINE_LENGTH)[0])
 
     return "\n\n".join(out)
