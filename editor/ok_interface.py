@@ -51,7 +51,7 @@ class PromptOutput(metaclass=ABCMeta):
 
 class AreDifferent(PromptOutput, namedtuple('AreDifferent', ['prompt', 'expected', 'actual'])):
     def representation(self):
-        return "{prompt}\n{expected}\n{actual}".format(
+        return "{expected}\n{actual}\n{prompt}".format(
             prompt=self.prompt,
             expected=pad("; Expected: ", ";", self.expected),
             actual=pad("; Actual  : ", ";", self.actual)
@@ -60,7 +60,7 @@ class AreDifferent(PromptOutput, namedtuple('AreDifferent', ['prompt', 'expected
 
 class Same(PromptOutput, namedtuple('Same', ['prompt', 'output'])):
     def representation(self):
-        return "{prompt}\n{output}".format(
+        return "{output}\n{prompt}".format(
             prompt=self.prompt,
             output=pad("; Success: ", ";", self.output)
         )
