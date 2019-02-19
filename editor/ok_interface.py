@@ -79,13 +79,13 @@ class Same(PromptOutput):
         )
 
 class TestCaseResult(metaclass=ABCMeta):
-    @abstractmethod
     @property
+    @abstractmethod
     def success(self):
         pass
 
-    @abstractmethod
     @property
+    @abstractmethod
     def output(self):
         pass
 
