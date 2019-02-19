@@ -80,9 +80,11 @@ class TestCaseResult(metaclass=ABCMeta):
     def output(self):
         result = ""
         if self.setup_out is not None:
-            result += FAILURE_SETUP_HEADER + "\n\n" + "".join(self.setup_out).strip(
-                "\n") + "\n\n" + FAILURE_SETUP_FOOTER + "\n\n"
+            print(self.setup_out)
+            result += FAILURE_SETUP_HEADER + "\n\n; " + "".join(self.setup_out).strip(
+                "\n").replace("\n", "\n; ") + "\n\n" + FAILURE_SETUP_FOOTER + "\n\n"
         result += "\n\n".join(x.representation() for x in self.cases_out)
+        print(result)
         return result
 
     @property
