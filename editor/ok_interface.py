@@ -101,7 +101,6 @@ class FailureInSetup:
     def output(self):
         return FAILURE_SETUP_HEADER + "\n\n" + "".join(self.setup_out)
 
-
 @dataclass
 class FullTestCase:
     success: bool
