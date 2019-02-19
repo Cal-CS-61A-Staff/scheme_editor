@@ -35,19 +35,6 @@ import sys
 
 #############
 
-SCHEME_INPUT = "scheme_input"
-OUTPUT = "output"
-ACTUAL_OUTPUT = "actual_output"
-EXPECTED_OUTPUT = "expected_output"
-
-ERROR_HEADER = "error_header"
-LOAD_ERROR_HEADER = "load_error_header"
-CASE_DATA = "case_data"
-ERROR = "error"
-
-ERROR_EOF_MESSAGE = "Error: unexpected end of file"
-
-
 @dataclass
 class TestCase:
     problem: str
