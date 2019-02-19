@@ -129,7 +129,7 @@ def pad(first_header, later_header, string):
     return "\n".join(lines)
 
 
-def process(output):
+def process(output, success):
     prompt = []
     lines = "".join(output).split("\n")
     start_idx = len(lines)
@@ -143,9 +143,12 @@ def process(output):
             start_idx = idx
             break
     result = "\n".join(lines[start_idx:])
-    if "# Error: expected" in result:
-        expected_index = next(idx for idx, line in enumerate(lines) if "# Error: expected" in line)
-        but_got_idx = next(idx for idx, line in enumerate(lines) if "# but got" in line)
+    if not success:
+        try:
+            expected_index = next(idx for idx, line in enumerate(lines) if "# Error: expected" in line)
+            but_got_idx = next(idx for idx, line in enumerate(lines) if "# but got" in line)
+        except StopIteration:
+            breakpoint()
         expected = remove_comments_and_combine(lines[expected_index + 1:but_got_idx])
         actual = remove_comments_and_combine(lines[but_got_idx + 1:])
         actual = re.sub(r"Traceback.*\n\.\.\.\n(.*)", r"\1", actual)
@@ -160,16 +163,16 @@ def process_case(case):
     setup_success, setup_out = capture_output(case.console, case.setup.splitlines())
     setup_out = "".join(setup_out)
     if not setup_success:
-        return TestCaseResult(setup_success, [], process(setup_out))
+        return TestCaseResult(setup_success, [], process(setup_out, True))
     interpret_success_overall = True
     interpret_out_overall = []
     for chunk in chunked_input(case.lines + case.teardown.splitlines()):
         interpret_success, interpret_out = capture_output(case.console, chunk)
         interpret_success_overall = interpret_success_overall and interpret_success
-        interpret_out_overall.append(process(interpret_out))
+        interpret_out_overall.append(process(interpret_out, interpret_success))
 
     if "Traceback" in setup_out:
-        return TestCaseResult(False, interpret_out_overall, process(setup_out))
+        return TestCaseResult(False, interpret_out_overall, process(setup_out, True))
     return TestCaseResult(interpret_success_overall, interpret_out_overall)
 
 
