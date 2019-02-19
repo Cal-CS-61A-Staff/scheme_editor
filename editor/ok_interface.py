@@ -53,31 +53,11 @@ class TestCase:
     suite: int
     case: int
     passed: bool
-    elements: List[Tuple[str, List[str]]]
-
-    def get_full_str(self):
-        out = []
-        for tag, lines in self.elements:
-            if tag == SCHEME_INPUT:
-                out.append("\n".join(lines))
-            elif tag in (OUTPUT, EXPECTED_OUTPUT):
-                prefix = "; expect "
-                for ret in lines:
-                    out.append(prefix + ret)
-                    prefix = ";" + " " * (len(prefix) - 1)
-            elif tag == ACTUAL_OUTPUT:
-                prefix = "; actually received "
-                if lines[0].startswith("Traceback"):
-                    lines[2] = lines[2].split(": ", 2)[1]
-                    lines[:] = ["SchemeError:\n; " + "\n; ".join(lines[2:])]
-                for ret in lines:
-                    out.append(prefix + ret)
-                    prefix = ";" + " " * (len(prefix) - 1)
-        return formatter.prettify(["\n".join(out)])
+    elements: str
 
     def export(self):
         return {
-            "code": self.get_full_str(),
+            "code": self.elements,
             "passed": self.passed
         }
 
@@ -93,6 +73,72 @@ class PrintCapture:
     def flush(self):
         sys.__stdout__.flush()
 
+def capture_output(code):
+    old_stdout = sys.stdout
+    sys.stdout = out = PrintCapture()
+    result = code()
+    sys.stdout = old_stdout
+    return result, out.log
+
+@dataclass
+class FailureInSetup:
+    setup_out: str
+
+    @property
+    def success(self):
+        return False
+
+    @property
+    def output(self):
+        return "; There was an error in running the setup code (probably in loading your file)\n\n" + "".join(self.setup_out)
+
+@dataclass
+class FullTestCase:
+    success: bool
+    setup_out: str
+    interpret_out: str
+    teardown_out: str
+
+    @property
+    def output(self):
+        lines = self.interpret_out + self.teardown_out
+        result, _ = process_test_errors(collapse_test_lines(categorize_test_lines(lines)))
+        return format(result)
+
+
+def process_case(case):
+    setup_success, setup_out = capture_output(lambda: case.console._interpret_lines(case.setup.splitlines()))
+    interpret_success, interpret_out = capture_output(lambda: case.console._interpret_lines(case.lines))
+    teardown_success, teardown_out = capture_output(lambda: case.console._interpret_lines(case.teardown.splitlines()))
+    if not setup_success or "Traceback" in "".join(setup_out):
+        return FailureInSetup(setup_out)
+    return FullTestCase(
+        setup_success and interpret_success and teardown_success,
+        setup_out,
+        interpret_out,
+        teardown_out)
+
+def format(overall_lines):
+    out = []
+    for tag, lines in overall_lines:
+        if tag == SCHEME_INPUT:
+            out.append("\n".join(lines))
+        elif tag in (OUTPUT, EXPECTED_OUTPUT):
+            prefix = "; expect "
+            for ret in lines:
+                out.append(prefix + ret)
+                prefix = ";" + " " * (len(prefix) - 1)
+        elif tag == ACTUAL_OUTPUT:
+            lines = [y for x in lines for y in x.split("\n")]
+            prefix = "; actually received "
+            if lines[0].startswith("Traceback"):
+                lines[2] = lines[2].split(": ", 2)[1]
+                lines[:] = ["SchemeError:\n; " + "\n; ".join(lines[2:])]
+            for ret in lines:
+                out.append(prefix + ret)
+                prefix = ";" + " " * (len(prefix) - 1)
+    return formatter.prettify(["\n".join(out)])
+
 
 def run_tests():
     LOGGING_FORMAT = '%(levelname)s  | %(filename)s:%(lineno)d | %(message)s'
@@ -101,27 +147,22 @@ def run_tests():
 
     # noinspection PyUnresolvedReferences
     from client.cli.ok import parse_input
+    from client.sources.ok_test.scheme import SchemeSuite
     log.setLevel(logging.ERROR)
 
     args = parse_input(["--all", "--verbose", "--local"])
 
-    old_stdout = sys.stdout
-    sys.stdout = out = PrintCapture()
-
     assign = assignment.load_assignment(None, args)
 
-    msgs = messages.Messages()
-    for name, proto in assign.protocol_map.items():
-        log.info('Execute {}.run()'.format(name))
-        proto.run(msgs)
+    result = []
+    for test in assign.specified_tests:
+        for suiteno, suite in enumerate(test.suites):
+            assert isinstance(suite, SchemeSuite)
+            for caseno, case in enumerate(suite.cases):
+                procd_case = process_case(case)
+                result.append(TestCase(test.name, suiteno + 1, caseno + 1, procd_case.success, procd_case.output))
 
-    msgs['timestamp'] = str(datetime.now())
-
-    if assign:
-        assign.dump_tests()
-
-    sys.stdout = old_stdout
-    return "\n".join(out.log)
+    return result
 
 
 def categorize_test_lines(lines):
@@ -129,8 +170,6 @@ def categorize_test_lines(lines):
         line = line.strip()
         if not line or line == "-- OK! --":
             continue
-        elif i == 0:
-            yield CASE_DATA, line
         elif line.startswith("scm> ") or line.startswith(".... "):
             yield SCHEME_INPUT, line[5:]
         elif line.startswith("# "):
@@ -173,29 +212,7 @@ def process_test_errors(collapsed):
         elements.append((category, data))
     return elements, error
 
-
-def create_test_case_from_block(block):
-    lines = block.strip().split("\n")
-
-    categorized_lines = list(categorize_test_lines(lines))
-    collapsed = collapse_test_lines(categorized_lines)
-    elements, error = process_test_errors(collapsed)
-
-    (_, [header]), *this_case = elements
-
-    match = re.match(r'(\S+) > Suite (\S+) > Case (\S+)', header)
-
-    problem = match.group(1).replace("-", " ").title()
-    suite = int(match.group(2))
-    case = int(match.group(3))
-    return TestCase(problem, suite, case, not error, this_case)
-
-
-def parse_test_data(raw_out):
-    blocks = raw_out.split("-" * 69)
-    blocks = blocks[1:-1]  # cut off the header + footer
-    cases = [create_test_case_from_block(block) for block in blocks]
-
+def parse_test_data(cases):
     out = []
     for case in cases:
         if not out or out[-1]["problem"] != case.problem:
