@@ -10,14 +10,14 @@ sys.path.append(newdir)
 
 # CODE TAKEN FROM OK-CLIENT : https://github.com/okpy/ok-client/blob/master/client/cli/ok.py
 
+FAILURE_SETUP_HEADER = "; There was an error in running the setup code (probably in loading your file)"
+
 ##############
 # OKPY IMPORTS
-# noinspection PyUnresolvedReferences
 # noinspection PyUnresolvedReferences
 from client.api import assignment
 
 import logging
-import sys
 
 @dataclass
 class TestCase:
@@ -61,7 +61,7 @@ class FailureInSetup:
 
     @property
     def output(self):
-        return "; There was an error in running the setup code (probably in loading your file)\n\n" + "".join(self.setup_out)
+        return FAILURE_SETUP_HEADER + "\n\n" + "".join(self.setup_out)
 
 class PromptOutput(metaclass=ABCMeta):
     @abstractmethod
