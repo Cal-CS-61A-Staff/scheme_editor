@@ -187,7 +187,7 @@ def run_tests():
     from client.sources.ok_test.scheme import SchemeSuite
     log.setLevel(logging.ERROR)
 
-    args = parse_input(["--all", "--verbose", "--local"])
+    args = parse_input(["--all", "--verbose"])
 
     assign = assignment.load_assignment(None, args)
 
