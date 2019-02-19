@@ -47,6 +47,9 @@ class PromptOutput(metaclass=ABCMeta):
     @abstractmethod
     def representation(self):
         pass
+    @abstractmethod
+    def success(self):
+        pass
 
 
 class AreDifferent(PromptOutput, namedtuple('AreDifferent', ['prompt', 'expected', 'actual'])):
@@ -56,6 +59,8 @@ class AreDifferent(PromptOutput, namedtuple('AreDifferent', ['prompt', 'expected
             expected=pad("; Expected: ", ";", self.expected),
             actual=pad("; Actual  : ", ";", self.actual)
         )
+    def success(self):
+        return False
 
 class Error(PromptOutput, namedtuple('PromptOutput', ['prompt', 'error'])):
     def representation(self):
@@ -63,6 +68,8 @@ class Error(PromptOutput, namedtuple('PromptOutput', ['prompt', 'error'])):
             error=pad("; Error: ", ";", self.error),
             prompt=self.prompt
         )
+    def success(self):
+        return False
 
 class Same(PromptOutput, namedtuple('Same', ['prompt', 'output'])):
     def representation(self):
@@ -70,23 +77,24 @@ class Same(PromptOutput, namedtuple('Same', ['prompt', 'output'])):
             prompt=self.prompt,
             output=pad("; Success: ", ";", self.output)
         )
+    def success(self):
+        return True
 
 
-class TestCaseResult(metaclass=ABCMeta):
-    def __init__(self, cases_passed, cases_out, setup_out=None):
-        self.cases_passed = cases_passed
-        self.cases_out = cases_out
-        self.setup_out = setup_out
+class TestCaseResult(namedtuple('TestCaseResult', ['cases_passed', 'cases_out', 'setup_out'])):
 
     @property
     def success(self):
-        return self.setup_out is None and self.cases_passed
+        return self.setup_out.success() and self.cases_passed
 
     @property
     def output(self):
         result = ""
-        if self.setup_out is not None:
-            result += self.setup_out.representation() + "\n\n"
+        if self.setup_out.success():
+            result += self.setup_out.prompt
+        else:
+            result += self.setup_out.representation()
+        result += "\n\n"
         result += "\n\n".join(x.representation() for x in self.cases_out)
         return formatter.prettify([result])
 
@@ -153,7 +161,7 @@ def process(output, success):
         actual = remove_comments_and_combine(lines[but_got_idx + 1:])
         actual = re.sub(r"Traceback.*\n\.\.\.\n(.*)", r"\1", actual)
         return AreDifferent("\n".join(prompt), expected, actual)
-    elif "Traceback" in result:
+    elif "Traceback" in result or "# Error: unexpected token" in result:
         return Error("\n".join(prompt).strip("\n"), result)
     else:
         return Same("\n".join(prompt), result.strip())
@@ -173,7 +181,7 @@ def process_case(case):
 
     if "Traceback" in setup_out:
         return TestCaseResult(False, interpret_out_overall, process(setup_out, True))
-    return TestCaseResult(interpret_success_overall, interpret_out_overall)
+    return TestCaseResult(interpret_success_overall, interpret_out_overall, process(setup_out, True))
 
 
 def run_tests():
