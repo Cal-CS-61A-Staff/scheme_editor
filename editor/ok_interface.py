@@ -2,7 +2,6 @@ import os
 import re
 import sys
 from collections import namedtuple
-from typing import List
 from abc import ABCMeta, abstractmethod
 
 newdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/ok"
