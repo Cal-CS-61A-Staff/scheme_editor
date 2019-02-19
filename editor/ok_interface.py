@@ -3,6 +3,7 @@ import re
 import sys
 from dataclasses import dataclass
 from typing import Tuple, List
+from abc import ABCMeta, abstractmethod
 
 import formatter
 
@@ -92,24 +93,94 @@ class FailureInSetup:
     def output(self):
         return "; There was an error in running the setup code (probably in loading your file)\n\n" + "".join(self.setup_out)
 
+class PromptOutput(metaclass=ABCMeta):
+    @abstractmethod
+    def represenation(self):
+        pass
+
 @dataclass
 class FullTestCase:
     success: bool
-    interpret_out: str
+    interpret_out: List[PromptOutput]
 
     @property
     def output(self):
-        result, _ = process_test_errors(collapse_test_lines(categorize_test_lines(self.interpret_out)))
-        return format(result)
+        return "\n\n".join(x.represenation() for x in self.interpret_out)
 
 def chunked_input(lines):
     chunk = []
     for line in lines:
-        if isinstance(line, str):
+        chunk.append(line)
+        if not isinstance(line, str):
             yield chunk
             chunk = []
-        chunk.append(line)
-    yield chunk
+
+def remove_comments_and_combine(lines):
+    result = []
+    for line in lines:
+        if not line:
+            continue
+        if line[0] == "#":
+            line = line[1:]
+        line = line.strip()
+        result.append(line)
+    return "\n".join(result)
+
+def pad(first_header, later_header, string):
+    assert len(later_header) <= len(first_header)
+    later_header += " " * (len(first_header) - len(later_header))
+    lines = string.split("\n")
+    lines[0] = first_header + lines[0]
+    for i in range(1, len(lines)):
+        lines[i] = later_header + lines[i]
+    return "\n".join(lines)
+
+@dataclass
+class AreDifferent(PromptOutput):
+    prompt: str
+    expected: str
+    actual: str
+    def represenation(self):
+        return "{prompt}\n{expected}\n{actual}".format(
+            prompt=self.prompt,
+            expected=pad("; expected ", ";", self.expected),
+            actual  =pad("; actual   ", ";", self.actual)
+        )
+
+@dataclass
+class Same(PromptOutput):
+    prompt: str
+    output: str
+    def represenation(self):
+        return "{prompt}\n{output}".format(
+            prompt=self.prompt,
+            output=pad("; output ", ";", self.output)
+        )
+
+def process(output):
+    prompt = []
+    lines = "".join(output).split("\n")
+    start_idx = len(lines)
+    for idx, line in enumerate(lines):
+        line = line.strip()
+        if not line:
+            continue
+        if line.startswith("scm> ") or line.startswith(".... "):
+            prompt.append(line[5:])
+        else:
+            start_idx = idx
+            break
+    result = "\n".join(lines[start_idx:])
+    if "# Error: expected" in result:
+        expected_index = next(idx for idx, line in enumerate(lines) if "# Error: expected" in line)
+        but_got_idx = next(idx for idx, line in enumerate(lines) if "# but got" in line)
+        expected = remove_comments_and_combine(lines[expected_index + 1:but_got_idx])
+        actual = remove_comments_and_combine(lines[but_got_idx + 1:])
+        actual = re.sub(r"Traceback.*\n\.\.\.\n(.*)", r"\1", actual)
+        return AreDifferent("\n".join(prompt), expected, actual)
+    else:
+        return Same("\n".join(prompt), result.strip())
+
 
 def process_case(case):
     setup_success, setup_out = capture_output(case.console, case.setup.splitlines())
@@ -120,32 +191,10 @@ def process_case(case):
     for chunk in chunked_input(case.lines + case.teardown.splitlines()):
         interpret_success, interpret_out = capture_output(case.console, chunk)
         interpret_success_overall = interpret_success_overall and interpret_success
-        interpret_out_overall += interpret_out
+        interpret_out_overall.append(process(interpret_out))
     return FullTestCase(
         interpret_success_overall,
         interpret_out_overall)
-
-def format(overall_lines):
-    out = []
-    for tag, lines in overall_lines:
-        if tag == SCHEME_INPUT:
-            out.append("\n".join(lines))
-        elif tag in (OUTPUT, EXPECTED_OUTPUT):
-            prefix = "; expect "
-            for ret in lines:
-                out.append(prefix + ret)
-                prefix = ";" + " " * (len(prefix) - 1)
-        elif tag == ACTUAL_OUTPUT:
-            lines = [y for x in lines for y in x.split("\n")]
-            prefix = "; actually received "
-            if lines[0].startswith("Traceback"):
-                lines[2] = lines[2].split(": ", 2)[1]
-                lines[:] = ["SchemeError:\n; " + "\n; ".join(lines[2:])]
-            for ret in lines:
-                out.append(prefix + ret)
-                prefix = ";" + " " * (len(prefix) - 1)
-    return formatter.prettify(["\n".join(out)])
-
 
 def run_tests():
     LOGGING_FORMAT = '%(levelname)s  | %(filename)s:%(lineno)d | %(message)s'
@@ -170,54 +219,6 @@ def run_tests():
                 result.append(TestCase(test.name, suiteno + 1, caseno + 1, procd_case.success, procd_case.output))
 
     return result
-
-
-def categorize_test_lines(lines):
-    for i, line in enumerate(lines):
-        line = line.strip()
-        if not line:
-            continue
-        elif line.startswith("scm> ") or line.startswith(".... "):
-            yield SCHEME_INPUT, line[5:]
-        elif line.startswith("# "):
-            if line[1:].strip() == "Error: expected" or line[1:].strip() == "but got":
-                yield ERROR_HEADER, line[1:].strip()
-            elif line[1:].strip() == ERROR_EOF_MESSAGE:
-                yield LOAD_ERROR_HEADER, line[1:].strip()
-            else:
-                yield ERROR, line[1:].strip()
-        else:
-            yield OUTPUT, line
-
-
-def collapse_test_lines(categorized_lines):
-    collapsed = []
-    for category, line in categorized_lines:
-        if not collapsed or collapsed[-1][0] != category:
-            collapsed.append((category, [line]))
-        else:
-            collapsed[-1][1].append(line)
-    return collapsed
-
-
-def process_test_errors(collapsed):
-    elements = []
-    error = False
-    for i, (category, data) in enumerate(collapsed):
-        if category == ERROR_HEADER:
-            error = True
-            elements.pop()
-            elements.append((EXPECTED_OUTPUT, collapsed[i + 1][1]))
-            elements.append((ACTUAL_OUTPUT, collapsed[i + 3][1]))
-            break
-        elif category == LOAD_ERROR_HEADER:
-            error = True
-            elements.append((EXPECTED_OUTPUT, ['']))
-            elements.append((ACTUAL_OUTPUT, [ERROR_EOF_MESSAGE]))
-            break
-
-        elements.append((category, data))
-    return elements, error
 
 def parse_test_data(cases):
     out = []
