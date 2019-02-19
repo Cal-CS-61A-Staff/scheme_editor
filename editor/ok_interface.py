@@ -21,9 +21,7 @@ import logging
 
 @dataclass
 class TestCase:
-    problem: str
     suite: int
-    case: int
     passed: bool
     elements: str
 
@@ -192,22 +190,28 @@ def run_tests():
 
     result = []
     for test in assign.specified_tests:
+        suites = []
         for suiteno, suite in enumerate(test.suites):
             assert isinstance(suite, SchemeSuite)
-            for caseno, case in enumerate(suite.cases):
+            for case in suite.cases:
                 procd_case = process_case(case)
-                result.append(TestCase(test.name, suiteno + 1, caseno + 1, procd_case.success, procd_case.output))
-
+                suites.append(TestCase(suiteno + 1, procd_case.success, procd_case.output))
+        result.append((test.name, suites))
     return result
 
 def parse_test_data(cases):
     out = []
-    for case in cases:
-        if not out or out[-1]["problem"] != case.problem:
-            out.append({"problem": case.problem, "suites": [],
-                        "passed": all(x.passed for x in cases if x.problem == case.problem)})
-        if len(out[-1]["suites"]) != case.suite:
-            out[-1]["suites"].append([])
-        out[-1]["suites"][-1].append(case.export())
+    for name, test in cases:
+        suites = []
+        for case in test:
+            if len(suites) != case.suite:
+                suites.append([])
+            suites[-1].append(case.export())
+
+        out.append({
+            "problem": name,
+            "suites": suites,
+            "passed": all(x.passed for x in test)
+        })
 
     return out
