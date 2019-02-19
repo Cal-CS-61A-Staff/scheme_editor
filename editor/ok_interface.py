@@ -197,11 +197,8 @@ def run_tests():
                 procd_case = process_case(case)
                 suites.append(TestCase(suiteno + 1, procd_case.success, procd_case.output))
         result.append((test.name, suites))
-    return result
-
-def parse_test_data(cases):
     out = []
-    for name, test in cases:
+    for name, test in result:
         suites = []
         for case in test:
             if len(suites) != case.suite:
@@ -215,3 +212,6 @@ def parse_test_data(cases):
         })
 
     return out
+
+def parse_test_data(cases):
+    return cases
