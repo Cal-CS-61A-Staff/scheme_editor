@@ -172,7 +172,7 @@ def run_tests():
             assert isinstance(suite, SchemeSuite)
             suites.append([process_case(case).dictionary for case in suite.cases])
         result.append({
-            "problem": test.name,
+            "problem": test.name.replace("-", " ").title(),
             "suites": suites,
             "passed": all(x['passed'] for t in suites for x in t)
         })
