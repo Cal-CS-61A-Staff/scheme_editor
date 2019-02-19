@@ -2,10 +2,8 @@ import os
 import re
 import sys
 from dataclasses import dataclass
-from typing import Tuple, List
+from typing import List
 from abc import ABCMeta, abstractmethod
-
-import formatter
 
 newdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/ok"
 sys.path.append(newdir)
@@ -15,25 +13,11 @@ sys.path.append(newdir)
 ##############
 # OKPY IMPORTS
 # noinspection PyUnresolvedReferences
-from client import exceptions as ex
 # noinspection PyUnresolvedReferences
 from client.api import assignment
-# noinspection PyUnresolvedReferences
-from client.cli.common import messages
-# noinspection PyUnresolvedReferences
-from client.utils import auth
-# noinspection PyUnresolvedReferences
-from client.utils import output
-# noinspection PyUnresolvedReferences
-from client.utils import software_update
 
-from datetime import datetime
-# noinspection PyUnresolvedReferences
-import client
 import logging
 import sys
-
-#############
 
 @dataclass
 class TestCase:
@@ -48,7 +32,6 @@ class TestCase:
             "code": self.elements,
             "passed": self.passed
         }
-
 
 class PrintCapture:
     def __init__(self):
