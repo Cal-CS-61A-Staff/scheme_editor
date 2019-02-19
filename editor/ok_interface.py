@@ -20,6 +20,7 @@ from client.api import assignment
 
 import logging
 
+
 class PrintCapture:
     def __init__(self):
         self.log = []
@@ -31,6 +32,7 @@ class PrintCapture:
     def flush(self):
         sys.__stdout__.flush()
 
+
 def capture_output(console, lines):
     old_stdout = sys.stdout
     sys.stdout = out = PrintCapture()
@@ -38,18 +40,21 @@ def capture_output(console, lines):
     sys.stdout = old_stdout
     return result, out.log
 
+
 class PromptOutput(metaclass=ABCMeta):
     @abstractmethod
     def representation(self):
         pass
+
 
 class AreDifferent(PromptOutput, namedtuple('AreDifferent', ['prompt', 'expected', 'actual'])):
     def representation(self):
         return "{prompt}\n{expected}\n{actual}".format(
             prompt=self.prompt,
             expected=pad("; Expected: ", ";", self.expected),
-            actual  =pad("; Actual  : ", ";", self.actual)
+            actual=pad("; Actual  : ", ";", self.actual)
         )
+
 
 class Same(PromptOutput, namedtuple('Same', ['prompt', 'output'])):
     def representation(self):
@@ -57,6 +62,7 @@ class Same(PromptOutput, namedtuple('Same', ['prompt', 'output'])):
             prompt=self.prompt,
             output=pad("; Success: ", ";", self.output)
         )
+
 
 class TestCaseResult(metaclass=ABCMeta):
 
@@ -73,16 +79,18 @@ class TestCaseResult(metaclass=ABCMeta):
     def output(self):
         result = ""
         if self.setup_out is not None:
-            result += FAILURE_SETUP_HEADER + "\n\n" + "".join(self.setup_out).strip("\n") + "\n\n" + FAILURE_SETUP_FOOTER + "\n\n"
+            result += FAILURE_SETUP_HEADER + "\n\n" + "".join(self.setup_out).strip(
+                "\n") + "\n\n" + FAILURE_SETUP_FOOTER + "\n\n"
         result += "\n\n".join(x.representation() for x in self.cases_out)
         return result
 
     @property
     def dictionary(self):
         return {
-            "code" : self.output,
-            "passed" : self.success
+            "code": self.output,
+            "passed": self.success
         }
+
 
 def chunked_input(lines):
     chunk = []
@@ -91,6 +99,7 @@ def chunked_input(lines):
         if not isinstance(line, str):
             yield chunk
             chunk = []
+
 
 def remove_comments_and_combine(lines):
     result = []
@@ -103,6 +112,7 @@ def remove_comments_and_combine(lines):
         result.append(line)
     return "\n".join(result)
 
+
 def pad(first_header, later_header, string):
     assert len(later_header) <= len(first_header)
     later_header += " " * (len(first_header) - len(later_header))
@@ -111,6 +121,7 @@ def pad(first_header, later_header, string):
     for i in range(1, len(lines)):
         lines[i] = later_header + lines[i]
     return "\n".join(lines)
+
 
 def process(output):
     prompt = []
@@ -136,6 +147,7 @@ def process(output):
     else:
         return Same("\n".join(prompt), result.strip())
 
+
 def process_case(case):
     setup_success, setup_out = capture_output(case.console, case.setup.splitlines())
     if not setup_success:
@@ -150,6 +162,7 @@ def process_case(case):
     if "Traceback" in "".join(setup_out):
         return TestCaseResult(False, interpret_out_overall, setup_out)
     return TestCaseResult(interpret_success_overall, interpret_out_overall)
+
 
 def run_tests():
     LOGGING_FORMAT = '%(levelname)s  | %(filename)s:%(lineno)d | %(message)s'
