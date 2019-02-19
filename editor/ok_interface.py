@@ -1,7 +1,7 @@
 import os
 import re
 import sys
-from dataclasses import dataclass
+from collections import namedtuple
 from typing import List
 from abc import ABCMeta, abstractmethod
 
@@ -42,11 +42,7 @@ class PromptOutput(metaclass=ABCMeta):
     def represenation(self):
         pass
 
-@dataclass
-class AreDifferent(PromptOutput):
-    prompt: str
-    expected: str
-    actual: str
+class AreDifferent(PromptOutput, namedtuple('AreDifferent', ['prompt', 'expected', 'actual'])):
     def represenation(self):
         return "{prompt}\n{expected}\n{actual}".format(
             prompt=self.prompt,
@@ -54,10 +50,7 @@ class AreDifferent(PromptOutput):
             actual  =pad("; actual  : ", ";", self.actual)
         )
 
-@dataclass
-class Same(PromptOutput):
-    prompt: str
-    output: str
+class Same(PromptOutput, namedtuple('Same', ['prompt', 'output'])):
     def represenation(self):
         return "{prompt}\n{output}".format(
             prompt=self.prompt,
@@ -80,9 +73,7 @@ class TestCaseResult(metaclass=ABCMeta):
             "passed" : self.success()
         }
 
-@dataclass
-class FailureInSetup(TestCaseResult):
-    setup_out: str
+class FailureInSetup(TestCaseResult, namedtuple('FailureInSetup', ['setup_out'])):
 
     def success(self):
         return False
@@ -90,10 +81,7 @@ class FailureInSetup(TestCaseResult):
     def output(self):
         return FAILURE_SETUP_HEADER + "\n\n" + "".join(self.setup_out)
 
-@dataclass
-class FullTestCase(TestCaseResult):
-    passed: bool
-    interpret_out: List[PromptOutput]
+class FullTestCase(TestCaseResult, namedtuple('FullTestCase', ['passed', 'interpret_out'])):
 
     def success(self):
         return self.passed
