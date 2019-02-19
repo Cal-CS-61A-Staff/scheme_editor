@@ -102,14 +102,28 @@ class FullTestCase:
         result, _ = process_test_errors(collapse_test_lines(categorize_test_lines(self.interpret_out)))
         return format(result)
 
+def chunked_input(lines):
+    chunk = []
+    for line in lines:
+        if isinstance(line, str):
+            yield chunk
+            chunk = []
+        chunk.append(line)
+    yield chunk
+
 def process_case(case):
     setup_success, setup_out = capture_output(case.console, case.setup.splitlines())
     if not setup_success or "Traceback" in "".join(setup_out):
         return FailureInSetup(setup_out)
-    interpret_success, interpret_out = capture_output(case.console, case.lines + case.teardown.splitlines())
+    interpret_success_overall = True
+    interpret_out_overall = []
+    for chunk in chunked_input(case.lines + case.teardown.splitlines()):
+        interpret_success, interpret_out = capture_output(case.console, chunk)
+        interpret_success_overall = interpret_success_overall and interpret_success
+        interpret_out_overall += interpret_out
     return FullTestCase(
-        interpret_success,
-        interpret_out)
+        interpret_success_overall,
+        interpret_out_overall)
 
 def format(overall_lines):
     out = []
