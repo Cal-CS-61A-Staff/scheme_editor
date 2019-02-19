@@ -9,7 +9,8 @@ sys.path.append(newdir)
 
 # CODE TAKEN FROM OK-CLIENT : https://github.com/okpy/ok-client/blob/master/client/cli/ok.py
 
-FAILURE_SETUP_HEADER = "; There was an error in running the setup code (probably in loading your file)\n; Raw ok output follows"
+FAILURE_SETUP_HEADER = '''; There was an error in running the setup code (probably in loading your file)
+; Raw ok output follows'''
 
 FAILURE_SETUP_FOOTER = "; Raw ok output over"
 
@@ -171,6 +172,7 @@ def run_tests():
 
     # noinspection PyUnresolvedReferences
     from client.cli.ok import parse_input
+    # noinspection PyUnresolvedReferences
     from client.sources.ok_test.scheme import SchemeSuite
     log.setLevel(logging.ERROR)
 
