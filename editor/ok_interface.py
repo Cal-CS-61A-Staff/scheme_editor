@@ -51,6 +51,44 @@ def capture_output(console, lines):
     sys.stdout = old_stdout
     return result, out.log
 
+class PromptOutput(metaclass=ABCMeta):
+    @abstractmethod
+    def represenation(self):
+        pass
+
+@dataclass
+class AreDifferent(PromptOutput):
+    prompt: str
+    expected: str
+    actual: str
+    def represenation(self):
+        return "{prompt}\n{expected}\n{actual}".format(
+            prompt=self.prompt,
+            expected=pad("; expected ", ";", self.expected),
+            actual  =pad("; actual   ", ";", self.actual)
+        )
+
+@dataclass
+class Same(PromptOutput):
+    prompt: str
+    output: str
+    def represenation(self):
+        return "{prompt}\n{output}".format(
+            prompt=self.prompt,
+            output=pad("; output ", ";", self.output)
+        )
+
+class TestCaseResult(metaclass=ABCMeta):
+    @abstractmethod
+    @property
+    def success(self):
+        pass
+
+    @abstractmethod
+    @property
+    def output(self):
+        pass
+
 @dataclass
 class FailureInSetup:
     setup_out: str
@@ -63,10 +101,6 @@ class FailureInSetup:
     def output(self):
         return FAILURE_SETUP_HEADER + "\n\n" + "".join(self.setup_out)
 
-class PromptOutput(metaclass=ABCMeta):
-    @abstractmethod
-    def represenation(self):
-        pass
 
 @dataclass
 class FullTestCase:
@@ -104,28 +138,6 @@ def pad(first_header, later_header, string):
     for i in range(1, len(lines)):
         lines[i] = later_header + lines[i]
     return "\n".join(lines)
-
-@dataclass
-class AreDifferent(PromptOutput):
-    prompt: str
-    expected: str
-    actual: str
-    def represenation(self):
-        return "{prompt}\n{expected}\n{actual}".format(
-            prompt=self.prompt,
-            expected=pad("; expected ", ";", self.expected),
-            actual  =pad("; actual   ", ";", self.actual)
-        )
-
-@dataclass
-class Same(PromptOutput):
-    prompt: str
-    output: str
-    def represenation(self):
-        return "{prompt}\n{output}".format(
-            prompt=self.prompt,
-            output=pad("; output ", ";", self.output)
-        )
 
 def process(output):
     prompt = []
