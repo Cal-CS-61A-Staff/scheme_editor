@@ -163,7 +163,6 @@ def process(output):
     else:
         return Same("\n".join(prompt), result.strip())
 
-
 def process_case(case):
     setup_success, setup_out = capture_output(case.console, case.setup.splitlines())
     if not setup_success or "Traceback" in "".join(setup_out):
