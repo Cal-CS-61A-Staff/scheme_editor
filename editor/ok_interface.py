@@ -9,7 +9,9 @@ sys.path.append(newdir)
 
 # CODE TAKEN FROM OK-CLIENT : https://github.com/okpy/ok-client/blob/master/client/cli/ok.py
 
-FAILURE_SETUP_HEADER = "; There was an error in running the setup code (probably in loading your file)"
+FAILURE_SETUP_HEADER = "; There was an error in running the setup code (probably in loading your file)\n; Raw ok output follows"
+
+FAILURE_SETUP_FOOTER = "; Raw ok output over"
 
 ##############
 # OKPY IMPORTS
@@ -57,36 +59,30 @@ class Same(PromptOutput, namedtuple('Same', ['prompt', 'output'])):
         )
 
 class TestCaseResult(metaclass=ABCMeta):
-    @abstractmethod
-    def success(self):
-        pass
 
-    @abstractmethod
+    def __init__(self, cases_passed, cases_out, setup_out=None):
+        self.cases_passed = cases_passed
+        self.cases_out = cases_out
+        self.setup_out = setup_out
+
+    @property
+    def success(self):
+        return self.setup_out is None and self.cases_passed
+
+    @property
     def output(self):
-        pass
+        result = ""
+        if self.setup_out is not None:
+            result += FAILURE_SETUP_HEADER + "\n\n" + "".join(self.setup_out).strip("\n") + "\n\n" + FAILURE_SETUP_FOOTER + "\n\n"
+        result += "\n\n".join(x.represenation() for x in self.cases_out)
+        return result
 
     @property
     def dictionary(self):
         return {
-            "code" : self.output(),
-            "passed" : self.success()
+            "code" : self.output,
+            "passed" : self.success
         }
-
-class FailureInSetup(TestCaseResult, namedtuple('FailureInSetup', ['setup_out'])):
-
-    def success(self):
-        return False
-
-    def output(self):
-        return FAILURE_SETUP_HEADER + "\n\n" + "".join(self.setup_out)
-
-class FullTestCase(TestCaseResult, namedtuple('FullTestCase', ['passed', 'interpret_out'])):
-
-    def success(self):
-        return self.passed
-
-    def output(self):
-        return "\n\n".join(x.represenation() for x in self.interpret_out)
 
 def chunked_input(lines):
     chunk = []
@@ -142,17 +138,18 @@ def process(output):
 
 def process_case(case):
     setup_success, setup_out = capture_output(case.console, case.setup.splitlines())
-    if not setup_success or "Traceback" in "".join(setup_out):
-        return FailureInSetup(setup_out)
+    if not setup_success:
+        return TestCaseResult(setup_out, [], setup_out)
     interpret_success_overall = True
     interpret_out_overall = []
     for chunk in chunked_input(case.lines + case.teardown.splitlines()):
         interpret_success, interpret_out = capture_output(case.console, chunk)
         interpret_success_overall = interpret_success_overall and interpret_success
         interpret_out_overall.append(process(interpret_out))
-    return FullTestCase(
-        interpret_success_overall,
-        interpret_out_overall)
+
+    if "Traceback" in "".join(setup_out):
+        return TestCaseResult(False, interpret_out_overall, setup_out)
+    return TestCaseResult(interpret_success_overall, interpret_out_overall)
 
 def run_tests():
     LOGGING_FORMAT = '%(levelname)s  | %(filename)s:%(lineno)d | %(message)s'
