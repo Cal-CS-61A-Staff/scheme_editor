@@ -1,3 +1,4 @@
+import formatter
 import os
 import re
 import sys
@@ -80,12 +81,10 @@ class TestCaseResult(metaclass=ABCMeta):
     def output(self):
         result = ""
         if self.setup_out is not None:
-            print(self.setup_out)
             result += FAILURE_SETUP_HEADER + "\n\n; " + "".join(self.setup_out).strip(
                 "\n").replace("\n", "\n; ") + "\n\n" + FAILURE_SETUP_FOOTER + "\n\n"
         result += "\n\n".join(x.representation() for x in self.cases_out)
-        print(result)
-        return result
+        return formatter.prettify([result])
 
     @property
     def dictionary(self):
@@ -157,7 +156,7 @@ def process_case(case):
         return TestCaseResult(setup_out, [], setup_out)
     interpret_success_overall = True
     interpret_out_overall = []
-    for chunk in chunked_input(case.lines + case.teardown.splitlines()):
+    for chunk in chunked_input(case.setup.splitlines() + case.lines + case.teardown.splitlines()):
         interpret_success, interpret_out = capture_output(case.console, chunk)
         interpret_success_overall = interpret_success_overall and interpret_success
         interpret_out_overall.append(process(interpret_out))
