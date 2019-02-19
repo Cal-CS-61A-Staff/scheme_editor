@@ -67,7 +67,6 @@ class Same(PromptOutput, namedtuple('Same', ['prompt', 'output'])):
 
 
 class TestCaseResult(metaclass=ABCMeta):
-
     def __init__(self, cases_passed, cases_out, setup_out=None):
         self.cases_passed = cases_passed
         self.cases_out = cases_out
@@ -81,8 +80,11 @@ class TestCaseResult(metaclass=ABCMeta):
     def output(self):
         result = ""
         if self.setup_out is not None:
-            result += FAILURE_SETUP_HEADER + "\n\n; " + "".join(self.setup_out).strip(
-                "\n").replace("\n", "\n; ") + "\n\n" + FAILURE_SETUP_FOOTER + "\n\n"
+            result += FAILURE_SETUP_HEADER + "\n\n; " \
+                      + "".join(self.setup_out)\
+                          .strip("\n")\
+                          .replace("\n", "\n; ")\
+                      + "\n\n" + FAILURE_SETUP_FOOTER + "\n\n"
         result += "\n\n".join(x.representation() for x in self.cases_out)
         return formatter.prettify([result])
 
