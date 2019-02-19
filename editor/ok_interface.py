@@ -57,6 +57,12 @@ class AreDifferent(PromptOutput, namedtuple('AreDifferent', ['prompt', 'expected
             actual=pad("; Actual  : ", ";", self.actual)
         )
 
+class Error(PromptOutput, namedtuple('PromptOutput', ['prompt', 'error'])):
+    def representation(self):
+        return "{error}\n{prompt}".format(
+            error=pad("; Error: ", ";", self.error),
+            prompt=self.prompt
+        )
 
 class Same(PromptOutput, namedtuple('Same', ['prompt', 'output'])):
     def representation(self):
@@ -80,11 +86,7 @@ class TestCaseResult(metaclass=ABCMeta):
     def output(self):
         result = ""
         if self.setup_out is not None:
-            result += FAILURE_SETUP_HEADER + "\n\n; " \
-                      + "".join(self.setup_out)\
-                          .strip("\n")\
-                          .replace("\n", "\n; ")\
-                      + "\n\n" + FAILURE_SETUP_FOOTER + "\n\n"
+            result += self.setup_out.representation() + "\n\n"
         result += "\n\n".join(x.representation() for x in self.cases_out)
         return formatter.prettify([result])
 
@@ -148,6 +150,8 @@ def process(output):
         actual = remove_comments_and_combine(lines[but_got_idx + 1:])
         actual = re.sub(r"Traceback.*\n\.\.\.\n(.*)", r"\1", actual)
         return AreDifferent("\n".join(prompt), expected, actual)
+    elif "Traceback" in result:
+        return Error("\n".join(prompt).strip("\n"), result)
     else:
         return Same("\n".join(prompt), result.strip())
 
@@ -156,7 +160,7 @@ def process_case(case):
     setup_success, setup_out = capture_output(case.console, case.setup.splitlines())
     setup_out = "".join(setup_out)
     if not setup_success:
-        return TestCaseResult(setup_out, [], setup_out)
+        return TestCaseResult(setup_success, [], process(setup_out))
     interpret_success_overall = True
     interpret_out_overall = []
     for chunk in chunked_input(case.lines + case.teardown.splitlines()):
@@ -164,8 +168,8 @@ def process_case(case):
         interpret_success_overall = interpret_success_overall and interpret_success
         interpret_out_overall.append(process(interpret_out))
 
-        return TestCaseResult(False, interpret_out_overall, setup_out)
     if "Traceback" in setup_out:
+        return TestCaseResult(False, interpret_out_overall, process(setup_out))
     return TestCaseResult(interpret_success_overall, interpret_out_overall)
 
 
