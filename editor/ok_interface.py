@@ -154,6 +154,7 @@ def process(output):
 
 def process_case(case):
     setup_success, setup_out = capture_output(case.console, case.setup.splitlines())
+    setup_out = "".join(setup_out)
     if not setup_success:
         return TestCaseResult(setup_out, [], setup_out)
     interpret_success_overall = True
@@ -163,8 +164,8 @@ def process_case(case):
         interpret_success_overall = interpret_success_overall and interpret_success
         interpret_out_overall.append(process(interpret_out))
 
-    if "Traceback" in "".join(setup_out):
         return TestCaseResult(False, interpret_out_overall, setup_out)
+    if "Traceback" in setup_out:
     return TestCaseResult(interpret_success_overall, interpret_out_overall)
 
 
