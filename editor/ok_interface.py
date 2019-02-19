@@ -161,7 +161,7 @@ def process(output, success):
         actual = remove_comments_and_combine(lines[but_got_idx + 1:])
         actual = re.sub(r"Traceback.*\n\.\.\.\n(.*)", r"\1", actual)
         return AreDifferent("\n".join(prompt), expected, actual)
-    elif "Traceback" in result or "# Error: unexpected token" in result:
+    elif "Traceback" in result or "# Error:" in result:
         return Error("\n".join(prompt).strip("\n"), result)
     else:
         return Same("\n".join(prompt), result.strip())
