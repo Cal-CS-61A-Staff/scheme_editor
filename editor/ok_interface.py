@@ -175,7 +175,7 @@ def run_tests():
 def categorize_test_lines(lines):
     for i, line in enumerate(lines):
         line = line.strip()
-        if not line or line == "-- OK! --":
+        if not line:
             continue
         elif line.startswith("scm> ") or line.startswith(".... "):
             yield SCHEME_INPUT, line[5:]
