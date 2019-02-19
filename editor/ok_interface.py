@@ -158,7 +158,7 @@ def process_case(case):
         return TestCaseResult(setup_out, [], setup_out)
     interpret_success_overall = True
     interpret_out_overall = []
-    for chunk in chunked_input(case.setup.splitlines() + case.lines + case.teardown.splitlines()):
+    for chunk in chunked_input(case.lines + case.teardown.splitlines()):
         interpret_success, interpret_out = capture_output(case.console, chunk)
         interpret_success_overall = interpret_success_overall and interpret_success
         interpret_out_overall.append(process(interpret_out))
