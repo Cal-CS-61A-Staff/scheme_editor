@@ -50,8 +50,8 @@ class AreDifferent(PromptOutput):
     def represenation(self):
         return "{prompt}\n{expected}\n{actual}".format(
             prompt=self.prompt,
-            expected=pad("; expected ", ";", self.expected),
-            actual  =pad("; actual   ", ";", self.actual)
+            expected=pad("; expected: ", ";", self.expected),
+            actual  =pad("; actual  : ", ";", self.actual)
         )
 
 @dataclass
@@ -61,7 +61,7 @@ class Same(PromptOutput):
     def represenation(self):
         return "{prompt}\n{output}".format(
             prompt=self.prompt,
-            output=pad("; output ", ";", self.output)
+            output=pad("; success: ", ";", self.output)
         )
 
 class TestCaseResult(metaclass=ABCMeta):
