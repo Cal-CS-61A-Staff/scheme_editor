@@ -19,18 +19,6 @@ from client.api import assignment
 
 import logging
 
-@dataclass
-class TestCase:
-    suite: int
-    passed: bool
-    elements: str
-
-    def export(self):
-        return {
-            "code": self.elements,
-            "passed": self.passed
-        }
-
 class PrintCapture:
     def __init__(self):
         self.log = []
@@ -77,34 +65,39 @@ class Same(PromptOutput):
         )
 
 class TestCaseResult(metaclass=ABCMeta):
-    @property
     @abstractmethod
     def success(self):
         pass
 
-    @property
     @abstractmethod
     def output(self):
         pass
 
+    @property
+    def dictionary(self):
+        return {
+            "code" : self.output(),
+            "passed" : self.success()
+        }
+
 @dataclass
-class FailureInSetup:
+class FailureInSetup(TestCaseResult):
     setup_out: str
 
-    @property
     def success(self):
         return False
 
-    @property
     def output(self):
         return FAILURE_SETUP_HEADER + "\n\n" + "".join(self.setup_out)
 
 @dataclass
-class FullTestCase:
-    success: bool
+class FullTestCase(TestCaseResult):
+    passed: bool
     interpret_out: List[PromptOutput]
 
-    @property
+    def success(self):
+        return self.passed
+
     def output(self):
         return "\n\n".join(x.represenation() for x in self.interpret_out)
 
@@ -191,27 +184,13 @@ def run_tests():
     result = []
     for test in assign.specified_tests:
         suites = []
-        for suiteno, suite in enumerate(test.suites):
+        for suite in test.suites:
             assert isinstance(suite, SchemeSuite)
-            for case in suite.cases:
-                procd_case = process_case(case)
-                suites.append(TestCase(suiteno + 1, procd_case.success, procd_case.output))
-        result.append((test.name, suites))
-    out = []
-    for name, test in result:
-        suites = []
-        for case in test:
-            if len(suites) != case.suite:
-                suites.append([])
-            suites[-1].append(case.export())
-
-        out.append({
-            "problem": name,
+            suites.append([process_case(case).dictionary for case in suite.cases])
+        result.append({
+            "problem": test.name,
             "suites": suites,
-            "passed": all(x.passed for x in test)
+            "passed": all(x['passed'] for t in suites for x in t)
         })
 
-    return out
-
-def parse_test_data(cases):
-    return cases
+    return result
