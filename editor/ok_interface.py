@@ -73,10 +73,10 @@ class PrintCapture:
     def flush(self):
         sys.__stdout__.flush()
 
-def capture_output(code):
+def capture_output(console, lines):
     old_stdout = sys.stdout
     sys.stdout = out = PrintCapture()
-    result = code()
+    result = console._interpret_lines(lines)
     sys.stdout = old_stdout
     return result, out.log
 
@@ -95,28 +95,21 @@ class FailureInSetup:
 @dataclass
 class FullTestCase:
     success: bool
-    setup_out: str
     interpret_out: str
-    teardown_out: str
 
     @property
     def output(self):
-        lines = self.interpret_out + self.teardown_out
-        result, _ = process_test_errors(collapse_test_lines(categorize_test_lines(lines)))
+        result, _ = process_test_errors(collapse_test_lines(categorize_test_lines(self.interpret_out)))
         return format(result)
 
-
 def process_case(case):
-    setup_success, setup_out = capture_output(lambda: case.console._interpret_lines(case.setup.splitlines()))
-    interpret_success, interpret_out = capture_output(lambda: case.console._interpret_lines(case.lines))
-    teardown_success, teardown_out = capture_output(lambda: case.console._interpret_lines(case.teardown.splitlines()))
+    setup_success, setup_out = capture_output(case.console, case.setup.splitlines())
     if not setup_success or "Traceback" in "".join(setup_out):
         return FailureInSetup(setup_out)
+    interpret_success, interpret_out = capture_output(case.console, case.lines + case.teardown.splitlines())
     return FullTestCase(
-        setup_success and interpret_success and teardown_success,
-        setup_out,
-        interpret_out,
-        teardown_out)
+        interpret_success,
+        interpret_out)
 
 def format(overall_lines):
     out = []
