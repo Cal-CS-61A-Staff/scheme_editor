@@ -40,11 +40,11 @@ def capture_output(console, lines):
 
 class PromptOutput(metaclass=ABCMeta):
     @abstractmethod
-    def represenation(self):
+    def representation(self):
         pass
 
 class AreDifferent(PromptOutput, namedtuple('AreDifferent', ['prompt', 'expected', 'actual'])):
-    def represenation(self):
+    def representation(self):
         return "{prompt}\n{expected}\n{actual}".format(
             prompt=self.prompt,
             expected=pad("; expected: ", ";", self.expected),
@@ -52,7 +52,7 @@ class AreDifferent(PromptOutput, namedtuple('AreDifferent', ['prompt', 'expected
         )
 
 class Same(PromptOutput, namedtuple('Same', ['prompt', 'output'])):
-    def represenation(self):
+    def representation(self):
         return "{prompt}\n{output}".format(
             prompt=self.prompt,
             output=pad("; success: ", ";", self.output)
@@ -74,7 +74,7 @@ class TestCaseResult(metaclass=ABCMeta):
         result = ""
         if self.setup_out is not None:
             result += FAILURE_SETUP_HEADER + "\n\n" + "".join(self.setup_out).strip("\n") + "\n\n" + FAILURE_SETUP_FOOTER + "\n\n"
-        result += "\n\n".join(x.represenation() for x in self.cases_out)
+        result += "\n\n".join(x.representation() for x in self.cases_out)
         return result
 
     @property
