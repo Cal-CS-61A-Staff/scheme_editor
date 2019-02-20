@@ -3,6 +3,16 @@ import re
 from libraries import mistune
 
 
+def rank(query):
+    def fraction(source):
+        return source.count(query) / len(source)
+
+    def quality(elem):
+        return 20 * fraction(elem.split("\n")[0]) + fraction(elem)
+
+    return quality
+
+
 def search(query):
     with open("editor/scheme_documentation.md") as f:
         query = query.strip().lower()
@@ -18,5 +28,5 @@ def search(query):
             if query in elem.lower():
                 relevant_elems.append(elem)
 
-        relevant_elems.sort(key=lambda x: 20 * x.split("\n")[0].count(query) / len(x.split("\n")[0]) + x.count(query) / len(x), reverse=True)
+        relevant_elems.sort(key=rank(query), reverse=True)
         return [mistune.markdown(elem) for elem in relevant_elems]
