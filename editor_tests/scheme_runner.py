@@ -1,18 +1,42 @@
+import importlib
+from abc import ABC
+
 import execution
 import log
 from scheme_exceptions import ParseError
 
 
-def run_scm(code: str):
-    try:
-        log.logger.new_query()
-        execution.string_exec(code, log.logger.out)
-    except ParseError as e:
-        return {"success": False, "out": [str(e)]}
+class TestCase(ABC):
+    def run(self):
+        raise NotImplementedError()
 
-    return log.logger.export()
+    @staticmethod
+    def compare(observed, expected):
+        for key, val in expected.items():
+            assert observed[key] == val
 
 
-def decode_case(case: str):
-    with open(f"scm_tests/{case}.py"):
-        f = str(f)
+class SchemeTestCase(TestCase):
+    def __init__(self, queries, *, reset=True):
+        self.queries = queries
+        self.reset = reset
+
+    def get_scm_response(self, code):
+        try:
+            if self.reset:
+                log.logger = log.Logger()
+            log.logger.new_query()
+            execution.string_exec(code, log.logger.out)
+        except ParseError as e:
+            return {"success": False, "out": [str(e)]}
+
+        return log.logger.export()
+
+    def run(self):
+        for query in self.queries:
+            response = self.get_scm_response(query.code)
+            self.compare(response, query.expected)
+
+
+def run_case(case: str):
+    importlib.import_module(f"scm_tests/{case}.py").run()
