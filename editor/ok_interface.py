@@ -47,6 +47,7 @@ class PromptOutput(metaclass=ABCMeta):
     @abstractmethod
     def representation(self):
         pass
+
     @abstractmethod
     def success(self):
         pass
@@ -59,8 +60,10 @@ class AreDifferent(PromptOutput, namedtuple('AreDifferent', ['prompt', 'expected
             expected=pad("; Expected: ", ";", self.expected),
             actual=pad("; Actual  : ", ";", self.actual)
         )
+
     def success(self):
         return False
+
 
 class Error(PromptOutput, namedtuple('PromptOutput', ['prompt', 'error'])):
     def representation(self):
@@ -68,8 +71,10 @@ class Error(PromptOutput, namedtuple('PromptOutput', ['prompt', 'error'])):
             error=pad("; Error: ", ";", self.error),
             prompt=self.prompt
         )
+
     def success(self):
         return False
+
 
 class Same(PromptOutput, namedtuple('Same', ['prompt', 'output'])):
     def representation(self):
@@ -77,6 +82,7 @@ class Same(PromptOutput, namedtuple('Same', ['prompt', 'output'])):
             prompt=self.prompt,
             output=pad("; Success: ", ";", self.output)
         )
+
     def success(self):
         return True
 

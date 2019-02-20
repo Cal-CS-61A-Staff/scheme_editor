@@ -16,7 +16,6 @@
                        term)))
 
 (define (partial-sums stream)
-  (print "YOLO")
   (define (helper curr s)
     (if (null? s)
         nil
