@@ -1,9 +1,16 @@
 import importlib
 from abc import ABC
+from collections import namedtuple
 
+import sys
+import os
+sys.path.append(os.path.abspath('./editor'))
 import execution
 import log
 from scheme_exceptions import ParseError
+
+Query = namedtuple("Query", ["code", "expected"])
+Response = namedtuple("Response", ["success", "message"])
 
 
 class TestCase(ABC):
@@ -12,8 +19,8 @@ class TestCase(ABC):
 
     @staticmethod
     def compare(observed, expected):
-        for key, val in expected.items():
-            assert observed[key] == val
+        reduced_observed = {k: v for k, v in observed.items() if k in expected}
+        assert reduced_observed == expected, f"\nObserved={reduced_observed}\nExpected={expected}"
 
 
 class SchemeTestCase(TestCase):
@@ -25,7 +32,10 @@ class SchemeTestCase(TestCase):
         try:
             if self.reset:
                 log.logger = log.Logger()
+                log.announce = log.logger.log
             log.logger.new_query()
+            if isinstance(code, str):
+                code = [code]
             execution.string_exec(code, log.logger.out)
         except ParseError as e:
             return {"success": False, "out": [str(e)]}
@@ -39,4 +49,7 @@ class SchemeTestCase(TestCase):
 
 
 def run_case(case: str):
-    importlib.import_module(f"scm_tests/{case}.py").run()
+    sys.path.append(os.path.abspath('./editor_tests/scm_tests'))
+    cases = __import__(f"case_{case}")
+    for case in cases.cases:
+        case.run()
