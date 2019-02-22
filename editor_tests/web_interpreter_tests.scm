@@ -13,7 +13,7 @@
 
 ;;; License: Creative Commons share alike with attribution
 
-;;; 1.1.1
+;;; group> Arithmetic
 
 10
 ; expect 10
@@ -52,7 +52,7 @@
       6))
 ; expect 57
 
-;;; 1.1.2
+;;; group> Environments and methods
 
 (define size 2)
 ; expect size
@@ -88,7 +88,9 @@ circumference
 (square (square 3))
 ; expect 81
 
-;; Built-in map, filter, reduce
+;;; group> Built-in map, filter, reduce
+
+(define (square x) (* x x))
 
 (map square '(1 2 3))
 ; expect (1 4 9)
@@ -109,7 +111,9 @@ circumference
 (f 5)
 ; expect 136
 
-;;; 1.1.6
+;;; group> Simple special forms
+
+(define (square x) (* x x))
 
 (define (abs x)
   (cond ((> x 0) x)
@@ -156,7 +160,7 @@ circumference
 (square (sqrt 1000))
 ; expect 1000.000369924366
 
-;;; 1.1.8
+;;; group> Nested functions
 
 (define (sqrt x)
   (define (good-enough? guess)
@@ -180,7 +184,7 @@ circumference
 (square (sqrt 1000))
 ; expect 1000.000369924366
 
-;;; 1.3.1
+;;; group> HOFs
 
 (define (cube x) (* x x x))
 (define (sum term a next b)
@@ -200,7 +204,9 @@ circumference
 (sum-integers 1 10)
 ; expect 55
 
-;;; 1.3.2
+;;; group> Lambda, let
+
+(define (square x) (* x x))
 
 ((lambda (x y z) (+ x y (square z))) 1 2 3)
 ; expect 12
@@ -225,7 +231,7 @@ circumference
   (* x y))
 ; expect 21
 
-;;; 2.1.1
+;;; group> Pairs, lists
 
 (define (add-rat x y)
   (make-rat (+ (* (numer x) (denom y))
@@ -345,7 +351,7 @@ one-through-four
 (count-leaves (list x x))
 ; expect 8
 
-;;; 2.2.3
+;;; group> Some math
 
 (define (odd? x) (= 1 (remainder x 2)))
 (define (filter predicate sequence)
@@ -386,7 +392,7 @@ one-through-four
 (enumerate-tree (list 1 (list 2 (list 3 4)) 5))
 ; expect (1 2 3 4 5)
 
-;;; 2.3.1
+;;; group> Datamodel
 
 (define a 1)
 
@@ -432,9 +438,13 @@ one-through-four
 (equal? '(1 2 three) '(1 2 (three)))
 ; expect #f
 
-;;; Peter Norvig tests (http://norvig.com/lispy2.html)
+;;; group>  Peter Norvig tests
+; (http://norvig.com/lispy2.html)
+
+(define (square x) (* x x))
 
 (define double (lambda (x) (* 2 x)))
+
 (double 5)
 ; expect 10
 
@@ -592,7 +602,7 @@ one-through-four
 
 ; (exit)
 
-; Tail call optimization tests
+;;; group> Tail recursion
 
 (define (sum n total)
   (if (zero? n) total
@@ -621,6 +631,8 @@ one-through-four
 ;;;;;;;;;;;;;;
 ;;; Macros ;;;
 ;;;;;;;;;;;;;;
+
+;;; group> Macros
 
 (define x 7)
 (define-macro (test) (define x 5) (list '+ 'x 4))
@@ -735,6 +747,7 @@ b
 ; from lecture 29 fa15
 
 ;; Sequence operations
+;;; group> Sequences
 
 ;; Map f over s.
 (define (map f s)
@@ -784,7 +797,7 @@ b
   (sum (filter prime? (range a b))))
 
 
-;; Streams
+;;; group> Streams
 
 (define s (cons-stream 1 (cons-stream 2 nil)))
 
@@ -808,26 +821,21 @@ b
 ;; Processing
 
 (define ones (cons-stream 1 ones))
-
 (define (square-stream s)
   (cons-stream (* (car s) (car s))
                (square-stream (cdr-stream s))))
-
 (define (add-streams s t)
   (cons-stream (+ (car s) (car t))
                (add-streams (cdr-stream s)
                             (cdr-stream t))))
-
 (define ints (cons-stream 1 (add-streams ones ints)))
 
 ;; Repeat Example
 
 (define a (cons-stream 1 (cons-stream 2 (cons-stream 3 a))))
-
 (define (f s) (cons-stream (car s)
                            (cons-stream (car s)
                                         (f (cdr-stream s)))))
-
 (define (g s) (cons-stream (car s)
                            (f (g (cdr-stream s)))))
 
@@ -840,7 +848,6 @@ b
       (cons-stream (f (car s))
             (map-stream f
                  (cdr-stream s)))))
-
 ;; Filter s by f.
 (define (filter-stream f s)
   (if (null? s)
@@ -870,7 +877,6 @@ b
    (sieve (filter-stream
            (lambda (x) (> (remainder x (car s)) 0))
            (cdr-stream s)))))
-
 (define primes (sieve (int-stream 2)))
 
 (prefix primes 10)

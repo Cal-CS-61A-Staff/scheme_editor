@@ -4,6 +4,8 @@ from collections import namedtuple
 
 import sys
 import os
+from typing import List
+
 sys.path.append(os.path.abspath('./editor'))
 import execution
 import log
@@ -13,43 +15,78 @@ Query = namedtuple("Query", ["code", "expected"])
 Response = namedtuple("Response", ["success", "message"])
 
 
+def out(*expected):
+    return {"out": ["\n".join(expected) + "\n"]}
+
+
 class TestCase(ABC):
     def run(self):
         raise NotImplementedError()
 
     @staticmethod
-    def compare(observed, expected):
-        reduced_observed = {k: v for k, v in observed.items() if k in expected}
-        assert reduced_observed == expected, f"\nObserved={reduced_observed}\nExpected={expected}"
+    def compare(observed, expected, code=""):
+        for key in expected:
+            if key == "out" and "Error" in expected[key][0]:
+                assert "Error" in observed[key][0]
+            else:
+                assert observed[key] == expected[key], \
+                    f"Code: {code}\nObserved: \n{repr(observed[key])}\nExpected: \n{repr(expected[key])}"
 
 
 class SchemeTestCase(TestCase):
-    def __init__(self, queries, *, reset=True):
-        self.queries = queries
-        self.reset = reset
+    """
+    Self-contained test case, runs with a single fresh logger
+    Simulates each Query sent in sequence from the client
+    Queries represent a single code execution block
+    """
+    def __init__(self, queries):
+        self.queries: List[Query] = queries
 
-    def get_scm_response(self, code):
+    def __repr__(self):
+        return "SchemeTestCase(" + repr(self.queries) + ")"
+
+    @staticmethod
+    def get_scm_response(code, reset, global_frame=None):
         try:
-            if self.reset:
+            if reset:
                 log.logger = log.Logger()
                 log.announce = log.logger.log
             log.logger.new_query()
             if isinstance(code, str):
                 code = [code]
-            execution.string_exec(code, log.logger.out)
+            else:
+                code = ["\n".join(code)]
+            execution.string_exec(code, log.logger.out, global_frame)
         except ParseError as e:
             return {"success": False, "out": [str(e)]}
 
-        return log.logger.export()
+        out = log.logger.export()
+        return out
 
     def run(self):
+        global_frame = None
         for query in self.queries:
-            response = self.get_scm_response(query.code)
-            self.compare(response, query.expected)
+            response = self.get_scm_response(query.code, query is self.queries[0], global_frame)
+            self.compare(response, query.expected, query.code)
+            if global_frame is None:
+                global_frame = log.logger.frame_lookup[response["globalFrameID"]].base
 
 
 def run_case(case: str):
     sys.path.append(os.path.abspath('./editor_tests/scm_tests'))
-    cases = __import__(f"case_{case}")
+    if not case.startswith("case"):
+        case = "case_" + case
+    if case.endswith(".py"):
+        case = case[:-3]
+    cases = __import__(f"{case}")
     for case in cases.cases:
         case.run()
+
+
+def run_all_cases(path):
+    if not path.startswith("/"):
+        path = "/" + path
+    files = filter(lambda x: x.lower().startswith("case"), os.listdir(os.curdir + "/editor_tests" + path))
+    for file in files:
+        print(file)
+        run_case(file)
