@@ -31,12 +31,12 @@ def terminate_thread(thread):
 
     :param thread: a threading.Thread instance
 
-    From https://stackoverflow.com/a/15274929/1549476
+    From https://stackoverflow.com/a/15274929/1549476 but I replaced SystemExit with KeyboardInterrupt
     """
     if not thread.isAlive():
         return
 
-    exc = ctypes.py_object(SystemExit)
+    exc = ctypes.py_object(KeyboardInterrupt)
     res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
         ctypes.c_long(thread.ident), exc)
     if res == 0:
