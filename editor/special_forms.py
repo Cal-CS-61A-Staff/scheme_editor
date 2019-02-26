@@ -1,20 +1,26 @@
-from typing import List
+from typing import List, Optional
 
 from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise
 from environment import global_attr
 from evaluate_apply import Frame, evaluate, Callable, evaluate_all, Applicable
 from log import Holder, VisualExpression, return_symbol, logger
 from helper import pair_to_list, verify_exact_callable_length, verify_min_callable_length, \
-    make_list
+    make_list, dotted_pair_to_list
 from lexer import TokenBuffer
 from execution_parser import get_expression
 from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError
 
 
-class LambdaObject(Applicable):
-    def __init__(self, params: List[Symbol], body: List[Expression], frame: Frame, name: str = "lambda"):
+class ProcedureObject(Callable):
+    def __init__(self,
+                 params: List[Symbol],
+                 var_param: Optional[Symbol],
+                 body: List[Expression],
+                 frame: Frame,
+                 name: str):
         super().__init__()
         self.params = params
+        self.var_param = var_param
         self.body = body
         self.frame = frame
         self.name = name
@@ -23,7 +29,11 @@ class LambdaObject(Applicable):
         new_frame = Frame(self.name, self.frame)
         if eval_operands:
             operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
-        verify_exact_callable_length(self, len(self.params), len(operands))
+
+        if self.var_param:
+            verify_min_callable_length(self, len(self.params), len(operands))
+        else:
+            verify_exact_callable_length(self, len(self.params), len(operands))
 
         if len(self.body) > 1:
             body = [Pair(Symbol("begin"), make_list(self.body))]
@@ -32,6 +42,10 @@ class LambdaObject(Applicable):
 
         for param, value in zip(self.params, operands):
             new_frame.assign(param, value)
+
+        if self.var_param:
+            new_frame.assign(self.var_param, make_list(operands[len(self.params):]))
+
         out = None
         gui_holder.expression.set_entries(
             [VisualExpression(expr, gui_holder.expression.display_value) for expr in body])
@@ -45,13 +59,15 @@ class LambdaObject(Applicable):
         return out
 
     def __repr__(self):
-        if logger.strict_mode:
-            return f"(lambda ({(' '.join(map(repr, self.params)))}) {' '.join(map(repr, self.body))})"
         return f"({self.name} {' '.join(map(repr, self.params))}) [parent = {self.frame.id}]"
 
     def __str__(self):
-        # return repr(self)
         return f"#[{self.name}]"
+
+
+class LambdaObject(ProcedureObject):
+    def __init__(self, *args):
+        super().__init__(*args)
 
 
 @global_attr("lambda")
@@ -59,17 +75,13 @@ class Lambda(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, name: str = "lambda"):
         verify_min_callable_length(self, 2, len(operands))
         params = operands[0]
-        if isinstance(params, Symbol):
-            raise NotImplementedError("Varargs not yet implemented!")
-            params = [operands[0]]
-        elif isinstance(params, Pair) or params is Nil:
-            params = pair_to_list(params)
-        else:
-            raise OperandDeduceError(f"{params} is neither a Symbol or a List (aka Pair) of Symbols.")
+        params, var_param = dotted_pair_to_list(params)
         for param in params:
             if not isinstance(param, Symbol):
                 raise OperandDeduceError(f"{param} is not a Symbol.")
-        return LambdaObject(params, operands[1:], frame, name)
+
+        # noinspection PyTypeChecker
+        return LambdaObject(params, var_param, operands[1:], frame, name)
 
 
 @global_attr("define")
@@ -241,12 +253,7 @@ class Mu(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, name: str = "mu"):
         verify_min_callable_length(self, 2, len(operands))
         params = operands[0]
-        if isinstance(params, Symbol):
-            params = [operands[0]]
-        elif isinstance(params, Pair) or params is Nil:
-            params = pair_to_list(params)
-        else:
-            raise OperandDeduceError(f"{params} is neither a Symbol or a List (aka Pair) of Symbols.")
+        params, var_param = dotted_pair_to_list(params)
         for param in params:
             if not isinstance(param, Symbol):
                 raise OperandDeduceError(f"{param} is not a Symbol.")
