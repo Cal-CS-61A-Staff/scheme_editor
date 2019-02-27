@@ -3,5 +3,7 @@
 .ok_storage.dir
 .ok_storage
 .idea
+.ok_storage.db
+.ok_history
 __pycache__
 .pytest_cache

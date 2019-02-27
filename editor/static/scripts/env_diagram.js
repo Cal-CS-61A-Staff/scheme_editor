@@ -55,6 +55,9 @@ function register(myLayout) {
                     </div>
                 </span>
             </div>
+            <div class="output-warning">
+                This session may be out of date! Hit "Run" to refresh contents.
+            </div>
             </div>
             <div class="envs">
                 <svg></svg>
@@ -87,7 +90,8 @@ function register(myLayout) {
                 states[componentState.id].heap,
                 svg,
                 states[componentState.id].index,
-                container.getElement().find(".box-pointer-checkbox").is(":checked"));
+                container.getElement().find(".box-pointer-checkbox").is(":checked"),
+                !states[componentState.id].up_to_date);
             svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
             if (isNaN(zoom)) {
                 svgPanZoom(rawSVG).reset();
