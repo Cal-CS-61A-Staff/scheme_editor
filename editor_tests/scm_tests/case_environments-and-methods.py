@@ -1,0 +1,4 @@
+from scheme_runner import SchemeTestCase, Query
+cases = [
+SchemeTestCase([Query(code=['(define size 2)'], expected={'out': ['size\n']}), Query(code=['size'], expected={'out': ['2\n']}), Query(code=['(* 5 size)'], expected={'out': ['10\n']}), Query(code=['(define pi 3.14159)'], expected={}), Query(code=['(define radius 10)'], expected={}), Query(code=['(* pi (* radius radius))'], expected={'out': ['314.159\n']}), Query(code=['(define circumference (* 2 pi radius))'], expected={}), Query(code=['circumference'], expected={'out': ['62.8318\n']}), Query(code=['(define (square x) (* x x))'], expected={'out': ['square\n']}), Query(code=['(square 21)'], expected={'out': ['441\n']}), Query(code=['(define square (lambda (x) (* x x))) ; See Section 1.3.2'], expected={}), Query(code=['(square 21)'], expected={'out': ['441\n']}), Query(code=['(square (+ 2 5))'], expected={'out': ['49\n']}), Query(code=['(square (square 3))'], expected={'out': ['81\n']})])
+]
