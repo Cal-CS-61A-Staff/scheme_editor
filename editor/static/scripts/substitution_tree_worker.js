@@ -171,17 +171,15 @@ async function display_tree(id, svg, clear_svg, is_tree) {
         await locate(data);
     }
 
-    console.log(data);
-
     let active_node = get_active_node(id, true);
 
     clear_svg();
     svg.clear();
 
     if (is_tree) {
-        _display_tree(data, svg, 10, 15, 0, [0]);
+        _display_tree(data, svg, 10, 15 + !states[id].up_to_date * 25, 0, [0]);
     } else {
-        _display_debug(data, svg, active_node, 10);
+        _display_debug(data, svg, active_node, 10 + !states[id].up_to_date * 25);
     }
 }
 

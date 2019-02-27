@@ -7,8 +7,6 @@ export {register};
 
 function register(layout) {
     layout.registerComponent('editor', function (container, componentState) {
-        console.log(componentState.id);
-        console.log(states);
         container.getElement().html(`
         <div class="content">
             <div class="header">        
@@ -65,7 +63,6 @@ function register(layout) {
             saveTimer = setInterval(save, 5000);
 
             states[componentState.id].editor_open = true;
-            // windows.editors.push(container);
 
             container.on("resize", function () {
                 editor.resize();
@@ -91,6 +88,24 @@ function register(layout) {
                 container.getElement().find(".save-btn > .text").text("Save");
                 changed = true;
             });
+        });
+
+        container.getElement().on("update", function (e) {
+            if (e.target !== e.currentTarget) {
+                return;
+            }
+            if (states[componentState.id].environments.length === 0) {
+                // program has never been run
+                container.getElement().find(".env-btn")//.prop("disabled", true)
+                .attr('data-original-title', "To use the environment diagram, press Run first.");
+                container.getElement().find(".sub-btn")//.prop("disabled", true)
+                .attr('data-original-title', "To use the debugger, press Run first.");
+            } else {
+                container.getElement().find(".env-btn")//.prop("disabled", false)
+                .attr('data-original-title', "View environment diagram.");
+                container.getElement().find(".sub-btn")//.prop("disabled", false)
+                .attr('data-original-title', "Step through the program's execution.");
+            }
         });
 
         container.on("destroy", function () {
@@ -129,8 +144,8 @@ function register(layout) {
 
         container.getElement().find(".test-btn").on("click", run_tests);
 
-        async function save() {
-            if (!changed || states[componentState.id].file_name.startsWith(temp_file)) {
+        async function save(running) {
+            if (states[componentState.id].file_name.startsWith(temp_file) || (!running && (!changed))) {
                 return;
             }
             container.getElement().find(".save-btn > .text").text("Saving...");
@@ -140,16 +155,32 @@ function register(layout) {
                 code: code,
                 filename: states[componentState.id].file_name,
             }).done(function (data) {
-                if (data === "success") {
+                data = $.parseJSON(data);
+                if (data["result"] === "success") {
                     container.getElement().find(".save-btn > .text").text("Saved");
                     changed = false;
+                    if (running) {
+                        states[componentState.id].active_code = data["stripped"];
+                        states[componentState.id].up_to_date = true;
+                        return;
+                    }
+                    if (states[componentState.id].active_code === data["stripped"]) {
+                        if (!states[componentState.id].up_to_date) {
+                            states[componentState.id].up_to_date = true;
+                            request_update();
+                        } else {
+                            states[componentState.id].up_to_date = true;
+                        }
+                    } else {
+                        states[componentState.id].up_to_date = false;
+                    }
                 } else {
                     alert("Save error - try copying code from editor to a file manually");
                 }
             });
         }
 
-        function run() {
+        async function run() {
             if (editor.getValue().trim() === "") {
                 return;
             }
@@ -163,7 +194,6 @@ function register(layout) {
             }).done(async function (data) {
                 end_slow();
                 data = $.parseJSON(data);
-                console.log(data);
                 if (data.success) {
                     states[componentState.id].states = data.states;
                     states[componentState.id].environments = [];
@@ -180,12 +210,11 @@ function register(layout) {
                     states[componentState.id].globalFrameID = data.globalFrameID;
                     states[componentState.id].heap = data.heap;
                     states[componentState.id].frameUpdates = data.frameUpdates;
-
                 } else {
                     states[componentState.id].out = data.out[0];
                 }
 
-                await save();
+                await save(true);
 
                 open("output", componentState.id);
                 // noinspection JSIgnoredPromiseFromCall
