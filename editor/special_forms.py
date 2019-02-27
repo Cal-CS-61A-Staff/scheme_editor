@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Type
 
 from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise
 from environment import global_attr
@@ -12,22 +12,27 @@ from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, Lo
 
 
 class ProcedureObject(Callable):
+    evaluates_operands: bool
+    lexically_scoped: bool
+    name: str
+
     def __init__(self,
                  params: List[Symbol],
                  var_param: Optional[Symbol],
                  body: List[Expression],
                  frame: Frame,
-                 name: str):
+                 name: str=None):
         super().__init__()
         self.params = params
         self.var_param = var_param
         self.body = body
         self.frame = frame
-        self.name = name
+        self.name = name if name is not None else self.name
 
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, eval_operands=True):
-        new_frame = Frame(self.name, self.frame)
-        if eval_operands:
+        new_frame = Frame(self.name, self.frame if self.lexically_scoped else frame)
+
+        if eval_operands and self.evaluates_operands:
             operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
 
         if self.var_param:
@@ -47,31 +52,61 @@ class ProcedureObject(Callable):
             new_frame.assign(self.var_param, make_list(operands[len(self.params):]))
 
         out = None
+        # noinspection PyTypeChecker
         gui_holder.expression.set_entries(
             [VisualExpression(expr, gui_holder.expression.display_value) for expr in body])
 
-        gui_holder.apply()
+        if self.evaluates_operands:
+            gui_holder.apply()
 
         for i, expression in enumerate(body):
-            out = evaluate(expression, new_frame, gui_holder.expression.children[i],
-                           i == len(body) - 1, log_stack=len(self.body) == 1)
+            out = evaluate(expression,
+                           new_frame,
+                           gui_holder.expression.children[i],
+                           self.evaluates_operands and i == len(body) - 1,
+                           log_stack=len(self.body) == 1)
+
         new_frame.assign(return_symbol, out)
+
+        if not self.evaluates_operands:
+            # noinspection PyTypeChecker
+            gui_holder.expression.set_entries([VisualExpression(out, gui_holder.expression.display_value)])
+            out = evaluate(out, frame, gui_holder.expression.children[i], True)
+
         return out
 
     def __repr__(self):
-        return f"({self.name} {' '.join(map(repr, self.params))}) [parent = {self.frame.id}]"
+        if self.var_param is not None:
+            varparams = " . " + self.var_param.value
+        else:
+            varparams = ""
+        return f"({self.name} {' '.join(map(repr, self.params))} {varparams}) [parent = {self.frame.id}]"
 
     def __str__(self):
         return f"#[{self.name}]"
 
 
-class LambdaObject(ProcedureObject):
-    def __init__(self, *args):
-        super().__init__(*args)
+class LambdaObject(ProcedureObject, Applicable):
+    evaluates_operands = True
+    lexically_scoped = True
+    name = "lambda"
 
 
-@global_attr("lambda")
-class Lambda(Callable):
+class MuObject(ProcedureObject, Applicable):
+    evaluates_operands = True
+    lexically_scoped = False
+    name = "mu"
+
+
+class MacroObject(ProcedureObject, Callable):
+    evaluates_operands = False
+    lexically_scoped = True
+    name = "macro"
+
+
+class ProcedureBuilder(Callable):
+    procedure: Type[ProcedureObject]
+
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, name: str = "lambda"):
         verify_min_callable_length(self, 2, len(operands))
         params = operands[0]
@@ -80,28 +115,66 @@ class Lambda(Callable):
             if not isinstance(param, Symbol):
                 raise OperandDeduceError(f"{param} is not a Symbol.")
 
-        # noinspection PyTypeChecker
-        return LambdaObject(params, var_param, operands[1:], frame, name)
+        return self.procedure(params, var_param, operands[1:], frame, name)
+
+
+@global_attr("lambda")
+class Lambda(ProcedureBuilder):
+    procedure = LambdaObject
+
+
+@global_attr("mu")
+class Mu(ProcedureBuilder):
+    procedure = MuObject
+
+
+class Macro(ProcedureBuilder):
+    procedure = MacroObject
+
+
+@global_attr("define-macro")
+class DefineMacro(Callable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+        verify_min_callable_length(self, 2, len(operands))
+        params = operands[0]
+        if not isinstance(params, Pair):
+            raise OperandDeduceError(f"Expected a Pair, not {params}, as the first operand of define-macro.")
+        name = params.first
+        operands[0] = params.rest
+        if not isinstance(name, Symbol):
+            raise OperandDeduceError(f"Expected a Symbol, not {name}.")
+        frame.assign(name, Macro().execute(operands, frame, gui_holder, name.value))
+        return name
 
 
 @global_attr("define")
 class Define(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
-        first = operands[0]
-        if isinstance(first, Symbol):
+        params = operands[0]
+        if isinstance(params, Symbol):
             verify_exact_callable_length(self, 2, len(operands))
-            frame.assign(first, evaluate(operands[1], frame, gui_holder.expression.children[2]))
-            return first
-        elif isinstance(first, Pair):
-            name = first.first
-            operands[0] = first.rest
+            frame.assign(params, evaluate(operands[1], frame, gui_holder.expression.children[2]))
+            return params
+        elif isinstance(params, Pair):
+            name = params.first
+            operands[0] = params.rest
             if not isinstance(name, Symbol):
                 raise OperandDeduceError(f"Expected a Symbol, not {name}.")
             frame.assign(name, Lambda().execute(operands, frame, gui_holder, name.value))
             return name
         else:
-            raise OperandDeduceError("Expected a Symbol or List (aka Pair) as first operand of define.")
+            raise OperandDeduceError(f"Expected a Pair, not {params}, as the first operand of define-macro.")
+
+
+@global_attr("begin")
+class Begin(Callable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+        verify_min_callable_length(self, 1, len(operands))
+        out = None
+        for i, (operand, holder) in enumerate(zip(operands, gui_holder.expression.children[1:])):
+            out = evaluate(operand, frame, holder, i == len(operands) - 1)
+        return out
 
 
 @global_attr("if")
@@ -114,21 +187,9 @@ class If(Callable):
             if len(operands) == 2:
                 return Undefined
             else:
-                # gui_holder.expression = gui_holder.expression.children[3].expression
                 return evaluate(operands[2], frame, gui_holder.expression.children[3], True)
         else:
-            # gui_holder.expression = gui_holder.expression.children[1].expression
             return evaluate(operands[1], frame, gui_holder.expression.children[2], True)
-
-
-@global_attr("begin")
-class Begin(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        verify_min_callable_length(self, 1, len(operands))
-        out = None
-        for i, (operand, holder) in enumerate(zip(operands, gui_holder.expression.children[1:])):
-            out = evaluate(operand, frame, holder, i == len(operands) - 1)
-        return out
 
 
 @global_attr("quote")
@@ -248,120 +309,6 @@ class Let(Callable):
         return value
 
 
-@global_attr("mu")
-class Mu(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, name: str = "mu"):
-        verify_min_callable_length(self, 2, len(operands))
-        params = operands[0]
-        params, var_param = dotted_pair_to_list(params)
-        for param in params:
-            if not isinstance(param, Symbol):
-                raise OperandDeduceError(f"{param} is not a Symbol.")
-        # noinspection PyTypeChecker
-        return MuObject(params, operands[1:], name)
-
-
-class MuObject(Applicable):
-    def __init__(self, params: List[Symbol], body: List[Expression], name: str):
-        super().__init__()
-        self.params = params
-        self.body = body
-        self.name = name
-
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, eval_operands=True):
-        new_frame = Frame(self.name, frame)
-        if eval_operands:
-            operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
-        verify_exact_callable_length(self, len(self.params), len(operands))
-
-        if len(self.body) > 1:
-            body = [Pair(Symbol("begin"), make_list(self.body))]
-        else:
-            body = self.body
-
-        for param, value in zip(self.params, operands):
-            new_frame.assign(param, value)
-        out = None
-        gui_holder.expression.set_entries(
-            [VisualExpression(expr, gui_holder.expression.display_value) for expr in body])
-
-        gui_holder.apply()
-
-        for i, expression in enumerate(body):
-            out = evaluate(expression, new_frame, gui_holder.expression.children[i],
-                           i == len(body) - 1, log_stack=len(self.body) == 1)
-        new_frame.assign(return_symbol, out)
-        return out
-
-    def __repr__(self):
-        if logger.strict_mode:
-            return f"(mu ({(' '.join(map(repr, self.params)))}) {' '.join(map(repr, self.body))})"
-        return f"({self.name} {' '.join(map(repr, self.params))})"
-
-    def __str__(self):
-        # return repr(self)
-        return f"#[{self.name}]"
-
-
-class MacroObject(Callable):
-    def __init__(self, params: List[Symbol], body: List[Expression], frame: Frame, name: str):
-        super().__init__()
-        self.params = params
-        self.body = body
-        self.frame = frame
-        self.name = name
-
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        new_frame = Frame(self.name, self.frame)
-        verify_exact_callable_length(self, len(self.params), len(operands))
-
-        if len(self.body) > 1:
-            body = [Pair(Symbol("begin"), make_list(self.body))]
-        else:
-            body = self.body
-
-        for param, value in zip(self.params, operands):
-            new_frame.assign(param, value)
-        out = None
-
-        gui_holder.expression.set_entries(
-            [VisualExpression(expr, gui_holder.expression.display_value) for expr in body])
-
-        gui_holder.apply()
-
-        for i, expression in enumerate(body):
-            out = evaluate(expression, new_frame, gui_holder.expression.children[i], log_stack=len(self.body) == 1)
-
-        gui_holder.expression.set_entries([VisualExpression(out, gui_holder.expression.display_value)])
-        new_frame.assign(return_symbol, out)
-        return evaluate(out, frame, gui_holder.expression.children[i], True)
-
-    def __repr__(self):
-        if logger.strict_mode:
-            return f"(lambda ({(' '.join(map(repr, self.params)))}) {' '.join(map(repr, self.body))})"
-        return f"({self.name} {' '.join(map(repr, self.params))}) [parent = {self.frame.id}]"
-
-    def __str__(self):
-        # return repr(self)
-        return f"#[{self.name}]"
-
-
-@global_attr("define-macro")
-class DefineMacro(Callable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
-        verify_min_callable_length(self, 2, len(operands))
-        params = operands[0]
-        if not isinstance(params, Pair):
-            raise OperandDeduceError(f"Expected a Pair, not {params}, as the first operand of define-macro.")
-        params = pair_to_list(params)
-        for param in params:
-            if not isinstance(param, Symbol):
-                raise OperandDeduceError(f"{param} is not a Symbol.")
-        name, *params = params
-        frame.assign(name, MacroObject(params, operands[1:], frame, name.value))
-        return name
-
-
 @global_attr("quasiquote")
 class Quasiquote(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
@@ -430,6 +377,7 @@ class Load(Applicable):
                 code = "(begin" + "\n".join(file.readlines()) + ")"
                 buffer = TokenBuffer([code])
                 expr = get_expression(buffer)
+                # noinspection PyTypeChecker
                 gui_holder.expression.set_entries([VisualExpression(expr, gui_holder.expression.display_value)])
                 gui_holder.apply()
                 return evaluate(expr, frame, gui_holder.expression.children[0], True)
@@ -457,6 +405,7 @@ class Force(Applicable):
             return operand.expr
         if logger.fragile:
             raise IrreversibleOperationError()
+        # noinspection PyTypeChecker
         gui_holder.expression.set_entries([VisualExpression(operand.expr, gui_holder.expression.display_value)])
         gui_holder.apply()
         operand.expr = evaluate(operand.expr, operand.frame, gui_holder.expression.children[0])
