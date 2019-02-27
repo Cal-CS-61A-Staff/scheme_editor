@@ -26,6 +26,7 @@ state = None
 
 import ctypes
 
+
 def terminate_thread(thread):
     """Terminates a python thread from another thread.
 
@@ -47,16 +48,19 @@ def terminate_thread(thread):
         ctypes.pythonapi.PyThreadState_SetAsyncExc(thread.ident, None)
         raise SystemError("PyThreadState_SetAsyncExc failed")
 
+
 class thread_state:
     def __init__(self):
         self.post_lock = threading.Lock()
         self.modify_current_thread_lock = threading.Lock()
         self.current_thread = None
+
     def cancel(self):
         with self.modify_current_thread_lock:
             if self.current_thread is not None:
                 terminate_thread(self.current_thread)
                 self.current_thread = None
+
     def run(self, target, *args):
         with self.post_lock:
             with self.modify_current_thread_lock:
@@ -68,8 +72,11 @@ class thread_state:
             with self.modify_current_thread_lock:
                 assert self.current_thread is thread or self.current_thread is None
                 self.current_thread = None
+
+
 # singleton
 thread_state = thread_state()
+
 
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
@@ -256,8 +263,10 @@ def exit_handler(signal, frame):
 
 signal.signal(signal.SIGINT, exit_handler)
 
+
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     pass
+
 
 def start(file_arg, port):
     global main_file
