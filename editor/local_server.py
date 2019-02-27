@@ -62,6 +62,7 @@ class thread_state:
             with self.modify_current_thread_lock:
                 assert self.current_thread is None
                 thread = self.current_thread = threading.Thread(target=target, args=args)
+                thread.daemon = True
                 thread.start()
             thread.join()
             with self.modify_current_thread_lock:
