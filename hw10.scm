@@ -6,7 +6,8 @@
                 (* x curr))))
   (helper x 1))
 
-(define (accumulate-tail op start num term)s
+(define (accumulate-tail op start num term)
+  s
   (if (= num 0)
       start
       (accumulate-tail op
