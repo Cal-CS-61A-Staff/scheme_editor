@@ -2,6 +2,10 @@ class SchemeError(Exception):
     def __repr__(self):
         return str(self)
 
+class TerminatedError(SchemeError):
+    def __init__(self):
+        super().__init__("Error: program manually terminated")
+
 
 class ParseError(SchemeError): pass
 
