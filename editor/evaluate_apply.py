@@ -126,8 +126,8 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
                         and not isinstance(frame.lookup(operator), MacroObject):
                     operator = frame.lookup(operator)  # we don't evaluate special forms
                 else:
-                    operator = evaluate(operator, frame, visual_expression.children[
-                        0])  # evaluating operator and storing it in visual_expression
+                    # evaluating operator and storing it in visual_expression
+                    operator = evaluate(operator, frame, visual_expression.children[0])
                 operands = pair_to_list(expr.rest)
                 out = apply(operator, operands, frame, gui_holder)
                 if isinstance(out, Thunk):
