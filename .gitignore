@@ -1,4 +1,6 @@
 .ok_storage.bak
 .ok_storage.dat
 .ok_storage.dir
+.ok_storage.db
+.ok_history
 __pycache__
