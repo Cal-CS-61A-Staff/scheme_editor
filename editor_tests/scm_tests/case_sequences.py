@@ -1,0 +1,4 @@
+from scheme_runner import SchemeTestCase, Query
+cases = [
+SchemeTestCase([Query(code=['(define (map f s)', '(if (null? s)', 'nil', '(cons (f (car s))', '(map f', '(cdr s)))))'], expected={}), Query(code=['(define (filter f s)', '(if (null? s)', 'nil', '(if (f (car s))', '(cons (car s)', '(filter f (cdr s)))', '(filter f (cdr s)))))'], expected={}), Query(code=['(define (reduce f s start)', '(if (null? s)', 'start', '(reduce f', '(cdr s)', '(f start (car s)))))'], expected={}), Query(code=['(define (range a b)', '(if (>= a b) nil (cons a (range (+ a 1) b))))'], expected={}), Query(code=['(define (sum s)', '(reduce + s 0))'], expected={}), Query(code=['(define (prime? x)', '(if (<= x 1)', 'false', '(null?', '(filter (lambda (y) (= 0 (remainder x y)))', '(range 2 x)))))'], expected={}), Query(code=['(define (sum-primes a b)', '(sum (filter prime? (range a b))))'], expected={})])
+]
