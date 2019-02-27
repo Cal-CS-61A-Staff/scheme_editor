@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Tuple, Optional
 
 from datamodel import Pair, Expression, Nil, Number, NilType
 from scheme_exceptions import OperandDeduceError, MathError, CallableResolutionError
@@ -12,6 +12,18 @@ def pair_to_list(pos: Pair) -> List[Expression]:
         out.append(pos.first)
         pos = pos.rest
     return out
+
+
+def dotted_pair_to_list(pos: Expression) -> Tuple[List[Expression], Optional[Expression]]:
+    out = []
+    vararg = None
+    while pos is not Nil:
+        if not isinstance(pos, Pair):
+            vararg = pos
+            break
+        out.append(pos.first)
+        pos = pos.rest
+    return out, vararg
 
 
 def assert_all_numbers(operands):
