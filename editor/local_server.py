@@ -250,6 +250,7 @@ def instant(code, global_frame_id):
 def exit_handler(signal, frame):
     print(" - Ctrl+C pressed")
     print("Shutting down server - all unsaved work will be lost")
+    thread_state.cancel()
     sys.exit(0)
 
 
