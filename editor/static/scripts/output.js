@@ -51,11 +51,6 @@ function register(myLayout) {
             container.getElement().find(".preview").html("<i>" + escapeHtml(preview) + "</i>");
             container.getElement().find(".output-wrapper").scrollTop(
             container.getElement().find(".output-wrapper")[0].scrollHeight);
-            if (states[componentState.id].up_to_date) {
-                container.getElement().find(".output-warning").hide();
-            } else {
-                container.getElement().find(".output-warning").show();
-            }
         });
 
         container.getElement().on("click", function () {
