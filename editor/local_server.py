@@ -16,7 +16,7 @@ from file_manager import get_scm_files, save, read_file, new_file
 from formatter import prettify
 from ok_interface import run_tests
 from runtime_limiter import TimeLimitException, limiter
-from scheme_exceptions import SchemeError, ParseError
+from scheme_exceptions import SchemeError, ParseError, TerminatedError
 
 PORT = 8012
 
@@ -36,7 +36,7 @@ def terminate_thread(thread):
     if not thread.isAlive():
         return
 
-    exc = ctypes.py_object(KeyboardInterrupt)
+    exc = ctypes.py_object(TerminatedError)
     res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
         ctypes.c_long(thread.ident), exc)
     if res == 0:
