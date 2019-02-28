@@ -97,7 +97,6 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
         if log_stack:
             log.logger.eval_stack.append(f"{repr(expr)} [frame = {frame.id}]")
             depth += 1
-            print("adding", expr, "to stack")
 
         holders.append(gui_holder)
 
@@ -116,7 +115,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
                 raise SymbolLookupError(f"Variable not found in current environment: '{expr.value}'")
             ret = out
         elif isinstance(expr, Pair):
-            if tail_context:
+            if tail_context and log_stack:
                 log.logger.eval_stack.pop()
                 return Thunk(expr, frame, gui_holder, log_stack)
             else:
@@ -135,7 +134,6 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
                 if isinstance(out, Thunk):
                     expr, frame = out.expr, out.frame
                     gui_holder = out.gui_holder
-                    print("thunking", expr)
                     thunks.append(out)
                     continue
                 ret = out
@@ -146,7 +144,6 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
 
         for _ in range(depth):
             x = log.logger.eval_stack.pop()
-            print("removing", x, "to stack")
 
         for thunk, holder in zip(reversed(thunks), reversed(holders)):
             holder.expression.value = ret
