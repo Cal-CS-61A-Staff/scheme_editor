@@ -115,8 +115,9 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
                 raise SymbolLookupError(f"Variable not found in current environment: '{expr.value}'")
             ret = out
         elif isinstance(expr, Pair):
-            if tail_context and log_stack:
-                log.logger.eval_stack.pop()
+            if tail_context:
+                if log_stack:
+                    log.logger.eval_stack.pop()
                 return Thunk(expr, frame, gui_holder, log_stack)
             else:
                 gui_holder.evaluate()
