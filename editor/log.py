@@ -126,12 +126,10 @@ class Logger:
         self.heap: Heap = Heap()  # heap of all non-atomic objects
 
     def new_expr(self):
-        # self.i = 0
         self._out.append([])
         if Root.set and self.start != self.i:
             self.export_states.append((self.start, self.i, {i: v.export() for i, v in self.node_cache.items()}))
             self.roots.append(Root.root.expression.id)
-            # self.i += 1
         self.start = self.i
         self.node_cache = {}
         Root.set = True
@@ -156,14 +154,13 @@ class Logger:
         self.i += 1
 
     def export(self):
-        # print(f"Generated {len(self.export_states[-1][2])} nodes")
         return {
             "success": True,
             "roots": self.roots,
             "states": self.export_states,
             "out": ["".join(["".join(x) for x in self._out])],
             "active_frames": [id(f.base) for f in self.active_frames],
-            "frame_lookup": {f: self.frame_lookup[f].export() for f in self.frame_lookup},
+            "frame_lookup": {id(f.base): self.frame_lookup[id(f.base)].export() for f in self.active_frames},
             "graphics": [],
             "globalFrameID": id(self.active_frames[0].base) if self.active_frames else -1,
             "heap": self.heap.export(),
