@@ -8,6 +8,9 @@ from log_utils import get_id
 from scheme_exceptions import OperandDeduceError
 
 
+OP_LIMIT = 2500
+
+
 class HolderState(Enum):
     UNEVALUATED = auto()
     EVALUATING = auto()
@@ -47,9 +50,9 @@ class VisualExpression:
                     curr_transition = HolderState[logger.node_cache[self.id].transition_type]
                 else:
                     curr_transition = HolderState[logger.node_cache[self.id].transitions[-1][-1]]
+                logger.node_cache[self.id].modify(self, curr_transition)
             else:
                 curr_transition = HolderState.UNEVALUATED
-            logger.node_cache[self.id].modify(self, curr_transition)
         return self
 
     def __repr__(self):
@@ -66,7 +69,7 @@ class Holder:
 
     def link_visual(self, expr: VisualExpression):
         self.expression = expr
-        if self.parent is not None:
+        if self.parent is not None and self.parent.id in logger.node_cache:
             logger.node_cache[self.parent.id].modify(self.parent, HolderState.EVALUATING)
         return expr
 
@@ -126,6 +129,8 @@ class Logger:
 
         self.heap: Heap = Heap()  # heap of all non-atomic objects
 
+        self.op_count = 0
+
     def new_expr(self):
         self._out.append([])
         if Root.set and self.start != self.i:
@@ -147,11 +152,14 @@ class Logger:
         self.export_states = []
         self.frame_updates = []
         self.global_frame = global_frame
+        self.op_count = 0
 
     def preview_mode(self, val):
         self.fragile = val
 
     def log(self, message: str, local: Holder, root: Holder):
+        if not self.log_op():
+            return
         self.new_node(local.expression, local.state)
         self.i += 1
 
@@ -198,6 +206,12 @@ class Logger:
         self.node_cache[node.id] = node
         return node.id
 
+    def log_op(self):
+        if self.op_count >= OP_LIMIT:
+            return False
+        self.op_count += 1
+        return True
+
 
 class StaticNode:
     def __init__(self, expr: Expression, transition_type: HolderState):
@@ -224,6 +238,8 @@ class FatNode:
         self.modify(expr, transition_type)
 
     def modify(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
+        if not logger.log_op():
+            return
         if not self.transitions or self.transitions[-1][1] != transition_type.name:
             self.transitions.append((logger.i, transition_type.name))
         if not self.str or self.str[-1][1] != repr(expr):
@@ -275,6 +291,8 @@ class StoredFrame:
         self.return_value = None
 
     def bind(self, name: str, value: Expression):
+        if not logger.log_op():
+            return
         value_key = logger.heap.record(value)
         data = (logger.i, (name, str(value)), value_key)
         self.bindings.append(data)
