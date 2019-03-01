@@ -66,7 +66,7 @@ async function saveState(full=false, layout=undefined) {
     if (curr_saving) {
         return;
     }
-    await begin_slow();
+    begin_slow();
     curr_saving = true;
     if (layout === undefined) {
         layout = getLayout();
