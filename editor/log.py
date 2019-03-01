@@ -115,6 +115,7 @@ class Logger:
         self.frame_lookup: Dict[int, StoredFrame] = {}  # lookup of all previous frames TODO: use weakrefs or something
         self.active_frames: List[StoredFrame] = []  # new frames to be added to the js frame store
         self.frame_updates = []  # when the env diagram is updated
+        self.global_frame: StoredFrame = None
 
         self.strict_mode = False  # legacy - used for okpy testing of the interpreter
         self.fragile = False  # flag for if new assignments prohibited, like in previewing
@@ -137,7 +138,7 @@ class Logger:
         Root.set = True
         self.eval_stack = []
 
-    def new_query(self, curr_i=0, curr_f=0):
+    def new_query(self, global_frame: StoredFrame=None, curr_i=0, curr_f=0):
         self.node_cache = {}
         self.i = curr_i
         self.f_delta = curr_f
@@ -147,6 +148,7 @@ class Logger:
         self.roots = []
         self.export_states = []
         self.frame_updates = []
+        self.global_frame = global_frame
 
     def preview_mode(self, val):
         self.fragile = val
@@ -162,7 +164,8 @@ class Logger:
             "states": self.export_states,
             "out": ["".join(["".join(x) for x in self._out])],
             "active_frames": [id(f.base) for f in self.active_frames],
-            "frame_lookup": {id(f.base): self.frame_lookup[id(f.base)].export() for f in self.active_frames},
+            "frame_lookup": {id(f.base): self.frame_lookup[id(f.base)].export()
+                             for f in [self.global_frame] + self.active_frames},
             "graphics": [],
             "globalFrameID": id(self.active_frames[0].base) if self.active_frames else -1,
             "heap": self.heap.export(),
