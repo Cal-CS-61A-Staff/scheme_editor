@@ -16,6 +16,7 @@ def string_exec(strings, out, global_frame=None):
         global_frame = build_global_frame()
         log.logger.active_frames.pop(0)  # clear builtin frame
         log.logger.f_delta += 1
+        log.logger.global_frame = log.logger.frame_lookup[id(global_frame)]
 
     log.logger.export_states = []
     log.logger.roots = []

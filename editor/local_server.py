@@ -221,16 +221,13 @@ class Handler(server.BaseHTTPRequestHandler):
 
 
 def handle(code, curr_i, curr_f, global_frame_id):
-    # file.truncate(0)
-    # file.seek(0)
-    # file.write("\n".join(code))
-    # file.flush()
     try:
-        log.logger.new_query(curr_i, curr_f)
+        global_frame = log.logger.frame_lookup.get(global_frame_id, None)
+        log.logger.new_query(global_frame, curr_i, curr_f)
         if global_frame_id == -1:
             execution.string_exec(code, log.logger.out)
         else:
-            execution.string_exec(code, log.logger.out, log.logger.frame_lookup[global_frame_id].base)
+            execution.string_exec(code, log.logger.out, global_frame.base)
         # limiter(3, execution.string_exec, code, gui.logger.out)
     except ParseError as e:
         return json.dumps({"success": False, "out": [str(e)]})
@@ -240,10 +237,11 @@ def handle(code, curr_i, curr_f, global_frame_id):
 
 
 def instant(code, global_frame_id):
-    log.logger.new_query()
+    global_frame = log.logger.frame_lookup[global_frame_id]
+    log.logger.new_query(global_frame)
     try:
         log.logger.preview_mode(True)
-        limiter(0.3, execution.string_exec, code, log.logger.out, log.logger.frame_lookup[global_frame_id].base)
+        limiter(0.3, execution.string_exec, code, log.logger.out, global_frame.base)
     except (SchemeError, ZeroDivisionError) as e:
         log.logger.out(e)
     except TimeLimitException:
