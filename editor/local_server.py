@@ -21,7 +21,7 @@ PORT = 8012
 
 main_file = ""
 
-state = None
+state = {}
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -99,7 +99,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
         elif path == "/save_state":
             global state
-            state = data[b"state"][0]
+            for key, val in json.loads(data[b"state"][0]).items():
+                state[key] = val
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
@@ -108,10 +109,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
-            if state is None:
+            print(state)
+            if "states" not in state:
                 self.wfile.write(b"fail")
             else:
-                self.wfile.write(state)
+                self.wfile.write(bytes(json.dumps(state), "utf-8"))
 
         elif path == "/documentation":
             self.send_response(HTTPStatus.OK, 'test')

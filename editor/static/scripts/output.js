@@ -1,4 +1,4 @@
-import {states} from "./state_handler";
+import {saveState, states} from "./state_handler";
 import {begin_slow, end_slow, make, request_update} from "./event_handler";
 
 export {register};
@@ -134,7 +134,8 @@ function register(myLayout) {
                     curr_i: states[componentState.id].states.slice(-1)[0][1],
                     curr_f: states[componentState.id].environments.length
                 }).done(function (data) {
-                    // editor.setValue(val.slice(firstTerminator + 1));
+                    // noinspection JSIgnoredPromiseFromCall
+                    saveState(true);
                     end_slow();
                     data = $.parseJSON(data);
                     if (data.out[0].trim() !== "") {
