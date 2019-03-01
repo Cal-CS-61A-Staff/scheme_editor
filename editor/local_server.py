@@ -109,7 +109,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
-            print(state)
             if "states" not in state:
                 self.wfile.write(b"fail")
             else:
