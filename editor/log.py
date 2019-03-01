@@ -50,11 +50,11 @@ class VisualExpression:
             if self.id in logger.node_cache:
                 if isinstance(logger.node_cache[self.id], StaticNode):
                     curr_transition = HolderState[logger.node_cache[self.id].transition_type]
-                else:
+                elif logger.node_cache[self.id].transitions:
                     curr_transition = HolderState[logger.node_cache[self.id].transitions[-1][-1]]
+                else:
+                    return self
                 logger.node_cache[self.id].modify(self, curr_transition)
-            else:
-                curr_transition = HolderState.UNEVALUATED
         return self
 
     def __repr__(self):

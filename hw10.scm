@@ -1,6 +1,5 @@
-(define (loop x)
+(define (count x total)
   (if (= x 0)
-      (/ 1 0)
-      (loop (- x 1))))
-
-(loop 2000)
+      total
+      (count (- x 1)
+             (+ x total))))
