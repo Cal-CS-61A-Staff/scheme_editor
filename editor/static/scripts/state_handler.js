@@ -36,13 +36,15 @@ let base_state = {
     file_name: "",
 };
 
+let skip_saves = ["states", "environments", "moves", "out", "heap", "frameUpdates"];
+
 let states = [make_new_state()];
 states[0].file_name = $.parseJSON(start_data)["file"];
 
 let temp_file = "__";
 
 function make_new_state() {
-    return jQuery.extend({}, base_state);
+    return jQuery.extend(true, {}, base_state);
 }
 
 async function loadState() {
@@ -60,19 +62,36 @@ async function loadState() {
 }
 
 let curr_saving = false;
-async function saveState(layout=undefined) {
+async function saveState(full=false, layout=undefined) {
     if (curr_saving) {
         return;
     }
-    begin_slow();
+    await begin_slow();
     curr_saving = true;
     if (layout === undefined) {
         layout = getLayout();
     }
+
+    let temp = [];
+
+    if (full) {
+        temp = states;
+    } else {
+        for (let state of states) {
+            temp.push(jQuery.extend({}, state)); // shallow copy
+        }
+
+        for (let state of temp) {
+            for (let key of skip_saves) {
+                delete state[key];
+            }
+        }
+    }
+
     await $.post("./save_state", {
-        state: JSON.stringify({states: states, layout: layout, settings: getAllSettings()}),
+        state: JSON.stringify({states: temp, layout: layout, settings: getAllSettings()}),
     }).done(function () {
-        end_slow();
         curr_saving = false;
+        end_slow();
     });
 }

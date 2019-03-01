@@ -1,4 +1,4 @@
-import {states} from "./state_handler";
+import {saveState, states} from "./state_handler";
 import {make, request_update} from "./event_handler";
 import {terminable_command} from "./canceller";
 
@@ -146,6 +146,7 @@ function register(myLayout) {
                         states[componentState.id].frameUpdates.push(...data.frameUpdates);
                     }
                     request_update();
+                    saveState(true);
                 }
                 let aj = $.post("./process2", {
                     code: [val],
