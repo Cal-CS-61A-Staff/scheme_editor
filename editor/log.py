@@ -109,11 +109,11 @@ def print_announce(message, local, root):
 
 def limited(f):
     def g(*args, **kwargs):
-        if not logger.log_op() or kwargs.get("force", False):
+        if not logger.log_op() and not kwargs.get("force", False):
             return
         if "force" in kwargs:
             del kwargs["force"]
-        f(*args, **kwargs)
+        return f(*args, **kwargs)
     return g
 
 
@@ -215,7 +215,8 @@ class Logger:
             self.node_cache[key] = StaticNode(expr, transition_type)
             return key
         if expr.id in self.node_cache:
-            return self.node_cache[expr.id].modify(expr, transition_type)
+            print("attempting to force!")
+            return self.node_cache[expr.id].modify(expr, transition_type, force=True)
         node = FatNode(expr, transition_type)
         self.node_cache[node.id] = node
         return node.id
@@ -250,6 +251,7 @@ class FatNode:
         self.id = expr.id
         self.modify(expr, transition_type)
 
+    @limited
     def modify(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
         if not self.transitions or self.transitions[-1][1] != transition_type.name:
             self.transitions.append((logger.i, transition_type.name))
