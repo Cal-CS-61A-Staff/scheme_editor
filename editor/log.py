@@ -107,6 +107,16 @@ def print_announce(message, local, root):
     print(f"{message:10}: {repr(local):50} {repr(root):20}")
 
 
+def limited(f):
+    def g(*args, **kwargs):
+        if not logger.log_op() or kwargs.get("force", False):
+            return
+        if "force" in kwargs:
+            del kwargs["force"]
+        f(*args, **kwargs)
+    return g
+
+
 class Logger:
     def __init__(self):
         self._out = [[]]  # text printed to console
@@ -159,10 +169,10 @@ class Logger:
     def preview_mode(self, val):
         self.fragile = val
 
+    @limited
     def log(self, message: str, local: Holder, root: Holder):
-        if not self.log_op():
-            return
         self.new_node(local.expression, local.state)
+        print("log at", self.i)
         self.i += 1
 
     def export(self):
@@ -189,11 +199,13 @@ class Logger:
         else:
             self._out = [[val]]
 
+    @limited
     def frame_create(self, frame: evaluate_apply.Frame):
         self.frame_lookup[id(frame)] = stored = StoredFrame(len(self.active_frames), frame)
         self.active_frames.append(stored)
         frame.id = stored.name
 
+    @limited
     def frame_store(self, frame: evaluate_apply.Frame, name: str, value: Expression):
         self.frame_lookup[id(frame)].bind(name, value)
 
@@ -209,10 +221,9 @@ class Logger:
         return node.id
 
     def log_op(self):
-        if self.op_count >= OP_LIMIT:
-            return False
         self.op_count += 1
-        return True
+        # print(self.op_count)
+        return self.op_count < OP_LIMIT
 
 
 class StaticNode:
@@ -240,8 +251,6 @@ class FatNode:
         self.modify(expr, transition_type)
 
     def modify(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
-        if not logger.log_op():
-            return
         if not self.transitions or self.transitions[-1][1] != transition_type.name:
             self.transitions.append((logger.i, transition_type.name))
         if not self.str or self.str[-1][1] != repr(expr):
@@ -292,9 +301,8 @@ class StoredFrame:
         self.base = base
         self.return_value = None
 
+    @limited
     def bind(self, name: str, value: Expression):
-        if not logger.log_op():
-            return
         value_key = logger.heap.record(value)
         data = (logger.i, (name, str(value)), value_key)
         self.bindings.append(data)
@@ -328,6 +336,7 @@ class Heap:
         self.curr = {}
         return out
 
+    @limited
     def modify(self, id):
         if id in self.prev:
             self.curr[id] = self.prev[id]

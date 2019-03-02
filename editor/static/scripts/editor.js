@@ -186,6 +186,7 @@ function register(layout) {
             }
             let code = [editor.getValue()];
             begin_slow();
+            console.log(states);
             $.post("./process2", {
                 code: code,
                 globalFrameID: -1,
