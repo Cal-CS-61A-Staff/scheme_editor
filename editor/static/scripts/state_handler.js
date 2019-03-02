@@ -1,5 +1,5 @@
 import {begin_slow, end_slow} from "./event_handler";
-import {getLayout, open, setLayout} from "./layout";
+import {getLayout, setLayout} from "./layout";
 import {getAllSettings, setAllSettings} from "./settings";
 
 export {states, temp_file, loadState, saveState, make_new_state};
