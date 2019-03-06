@@ -215,7 +215,6 @@ class Logger:
             self.node_cache[key] = StaticNode(expr, transition_type)
             return key
         if expr.id in self.node_cache:
-            print("attempting to force!")
             return self.node_cache[expr.id].modify(expr, transition_type, force=True)
         node = FatNode(expr, transition_type)
         self.node_cache[node.id] = node
