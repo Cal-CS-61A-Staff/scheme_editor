@@ -1,6 +1,8 @@
 import argparse
 import os
 
+import memory_usage
+
 import local_server
 
 parser = argparse.ArgumentParser(description="Rahul's Scheme IDE!")
