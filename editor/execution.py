@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import memory_usage
 from datamodel import Undefined
 from evaluate_apply import evaluate
 from log import Holder, Root
@@ -26,6 +27,8 @@ def string_exec(strings, out, global_frame=None):
     log.logger.roots = []
     log.logger.frame_updates = []
     log.logger._out = []
+
+    memory_usage.reset()
 
     for i, string in enumerate(strings):
         try:

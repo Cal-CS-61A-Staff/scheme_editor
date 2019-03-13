@@ -31,3 +31,6 @@ class FormatError(SchemeError): pass
 
 
 class LoadError(SchemeError): pass
+
+
+class OutOfMemoryError(SchemeError): pass
