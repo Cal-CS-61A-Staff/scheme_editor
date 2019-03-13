@@ -173,7 +173,7 @@ a                    } else {
             });
 
             editor.commands.addCommand({
-                name: "uparrow",
+                name: "ctrl-enter",
                 bindKey: { win: "Ctrl+Enter", mac: "Cmd+Enter"},
                 exec: function(editor, ...rest) {enter_key_pressed(editor.getValue().replace(/\r/g, ""));}
             });
