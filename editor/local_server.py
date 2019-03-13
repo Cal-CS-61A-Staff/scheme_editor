@@ -1,4 +1,4 @@
-import http.server
+from http import server
 import json
 import signal
 import socketserver
@@ -24,7 +24,7 @@ main_file = ""
 state = None
 
 
-class Handler(http.server.BaseHTTPRequestHandler):
+class Handler(server.BaseHTTPRequestHandler):
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
         raw_data = self.rfile.read(content_length)
