@@ -45,13 +45,18 @@ function register(myLayout) {
                             <td class="text-right"> <button class="btn btn-secondary"> View Case </button> </td>
                         </tr>`);
                         $(`#${random_id}`).find(".btn").last().click(function () {
-                            let index = states.length;
-                            let new_state = make_new_state();
-                            new_state.file_name = temp_file + `${entry.problem} - Suite ${i + 1}, Case ${j + 1}`;
-                            new_state.file_content = test.code;
-                            states.push(new_state);
-                            saveState();
-                            open("editor", index);
+                            let case_name = `${entry.problem} - Suite ${i + 1}, Case ${j + 1}`;
+                            if (states[0].test_editors.has(case_name)) {
+                                states[0].test_editors.get(case_name).setValue(test.code);
+                            } else {
+                                let index = states.length;
+                                let new_state = make_new_state();
+                                new_state.file_name = temp_file + case_name;
+                                new_state.file_content = test.code;
+                                states.push(new_state);
+                                saveState();
+                                open("editor", index);
+                            }
                         });
                     }
                 }

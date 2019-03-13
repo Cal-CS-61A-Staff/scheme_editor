@@ -75,6 +75,7 @@ function register(layout) {
 
             if (states[componentState.id].file_name.startsWith(temp_file)) {
                 editor.setValue(states[componentState.id].file_content);
+                states[0].test_editors.set(states[id].file_name.slice(temp_file.length), editor);
             } else {
                 $.post("/read_file", {
                     filename: states[componentState.id].file_name,
