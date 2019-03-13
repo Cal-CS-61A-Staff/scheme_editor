@@ -1,6 +1,3 @@
-from __future__ import annotations
-
-from abc import ABC
 from typing import Dict, List, Union, Optional
 
 from datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean, String, Promise
@@ -10,7 +7,7 @@ from helper import pair_to_list
 
 
 class Frame:
-    def __init__(self, name: str, parent: Frame = None):
+    def __init__(self, name: str, parent: 'Frame' = None):
         self.parent = parent
         self.name = name
         self.vars: Dict[str, Expression] = {}
