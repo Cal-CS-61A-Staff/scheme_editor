@@ -43,6 +43,10 @@ class IrreversibleOperationError(SchemeError):
 class FormatError(SchemeError):
     pass
 
+class LoadError(SchemeError): pass
+
+
+class OutOfMemoryError(SchemeError): pass
 
 class LoadError(SchemeError):
     pass

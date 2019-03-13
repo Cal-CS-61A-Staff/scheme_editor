@@ -1,4 +1,7 @@
 from datamodel import Undefined
+from __future__ import annotations
+
+import memory_usage
 from evaluate_apply import evaluate
 from log import Holder, Root
 from execution_parser import get_expression
@@ -21,6 +24,8 @@ def string_exec(strings, out, global_frame=None):
     log.logger.roots = []
     log.logger.frame_updates = []
     log.logger._out = []
+
+    memory_usage.reset()
 
     for i, string in enumerate(strings):
         try:
