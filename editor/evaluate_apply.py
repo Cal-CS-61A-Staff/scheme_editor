@@ -1,5 +1,6 @@
 from typing import Dict, List, Union, Optional
 
+import memory_usage
 import log
 from datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean, String, Promise
 from helper import pair_to_list
@@ -85,6 +86,8 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
     holders = []
 
     while True:
+        memory_usage.assert_low_memory()
+
         if isinstance(gui_holder.expression, Expression):
             visual_expression = log.VisualExpression(expr)
             gui_holder.link_visual(visual_expression)

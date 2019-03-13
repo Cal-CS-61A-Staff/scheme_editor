@@ -5,5 +5,7 @@ sys.path.insert(0, "editor")
 
 import psutilcopy as psutil
 
-process = psutil.Process(os.getpid())
-print(process.memory_info().rss)  # in bytes
+
+def assert_low_memory():
+    process = psutil.Process(os.getpid())
+    print(process.memory_info().rss)  # in bytes
