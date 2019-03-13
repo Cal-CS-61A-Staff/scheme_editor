@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from abc import ABC
 from typing import Dict, List, Union, Optional
 
-from datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean, String, Promise
 import log
-from scheme_exceptions import SymbolLookupError, CallableResolutionError, IrreversibleOperationError
+from datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean, String, Promise
 from helper import pair_to_list
+from scheme_exceptions import SymbolLookupError, CallableResolutionError, IrreversibleOperationError
 
 
 class Frame:
@@ -144,7 +143,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
             raise Exception("Internal error. Please report to maintainer!")
 
         for _ in range(depth):
-            x = log.logger.eval_stack.pop()
+            log.logger.eval_stack.pop()
 
         for thunk, holder in zip(reversed(thunks), reversed(holders)):
             holder.expression.value = ret
