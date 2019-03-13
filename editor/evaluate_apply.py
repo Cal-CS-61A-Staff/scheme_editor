@@ -1,6 +1,3 @@
-from __future__ import annotations
-
-from abc import ABC
 from typing import Dict, List, Union, Optional
 
 import memory_usage
@@ -11,7 +8,7 @@ from helper import pair_to_list
 
 
 class Frame:
-    def __init__(self, name: str, parent: Frame = None):
+    def __init__(self, name: str, parent: 'Frame' = None):
         self.parent = parent
         self.name = name
         self.vars: Dict[str, Expression] = {}

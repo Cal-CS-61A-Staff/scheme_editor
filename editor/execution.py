@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import memory_usage
 from datamodel import Undefined
 from evaluate_apply import evaluate

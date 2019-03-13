@@ -3,34 +3,47 @@ class SchemeError(Exception):
         return str(self)
 
 
-class ParseError(SchemeError): pass
+class TerminatedError(SchemeError):
+    def __init__(self):
+        super().__init__("Error: program manually terminated")
 
 
-class SymbolLookupError(SchemeError): pass
+class ParseError(SchemeError):
+    pass
 
 
-class OperandDeduceError(SchemeError): pass
+class SymbolLookupError(SchemeError):
+    pass
 
 
-class CallableResolutionError(SchemeError): pass
+class OperandDeduceError(SchemeError):
+    pass
 
 
-class MathError(SchemeError): pass
+class CallableResolutionError(SchemeError):
+    pass
 
 
-class ComparisonError(SchemeError): pass
+class MathError(SchemeError):
+    pass
 
 
-class TypeMismatchError(SchemeError): pass
+class ComparisonError(SchemeError):
+    pass
 
 
-class IrreversibleOperationError(SchemeError): pass
+class TypeMismatchError(SchemeError):
+    pass
 
 
-class FormatError(SchemeError): pass
+class IrreversibleOperationError(SchemeError):
+    pass
 
 
 class LoadError(SchemeError): pass
 
 
 class OutOfMemoryError(SchemeError): pass
+
+
+class FormatError(SchemeError): pass
