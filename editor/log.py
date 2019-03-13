@@ -151,7 +151,7 @@ class Logger:
         Root.set = True
         self.eval_stack = []
 
-    def new_query(self, global_frame: StoredFrame=None, curr_i=0, curr_f=0):
+    def new_query(self, global_frame: 'StoredFrame'=None, curr_i=0, curr_f=0):
         self.node_cache = {}
         self.i = curr_i
         self.f_delta = curr_f
