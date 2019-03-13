@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC
 from typing import Dict, List, Union, Optional
 
+import memory_usage
 from datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean, String, Promise
 import log
 from scheme_exceptions import SymbolLookupError, CallableResolutionError, IrreversibleOperationError
@@ -88,6 +89,8 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
     holders = []
 
     while True:
+        memory_usage.assert_low_memory()
+
         if isinstance(gui_holder.expression, Expression):
             visual_expression = log.VisualExpression(expr)
             gui_holder.link_visual(visual_expression)
