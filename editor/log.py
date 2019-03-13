@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from enum import Enum, auto
 from typing import List, Union, Dict, Tuple
 
@@ -181,12 +179,12 @@ class Logger:
         else:
             self._out = [[val]]
 
-    def frame_create(self, frame: evaluate_apply.Frame):
+    def frame_create(self, frame: 'evaluate_apply.Frame'):
         self.frame_lookup[id(frame)] = stored = StoredFrame(len(self.active_frames), frame)
         self.active_frames.append(stored)
         frame.id = stored.name
 
-    def frame_store(self, frame: evaluate_apply.Frame, name: str, value: Expression):
+    def frame_store(self, frame: 'evaluate_apply.Frame', name: str, value: Expression):
         self.frame_lookup[id(frame)].bind(name, value)
 
     def new_node(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
@@ -261,7 +259,7 @@ class FatNode:
 
 
 class StoredFrame:
-    def __init__(self, i, base: evaluate_apply.Frame):
+    def __init__(self, i, base: 'evaluate_apply.Frame'):
         i += logger.f_delta
         if i == -1:
             name = "Builtins"
@@ -315,7 +313,7 @@ class Heap:
             self.curr[id] = self.prev[id]
         logger.frame_updates.append(logger.i)
 
-    def record(self, expr: Expression) -> Heap.HeapKey:
+    def record(self, expr: Expression) -> 'Heap.HeapKey':
         if isinstance(expr, evaluate_apply.Thunk):
             return False, "thunk"
         if expr.id not in self.prev and expr.id not in self.curr:
