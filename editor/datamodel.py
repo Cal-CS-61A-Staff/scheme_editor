@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Union, TYPE_CHECKING
 
 from log_utils import get_id
@@ -40,7 +38,7 @@ class Number(ValueHolder):
 
 
 class Pair(Expression):
-    def __init__(self, first: Expression, rest: Union[Pair, Nil]):
+    def __init__(self, first: Expression, rest: Union['Pair', 'Nil']):
         super().__init__()
         self.first = first
         self.rest = rest
@@ -107,7 +105,7 @@ class String(ValueHolder):
 
 
 class Promise(Expression):
-    def __init__(self, expr: Expression, frame: Frame):
+    def __init__(self, expr: Expression, frame: 'Frame'):
         super().__init__()
         self.forced = False
         self.force_i = None
@@ -125,7 +123,7 @@ class Promise(Expression):
         else:
             return "#[promise (not forced)]"
 
-    def bind(self) -> Heap.HeapKey:
+    def bind(self) -> 'Heap.HeapKey':
         import log
         if self.forced:
             target = ["promise", [self.force_i, log.logger.heap.record(self.expr)]]

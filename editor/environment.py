@@ -1,10 +1,10 @@
 import math
 
 import execution
-from scheme_exceptions import MathError
-from datamodel import Symbol, Nil, SingletonTrue, SingletonFalse, Expression, Number
+from datamodel import Symbol, Expression, Number
 from evaluate_apply import Frame
 from primitives import SingleOperandPrimitive
+from scheme_exceptions import MathError
 
 
 def make_frame_decorator(defdict):
