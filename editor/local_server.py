@@ -264,7 +264,7 @@ def exit_handler(signal, frame):
 signal.signal(signal.SIGINT, exit_handler)
 
 
-class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+class ThreadedHTTPServer(socketserver.ThreadingMixIn, server.HTTPServer):
     pass
 
 
