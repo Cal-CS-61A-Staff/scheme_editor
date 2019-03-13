@@ -1,4 +1,4 @@
-import http.server
+from http import server
 import json
 import signal
 import socketserver
@@ -78,7 +78,7 @@ class thread_state:
 thread_state = thread_state()
 
 
-class Handler(http.server.BaseHTTPRequestHandler):
+class Handler(server.BaseHTTPRequestHandler):
     def do_POST(self):
         """
         Only one non-/cancel POST can happen at a time, the only reason this is threaded is to
