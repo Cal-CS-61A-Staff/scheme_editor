@@ -7,8 +7,7 @@ from scheme_exceptions import OutOfMemoryError
 
 sys.path.insert(0, "editor")
 
-# import libraries.psutilcopy as psutil
-import psutil
+import libraries.psutilcopy as psutil
 
 THRESHOLD = 100 * 10**6
 
