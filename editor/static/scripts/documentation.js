@@ -14,7 +14,7 @@ function init() {
         render($("#documentation-search-modal").val());
     });
 
-    $('#documentation-form').on('keyup keypress', function(e) {
+    $('.documentation-form').on('keyup keypress', function(e) {
       let keyCode = e.keyCode || e.which;
       if (keyCode === 13) {
         e.preventDefault();
