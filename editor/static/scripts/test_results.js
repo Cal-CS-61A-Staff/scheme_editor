@@ -6,8 +6,11 @@ export {register};
 
 function register(myLayout) {
     myLayout.registerComponent('test_results', function (container, componentState) {
+        if (componentState.id !== 0) {
+            alert("Something went wrong with the okpy frontend. Try running the testcases from the console, and let the maintainer of this tool know what happened.")
+        }
         container.getElement().on("update", function () {
-            let data = states[componentState.id].test_results;
+            let data = states[0].test_results;
             container.getElement().html(`<div id="accordion"> </div>`);
             let expanded = false;
             for (let entry of data) {
@@ -55,6 +58,6 @@ function register(myLayout) {
             }
         });
 
-        make(container, "test_results", componentState.id);
+        make(container, "test_results", 0);
     });
 }
