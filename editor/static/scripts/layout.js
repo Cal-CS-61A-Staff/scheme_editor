@@ -54,8 +54,6 @@ function open(type, index) {
         width: 20,
     };
 
-    console.log(states);
-
     if (states[index][open_prop.get(type)]) {
         let container = containers[type].get(index);
         container.parent.parent.setActiveContentItem(container.parent);
@@ -82,12 +80,10 @@ function open(type, index) {
 
     let ok = false;
     for (let friend of friends) {
-        console.log(friends);
         if (containers[friend].size === 0) {
             continue;
         }
         let lastElem = Array.from(containers[friend].values()).pop();
-        console.log(lastElem);
         lastElem.parent.parent.addChild(config);
         ok = true;
         break;
@@ -96,7 +92,6 @@ function open(type, index) {
     if (!ok) {
         if (layout.root.contentItems[0].config.type !== pos) {
             let curr_config = layout.toConfig();
-            console.log(curr_config);
             curr_config.content[0] = {
                 content: [curr_config.content[0], config],
                 isClosable: true,

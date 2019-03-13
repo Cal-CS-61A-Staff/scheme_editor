@@ -1,6 +1,6 @@
 import {saveState, states, temp_file} from "./state_handler";
 
-import {notify_close, open, open_prop} from "./layout";
+import {open} from "./layout";
 import {begin_slow, end_slow, make, request_update} from "./event_handler";
 
 export {register};
@@ -246,13 +246,13 @@ function register(layout) {
             begin_slow();
             $.post("./test", {
                 code: code,
-                filename: states[componentState.id].file_name,
+                filename: states[0].file_name,
             }).done(async function (data) {
                 end_slow();
                 data = $.parseJSON(data);
-                states[componentState.id].test_results = data;
+                states[0].test_results = data;
                 await save();
-                open("test_results", componentState.id);
+                open("test_results", 0);
             });
         }
     });
