@@ -32,7 +32,7 @@ let base_state = {
     up_to_date: true,
 
     test_results: undefined,
-    test_windows: {},
+    test_editors: new Map(),
 
     file_name: "",
 };
