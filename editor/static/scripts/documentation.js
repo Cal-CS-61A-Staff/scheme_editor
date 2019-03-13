@@ -1,6 +1,3 @@
-import {end_slow} from "./event_handler";
-import {states} from "./state_handler";
-
 export {init}
 
 function init() {
@@ -15,6 +12,14 @@ function init() {
 
     $("#documentation-search-modal").on("input", function () {
         render($("#documentation-search-modal").val());
+    });
+
+    $('#documentation-form').on('keyup keypress', function(e) {
+      let keyCode = e.keyCode || e.which;
+      if (keyCode === 13) {
+        e.preventDefault();
+        return false;
+      }
     });
 }
 
