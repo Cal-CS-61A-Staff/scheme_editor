@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Union, List
 
 from lexer import TokenBuffer, SPECIALS
@@ -8,8 +6,8 @@ from scheme_exceptions import ParseError
 
 class FormatList:
     def __init__(self,
-                 contents: List[Formatted],
-                 last: Formatted,
+                 contents: List['Formatted'],
+                 last: 'Formatted',
                  comments: List[str],
                  prefix: str=""):
         self.contents = contents
