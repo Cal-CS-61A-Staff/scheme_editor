@@ -1,9 +1,9 @@
 from typing import Dict, List, Union, Optional
 
-from datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean, String, Promise
 import log
-from scheme_exceptions import SymbolLookupError, CallableResolutionError, IrreversibleOperationError
+from datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean, String, Promise
 from helper import pair_to_list
+from scheme_exceptions import SymbolLookupError, CallableResolutionError, IrreversibleOperationError
 
 
 class Frame:
@@ -113,6 +113,8 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
             ret = out
         elif isinstance(expr, Pair):
             if tail_context:
+                if log_stack:
+                    log.logger.eval_stack.pop()
                 return Thunk(expr, frame, gui_holder, log_stack)
             else:
                 gui_holder.evaluate()
