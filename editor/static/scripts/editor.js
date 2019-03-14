@@ -2,6 +2,7 @@ import {saveState, states, temp_file} from "./state_handler";
 
 import {notify_close, open, open_prop} from "./layout";
 import {begin_slow, end_slow, make, request_update} from "./event_handler";
+import {register_cancel_button, terminable_command} from "./canceller";
 
 export {register};
 
@@ -185,14 +186,7 @@ function register(layout) {
                 return;
             }
             let code = [editor.getValue()];
-            begin_slow();
-            $.post("./process2", {
-                code: code,
-                globalFrameID: -1,
-                curr_i: 0,
-                curr_f: 0,
-            }).done(async function (data) {
-                end_slow();
+            async function run_done(data) {
                 data = $.parseJSON(data);
                 if (data.success) {
                     states[componentState.id].states = data.states;
@@ -221,7 +215,14 @@ function register(layout) {
                 saveState();
                 $("*").trigger("reset");
                 request_update();
+            }
+            let aj = $.post("./process2", {
+                code: code,
+                globalFrameID: -1,
+                curr_i: 0,
+                curr_f: 0,
             });
+            terminable_command("executing code", aj, run_done);
         }
 
         function reformat() {
