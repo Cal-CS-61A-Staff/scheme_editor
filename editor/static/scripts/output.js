@@ -166,7 +166,7 @@ function register(myLayout) {
                         }
                         editor.setValue(history[i]);
                         editor.selection.clearSelection();
-a                    } else {
+                     } else {
                         old_up_arrow.exec(editor, ...rest);
                     }
                 },
