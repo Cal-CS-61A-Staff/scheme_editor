@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Dict, List, Union, Optional
 
 import log
@@ -9,7 +7,7 @@ from scheme_exceptions import SymbolLookupError, CallableResolutionError, Irreve
 
 
 class Frame:
-    def __init__(self, name: str, parent: Frame = None):
+    def __init__(self, name: str, parent: 'Frame' = None):
         self.parent = parent
         self.name = name
         self.vars: Dict[str, Expression] = {}
