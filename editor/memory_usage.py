@@ -33,6 +33,8 @@ def get_memory():
 
 
 def reset():
+    if fail:
+        return
     global min_memory
     min_memory = get_memory()
 
