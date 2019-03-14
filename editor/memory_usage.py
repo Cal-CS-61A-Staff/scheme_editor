@@ -7,7 +7,16 @@ from scheme_exceptions import OutOfMemoryError
 
 sys.path.insert(0, "editor")
 
-import libraries.psutilcopy as psutil
+fail = True
+
+try:
+    import libraries.psutilcopy as psutil
+except (ImportError, Exception):
+    print("Memory usage will not be monitored for this session - beware of infinite loops!")
+except Exception:
+    print("Non-fatal exception when initializing memory usage logging.")
+else:
+    fail = False
 
 THRESHOLD = 100 * 10**6
 
@@ -29,6 +38,8 @@ def reset():
 
 
 def assert_low_memory(collected=False):
+    if fail:
+        return
     if get_memory() > min_memory + THRESHOLD:
         if not collected:
             gc.collect()
