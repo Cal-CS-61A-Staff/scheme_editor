@@ -5,6 +5,8 @@ import sys
 from collections import namedtuple
 from abc import ABCMeta, abstractmethod
 
+from scheme_exceptions import TerminatedError
+
 newdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/ok"
 sys.path.append(newdir)
 
@@ -40,6 +42,8 @@ def capture_output(console, lines):
     sys.stdout = out = PrintCapture()
     result = console._interpret_lines(lines)
     sys.stdout = old_stdout
+    if str(TerminatedError()) in "".join(out.log):
+        raise TerminatedError
     return result, out.log
 
 
@@ -205,16 +209,18 @@ def run_tests():
 
     assign = assignment.load_assignment(None, args)
 
-    result = []
-    for test in assign.specified_tests:
-        suites = []
-        for suite in test.suites:
-            assert isinstance(suite, SchemeSuite)
-            suites.append([process_case(case).dictionary for case in suite.cases])
-        result.append({
-            "problem": test.name.replace("-", " ").title(),
-            "suites": suites,
-            "passed": all(x['passed'] for t in suites for x in t)
-        })
-
-    return result
+    try:
+        result = []
+        for test in assign.specified_tests:
+            suites = []
+            for suite in test.suites:
+                assert isinstance(suite, SchemeSuite)
+                suites.append([process_case(case).dictionary for case in suite.cases])
+            result.append({
+                "problem": test.name.replace("-", " ").title(),
+                "suites": suites,
+                "passed": all(x['passed'] for t in suites for x in t)
+            })
+        return result
+    except TerminatedError:
+        return [{'problem': "Tests Terminated by User", 'suites': [], 'passed': False}]
