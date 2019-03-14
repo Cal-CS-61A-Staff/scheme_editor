@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datamodel import Undefined
 from evaluate_apply import evaluate
 from log import Holder, Root

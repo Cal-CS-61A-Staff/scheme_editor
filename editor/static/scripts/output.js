@@ -166,14 +166,14 @@ function register(myLayout) {
                         }
                         editor.setValue(history[i]);
                         editor.selection.clearSelection();
-a                    } else {
+                     } else {
                         old_up_arrow.exec(editor, ...rest);
                     }
                 },
             });
 
             editor.commands.addCommand({
-                name: "uparrow",
+                name: "ctrl-enter",
                 bindKey: { win: "Ctrl+Enter", mac: "Cmd+Enter"},
                 exec: function(editor, ...rest) {enter_key_pressed(editor.getValue().replace(/\r/g, ""));}
             });
