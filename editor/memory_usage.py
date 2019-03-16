@@ -10,6 +10,7 @@ sys.path.insert(0, "editor")
 import libraries.psutilcopy as psutil
 
 THRESHOLD = 100 * 10**6
+DELTA = 10 * 10**6
 
 
 min_memory = 0
@@ -29,7 +30,7 @@ def reset():
 
 
 def assert_low_memory(collected=False):
-    if get_memory() > min_memory + THRESHOLD:
+    if get_memory() > min_memory + DELTA and get_memory() > THRESHOLD:
         if not collected:
             gc.collect()
             assert_low_memory(True)
