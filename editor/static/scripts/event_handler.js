@@ -1,5 +1,6 @@
 import {notify_close, notify_open, open_prop} from "./layout";
 import {saveState, states, temp_file} from "./state_handler";
+import {register_cancel_button, terminable_command} from "./canceller";
 
 export {request_update, make, begin_slow, end_slow, init_complete}
 
@@ -88,6 +89,8 @@ let timer;
 function begin_slow() {
     timer = setTimeout(function() {
         $("#loadingModal").modal("show");
+        $("#terminate_btn").text("Cannot be Terminated");
+        register_cancel_button($("#terminate_btn"));
         timer = -1;
     }, 300);
 }
