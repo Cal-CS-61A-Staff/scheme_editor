@@ -2,6 +2,9 @@ import argparse
 import os
 
 import local_server
+import resource
+
+resource.setrlimit(resource.RLIMIT_AS, (2 ** 30, 2 ** 30))
 
 parser = argparse.ArgumentParser(description="Rahul's Scheme IDE!")
 parser.add_argument("-f", "--file",
