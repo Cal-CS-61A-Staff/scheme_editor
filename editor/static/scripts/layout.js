@@ -82,12 +82,10 @@ function open(type, index) {
 
     let ok = false;
     for (let friend of friends) {
-        console.log(friends);
         if (containers[friend].size === 0) {
             continue;
         }
         let lastElem = Array.from(containers[friend].values()).pop();
-        console.log(lastElem);
         lastElem.parent.parent.addChild(config);
         ok = true;
         break;
@@ -104,7 +102,7 @@ function open(type, index) {
                 title: "",
                 type: pos,
             };
-            saveState(JSON.stringify(curr_config)).then(
+            saveState(true, JSON.stringify(curr_config)).then(
                 window.location.reload.bind(window.location));
         } else {
             layout.root.contentItems[0].addChild(config);

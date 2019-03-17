@@ -87,6 +87,7 @@ function make(container, type, id) {
 let timer;
 
 function begin_slow() {
+    end_slow(); // just in case!
     timer = setTimeout(function() {
         $("#loadingModal").modal("show");
         $("#terminate_btn").text("Cannot be Terminated");
