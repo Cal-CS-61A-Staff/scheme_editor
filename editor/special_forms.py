@@ -8,7 +8,7 @@ from helper import pair_to_list, verify_exact_callable_length, verify_min_callab
     make_list, dotted_pair_to_list
 from lexer import TokenBuffer
 from execution_parser import get_expression
-from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError
+from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError, SchemeError
 
 
 class ProcedureObject(Callable):
@@ -175,7 +175,7 @@ class Set(Callable):
         if not isinstance(name, Symbol):
             raise OperandDeduceError(f"Expected a Symbol, not {name}, as the first operand of set!")
         frame.mutate(name, evaluate(operands[1], frame, gui_holder.expression.children[2]))
-        return name
+        return Undefined
 
 
 @global_attr("begin")

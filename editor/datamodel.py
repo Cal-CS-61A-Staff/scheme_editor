@@ -114,14 +114,13 @@ class Promise(Expression):
         self.targets = []
 
     def __str__(self):
-        return "#[promise]"
-
-    def __repr__(self):
-        return str(self)
         if self.forced:
             return "#[promise (forced)]"
         else:
             return "#[promise (not forced)]"
+
+    def __repr__(self):
+        return str(self)
 
     def bind(self) -> 'Heap.HeapKey':
         import log

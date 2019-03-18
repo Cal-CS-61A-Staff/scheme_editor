@@ -1,6 +1,7 @@
 from typing import List
 
-from datamodel import Expression, Pair, Nil, Number
+import log
+from datamodel import Expression, Pair, Nil, Number, Undefined
 from environment import global_attr
 from evaluate_apply import Frame
 from helper import pair_to_list, make_list, verify_exact_callable_length
@@ -11,7 +12,8 @@ from scheme_exceptions import OperandDeduceError
 @global_attr("append")
 class Append(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
-        if len(operands) == 0: return Nil
+        if len(operands) == 0:
+            return Nil
         out = []
         for operand in operands[:-1]:
             if not isinstance(operand, Pair) and operand is not Nil:
@@ -82,6 +84,30 @@ class Length(SingleOperandPrimitive):
 
 
 @global_attr("list")
-class List(BuiltIn):
+class MakeList(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         return make_list(operands)
+
+
+@global_attr("set-car!")
+class SetCar(BuiltIn):
+    def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
+        verify_exact_callable_length(self, 2, len(operands))
+        pair, val = operands
+        if not isinstance(pair, Pair):
+            raise OperandDeduceError(f"set-car! expected a Pair, received {pair}.")
+        pair.first = val
+        log.logger.raw_out("WARNING: Mutation operations on pairs are not yet supported by the debugger.")
+        return Undefined
+
+
+@global_attr("set-cdr!")
+class SetCdr(BuiltIn):
+        def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
+            verify_exact_callable_length(self, 2, len(operands))
+            pair, val = operands
+            if not isinstance(pair, Pair):
+                raise OperandDeduceError(f"set-cdr! expected a Pair, received {pair}.")
+            pair.second = val
+            log.logger.raw_out("WARNING: Mutation operations on pairs are not yet supported by the debugger.")
+            return Undefined
