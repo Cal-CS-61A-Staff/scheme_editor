@@ -3,7 +3,10 @@ from typing import Dict, List, Union, Optional
 import log
 from datamodel import Symbol, Expression, Number, Pair, Nil, Undefined, Boolean, String, Promise
 from helper import pair_to_list
-from scheme_exceptions import SymbolLookupError, CallableResolutionError, IrreversibleOperationError
+from scheme_exceptions import SymbolLookupError, CallableResolutionError, IrreversibleOperationError, OutOfMemoryError
+
+
+RECURSION_LIMIT = 100000
 
 
 class Frame:
@@ -11,7 +14,7 @@ class Frame:
         self.parent = parent
         self.name = name
         self.vars: Dict[str, Expression] = {}
-        self.id = "unknown - an error has occurred"
+        self.id = "unknown"
         self.temp = log.logger.fragile
         log.logger.frame_create(self)
 
@@ -85,6 +88,9 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
     holders = []
 
     while True:
+        if depth > RECURSION_LIMIT:
+            raise OutOfMemoryError("Debugger ran out of memory due to excessively deep recursion.")
+
         if isinstance(gui_holder.expression, Expression):
             visual_expression = log.VisualExpression(expr)
             gui_holder.link_visual(visual_expression)
