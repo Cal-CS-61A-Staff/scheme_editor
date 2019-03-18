@@ -5,7 +5,7 @@ cases = [
         Query(code=['(define (f y) (set! x y))'], expected={'out': ['f\n']}),
         Query(code=['(define x 5)'], expected={'out': ['x\n']}),
         Query(code=['x'], expected={'out': ['5\n']}),
-        Query(code=['(f 6)'], expected={'out': ['x\n']}),
+        Query(code=['(f 6)'], expected={'out': ['']}),
         Query(code=['x'], expected={'out': ['6\n']})
     ]),
     SchemeTestCase([
