@@ -51,7 +51,10 @@ class SchemeTestCase(TestCase):
             if reset:
                 log.logger = log.Logger()
                 log.announce = log.logger.log
-            log.logger.new_query()
+            if global_frame is not None:
+                log.logger.new_query(log.logger.frame_lookup[id(global_frame)])
+            else:
+                log.logger.new_query()
             if isinstance(code, str):
                 code = [code]
             else:
