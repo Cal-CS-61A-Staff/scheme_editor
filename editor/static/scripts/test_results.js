@@ -12,6 +12,7 @@ function registerEditor(name, editor) {
 
 function removeEditor(name) {
     editors.delete(name);
+    console.log("deleting " + name);
 }
 
 function register(myLayout) {
@@ -57,7 +58,7 @@ function register(myLayout) {
                         $(`#${random_id}`).find(".btn").last().click(function () {
                             let case_name = `${entry.problem} - Suite ${i + 1}, Case ${j + 1}`;
                             if (editors.has(temp_file + case_name)) {
-                                editors.get(case_name).setValue(test.code);
+                                editors.get(temp_file + case_name).setValue(test.code);
                             } else {
                                 let index = states.length;
                                 let new_state = make_new_state();
