@@ -2,7 +2,17 @@ import {make_new_state, saveState, states, temp_file} from "./state_handler";
 import {open} from "./layout";
 import {make} from "./event_handler";
 
-export {register};
+export {register, registerEditor, removeEditor};
+
+let editors = new Map();
+
+function registerEditor(name, editor) {
+    editors.set(name, editor);
+}
+
+function removeEditor(name) {
+    editors.delete(name);
+}
 
 function register(myLayout) {
     myLayout.registerComponent('test_results', function (container, componentState) {
@@ -46,8 +56,8 @@ function register(myLayout) {
                         </tr>`);
                         $(`#${random_id}`).find(".btn").last().click(function () {
                             let case_name = `${entry.problem} - Suite ${i + 1}, Case ${j + 1}`;
-                            if (states[0].test_editors.has(case_name)) {
-                                states[0].test_editors.get(case_name).setValue(test.code);
+                            if (editors.has(temp_file + case_name)) {
+                                editors.get(case_name).setValue(test.code);
                             } else {
                                 let index = states.length;
                                 let new_state = make_new_state();
