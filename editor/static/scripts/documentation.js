@@ -1,15 +1,10 @@
-import {end_slow} from "./event_handler";
-import {states} from "./state_handler";
-
 export {init}
 
 function init() {
     $("#documentation-search").on("input", function () {
-        console.log("typing!");
         let text = $("#documentation-search").val();
         $("#documentation-search").val("");
         $("#documentation-search-modal").val(text);
-        console.log(text);
         $("#documentationModal").modal("show");
         $("#documentation-search-modal").focus();
         render($("#documentation-search-modal").val());
@@ -17,6 +12,14 @@ function init() {
 
     $("#documentation-search-modal").on("input", function () {
         render($("#documentation-search-modal").val());
+    });
+
+    $('.documentation-form').on('keyup keypress', function(e) {
+      let keyCode = e.keyCode || e.which;
+      if (keyCode === 13) {
+        e.preventDefault();
+        return false;
+      }
     });
 }
 
