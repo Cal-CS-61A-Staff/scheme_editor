@@ -1,5 +1,6 @@
-import {states} from "./state_handler";
-import {begin_slow, end_slow, make, request_update} from "./event_handler";
+import {saveState, states} from "./state_handler";
+import {make, request_update} from "./event_handler";
+import {terminable_command} from "./canceller";
 
 export {register};
 
@@ -127,15 +128,8 @@ function register(myLayout) {
                 val = val.replace(/\n/g, "");
                 states[componentState.id].out += "\nscm> " + displayVal;
                 request_update();
-                begin_slow();
-                $.post("./process2", {
-                    code: [val],
-                    globalFrameID: states[componentState.id].globalFrameID,
-                    curr_i: states[componentState.id].states.slice(-1)[0][1],
-                    curr_f: states[componentState.id].environments.length
-                }).done(function (data) {
+                function run_done(data) {
                     // editor.setValue(val.slice(firstTerminator + 1));
-                    end_slow();
                     data = $.parseJSON(data);
                     if (data.out[0].trim() !== "") {
                         states[componentState.id].out += "\n" + data.out[0].trim();
@@ -152,7 +146,15 @@ function register(myLayout) {
                         states[componentState.id].frameUpdates.push(...data.frameUpdates);
                     }
                     request_update();
+                    saveState(true);
+                }
+                let aj = $.post("./process2", {
+                    code: [val],
+                    globalFrameID: states[componentState.id].globalFrameID,
+                    curr_i: states[componentState.id].states.slice(-1)[0][1],
+                    curr_f: states[componentState.id].environments.length
                 });
+                terminable_command("executing code", aj, run_done);
             }
 
             let old_up_arrow = editor.commands.commandKeyBinding.up;
@@ -166,7 +168,7 @@ function register(myLayout) {
                         }
                         editor.setValue(history[i]);
                         editor.selection.clearSelection();
-a                    } else {
+                     } else {
                         old_up_arrow.exec(editor, ...rest);
                     }
                 },

@@ -99,7 +99,7 @@ function open(type, index) {
                 title: "",
                 type: pos,
             };
-            saveState(JSON.stringify(curr_config)).then(
+            saveState(true, JSON.stringify(curr_config)).then(
                 window.location.reload.bind(window.location));
         } else {
             layout.root.contentItems[0].addChild(config);

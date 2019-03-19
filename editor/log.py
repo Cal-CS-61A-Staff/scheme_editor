@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from enum import Enum, auto
 from typing import List, Union, Dict, Tuple
 
@@ -8,6 +6,9 @@ import evaluate_apply
 from helper import pair_to_list
 from log_utils import get_id
 from scheme_exceptions import OperandDeduceError
+
+
+OP_LIMIT = 2500
 
 
 class HolderState(Enum):
@@ -47,11 +48,11 @@ class VisualExpression:
             if self.id in logger.node_cache:
                 if isinstance(logger.node_cache[self.id], StaticNode):
                     curr_transition = HolderState[logger.node_cache[self.id].transition_type]
-                else:
+                elif logger.node_cache[self.id].transitions:
                     curr_transition = HolderState[logger.node_cache[self.id].transitions[-1][-1]]
-            else:
-                curr_transition = HolderState.UNEVALUATED
-            logger.node_cache[self.id].modify(self, curr_transition)
+                else:
+                    return self
+                logger.node_cache[self.id].modify(self, curr_transition)
         return self
 
     def __repr__(self):
@@ -68,7 +69,7 @@ class Holder:
 
     def link_visual(self, expr: VisualExpression):
         self.expression = expr
-        if self.parent is not None:
+        if self.parent is not None and self.parent.id in logger.node_cache:
             logger.node_cache[self.parent.id].modify(self.parent, HolderState.EVALUATING)
         return expr
 
@@ -104,6 +105,16 @@ def print_announce(message, local, root):
     print(f"{message:10}: {repr(local):50} {repr(root):20}")
 
 
+def limited(f):
+    def g(*args, **kwargs):
+        if not logger.log_op() and not kwargs.get("force", False):
+            return
+        if "force" in kwargs:
+            del kwargs["force"]
+        return f(*args, **kwargs)
+    return g
+
+
 class Logger:
     def __init__(self):
         self._out = [[]]  # text printed to console
@@ -115,6 +126,7 @@ class Logger:
         self.frame_lookup: Dict[int, StoredFrame] = {}  # lookup of all previous frames TODO: use weakrefs or something
         self.active_frames: List[StoredFrame] = []  # new frames to be added to the js frame store
         self.frame_updates = []  # when the env diagram is updated
+        self.global_frame: StoredFrame = None
 
         self.strict_mode = False  # legacy - used for okpy testing of the interpreter
         self.fragile = False  # flag for if new assignments prohibited, like in previewing
@@ -127,19 +139,19 @@ class Logger:
 
         self.heap: Heap = Heap()  # heap of all non-atomic objects
 
+        self.op_count = 0
+
     def new_expr(self):
-        # self.i = 0
         self._out.append([])
         if Root.set and self.start != self.i:
             self.export_states.append((self.start, self.i, {i: v.export() for i, v in self.node_cache.items()}))
             self.roots.append(Root.root.expression.id)
-            # self.i += 1
         self.start = self.i
         self.node_cache = {}
         Root.set = True
         self.eval_stack = []
 
-    def new_query(self, curr_i=0, curr_f=0):
+    def new_query(self, global_frame: 'StoredFrame'=None, curr_i=0, curr_f=0):
         self.node_cache = {}
         self.i = curr_i
         self.f_delta = curr_f
@@ -149,23 +161,26 @@ class Logger:
         self.roots = []
         self.export_states = []
         self.frame_updates = []
+        self.global_frame = global_frame
+        self.op_count = 0
 
     def preview_mode(self, val):
         self.fragile = val
 
+    @limited
     def log(self, message: str, local: Holder, root: Holder):
         self.new_node(local.expression, local.state)
         self.i += 1
 
     def export(self):
-        # print(f"Generated {len(self.export_states[-1][2])} nodes")
         return {
             "success": True,
             "roots": self.roots,
             "states": self.export_states,
             "out": ["".join(["".join(x) for x in self._out])],
             "active_frames": [id(f.base) for f in self.active_frames],
-            "frame_lookup": {f: self.frame_lookup[f].export() for f in self.frame_lookup},
+            "frame_lookup": {id(f.base): self.frame_lookup[id(f.base)].export()
+                             for f in [self.global_frame] + self.active_frames},
             "graphics": [],
             "globalFrameID": id(self.active_frames[0].base) if self.active_frames else -1,
             "heap": self.heap.export(),
@@ -181,12 +196,14 @@ class Logger:
         else:
             self._out = [[val]]
 
-    def frame_create(self, frame: evaluate_apply.Frame):
+    @limited
+    def frame_create(self, frame: 'evaluate_apply.Frame'):
         self.frame_lookup[id(frame)] = stored = StoredFrame(len(self.active_frames), frame)
         self.active_frames.append(stored)
         frame.id = stored.name
 
-    def frame_store(self, frame: evaluate_apply.Frame, name: str, value: Expression):
+    @limited
+    def frame_store(self, frame: 'evaluate_apply.Frame', name: str, value: Expression):
         self.frame_lookup[id(frame)].bind(name, value)
 
     def new_node(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
@@ -195,10 +212,15 @@ class Logger:
             self.node_cache[key] = StaticNode(expr, transition_type)
             return key
         if expr.id in self.node_cache:
-            return self.node_cache[expr.id].modify(expr, transition_type)
+            return self.node_cache[expr.id].modify(expr, transition_type, force=True)
         node = FatNode(expr, transition_type)
         self.node_cache[node.id] = node
         return node.id
+
+    def log_op(self):
+        self.op_count += 1
+        # print(self.op_count)
+        return self.op_count < OP_LIMIT
 
 
 class StaticNode:
@@ -225,6 +247,7 @@ class FatNode:
         self.id = expr.id
         self.modify(expr, transition_type)
 
+    @limited
     def modify(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
         if not self.transitions or self.transitions[-1][1] != transition_type.name:
             self.transitions.append((logger.i, transition_type.name))
@@ -261,7 +284,7 @@ class FatNode:
 
 
 class StoredFrame:
-    def __init__(self, i, base: evaluate_apply.Frame):
+    def __init__(self, i, base: 'evaluate_apply.Frame'):
         i += logger.f_delta
         if i == -1:
             name = "Builtins"
@@ -276,6 +299,7 @@ class StoredFrame:
         self.base = base
         self.return_value = None
 
+    @limited
     def bind(self, name: str, value: Expression):
         value_key = logger.heap.record(value)
         data = (logger.i, (name, str(value)), value_key)
@@ -310,12 +334,13 @@ class Heap:
         self.curr = {}
         return out
 
+    @limited
     def modify(self, id):
         if id in self.prev:
             self.curr[id] = self.prev[id]
         logger.frame_updates.append(logger.i)
 
-    def record(self, expr: Expression) -> Heap.HeapKey:
+    def record(self, expr: Expression) -> 'Heap.HeapKey':
         if isinstance(expr, evaluate_apply.Thunk):
             return False, "thunk"
         if expr.id not in self.prev and expr.id not in self.curr:
