@@ -46,3 +46,7 @@ class FormatError(SchemeError):
 
 class LoadError(SchemeError):
     pass
+
+
+class OutOfMemoryError(SchemeError):
+    pass
