@@ -49,6 +49,8 @@ function register(layout) {
         let changed = false;
         let saveTimer;
 
+        let name;
+
         container.on("open", function () {
             editorDiv = container.getElement().find(".editor").get(0);
             editor = ace.edit(editorDiv);
@@ -75,9 +77,11 @@ function register(layout) {
                 states[componentState.id].file_name = decoded["file"];
             }
 
-            if (states[componentState.id].file_name.startsWith(temp_file)) {
+            name = states[componentState.id].file_name;
+
+            if (name.startsWith(temp_file)) {
                 editor.setValue(states[componentState.id].file_content);
-                registerEditor(states[id].file_name, editor);
+                registerEditor(name, editor);
             } else {
                 $.post("/read_file", {
                     filename: states[componentState.id].file_name,
@@ -112,7 +116,7 @@ function register(layout) {
         });
 
         container.on("destroy", function () {
-            removeEditor(states[id].file_name, editor);
+            removeEditor(name, editor);
             clearInterval(saveTimer);
         });
 
@@ -149,7 +153,7 @@ function register(layout) {
         container.getElement().find(".test-btn").on("click", run_tests);
 
         async function save(running) {
-            if (states[componentState.id].file_name.startsWith(temp_file) || (!running && (!changed))) {
+            if (name.startsWith(temp_file) || (!running && (!changed))) {
                 return;
             }
             container.getElement().find(".save-btn > .text").text("Saving...");
@@ -157,7 +161,7 @@ function register(layout) {
             let code = [editor.getValue()];
             await $.post("./save", {
                 code: code,
-                filename: states[componentState.id].file_name,
+                filename: name,
             }).done(function (data) {
                 data = $.parseJSON(data);
                 if (data["result"] === "success") {
@@ -246,11 +250,7 @@ function register(layout) {
             if (editor.getValue().trim() === "") {
                 return;
             }
-            let code = [editor.getValue()];
-            let ajax = $.post("./test", {
-                code: code,
-                filename: states[0].file_name,
-            });
+            let ajax = $.post("./test");
             async function done_fn(data) {
                 data = $.parseJSON(data);
                 states[0].test_results = data;
