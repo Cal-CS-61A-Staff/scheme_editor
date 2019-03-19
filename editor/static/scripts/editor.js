@@ -2,6 +2,7 @@ import {saveState, states, temp_file} from "./state_handler";
 
 import {open} from "./layout";
 import {begin_slow, end_slow, make, request_update} from "./event_handler";
+import {registerEditor, removeEditor} from "./test_results";
 
 export {register};
 
@@ -75,7 +76,7 @@ function register(layout) {
 
             if (states[componentState.id].file_name.startsWith(temp_file)) {
                 editor.setValue(states[componentState.id].file_content);
-                states[0].test_editors.set(states[id].file_name.slice(temp_file.length), editor);
+                registerEditor(states[id].file_name, editor);
             } else {
                 $.post("/read_file", {
                     filename: states[componentState.id].file_name,
@@ -110,6 +111,7 @@ function register(layout) {
         });
 
         container.on("destroy", function () {
+            removeEditor(states[id].file_name, editor);
             clearInterval(saveTimer);
         });
 
