@@ -1,8 +1,8 @@
 import {saveState, states, temp_file} from "./state_handler";
 
-import {notify_close, open, open_prop} from "./layout";
+import {open} from "./layout";
 import {make, request_update} from "./event_handler";
-import {register_cancel_button, terminable_command} from "./canceller";
+import {terminable_command} from "./canceller";
 import {registerEditor, removeEditor} from "./test_results";
 
 export {register};
