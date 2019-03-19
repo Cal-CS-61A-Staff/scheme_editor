@@ -1,7 +1,8 @@
 import {saveState, states, temp_file} from "./state_handler";
 
-import {open} from "./layout";
-import {begin_slow, end_slow, make, request_update} from "./event_handler";
+import {notify_close, open, open_prop} from "./layout";
+import {make, request_update} from "./event_handler";
+import {register_cancel_button, terminable_command} from "./canceller";
 import {registerEditor, removeEditor} from "./test_results";
 
 export {register};
@@ -188,14 +189,7 @@ function register(layout) {
                 return;
             }
             let code = [editor.getValue()];
-            begin_slow();
-            $.post("./process2", {
-                code: code,
-                globalFrameID: -1,
-                curr_i: 0,
-                curr_f: 0,
-            }).done(async function (data) {
-                end_slow();
+            async function run_done(data) {
                 data = $.parseJSON(data);
                 if (data.success) {
                     states[componentState.id].states = data.states;
@@ -219,12 +213,19 @@ function register(layout) {
 
                 await save(true);
 
-                open("output", componentState.id);
+                await open("output", componentState.id);
                 // noinspection JSIgnoredPromiseFromCall
-                saveState();
+                saveState(true);
                 $("*").trigger("reset");
                 request_update();
+            }
+            let aj = $.post("./process2", {
+                code: code,
+                globalFrameID: -1,
+                curr_i: 0,
+                curr_f: 0,
             });
+            terminable_command("executing code", aj, run_done);
         }
 
         function reformat() {
@@ -246,17 +247,17 @@ function register(layout) {
                 return;
             }
             let code = [editor.getValue()];
-            begin_slow();
-            $.post("./test", {
+            let ajax = $.post("./test", {
                 code: code,
                 filename: states[0].file_name,
-            }).done(async function (data) {
-                end_slow();
+            });
+            async function done_fn(data) {
                 data = $.parseJSON(data);
                 states[0].test_results = data;
                 await save();
                 open("test_results", 0);
-            });
+            };
+            terminable_command("test cases", ajax, done_fn);
         }
     });
 }
