@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import List, Tuple, Union, Sequence, Iterator
 
 import lexer as lexer
@@ -16,17 +17,27 @@ MULTILINE_VALS = ["let", "cond"]
 FREE_TOKENS = ["if", "define", "define-macro", "mu", "lambda"]
 
 
+CACHE_SIZE = 2 ** 8
+
+
 def prettify(strings: List[str]) -> str:
     out = []
     for i, string in enumerate(strings):
         if not string.strip():
             continue
-        buff = lexer.TokenBuffer([string])
-        while not buff.done:
-            expr = get_expression(buff)
-            out.append(prettify_expr(expr, LINE_LENGTH)[0])
+        out.extend(prettify_single(string))
 
     return "\n\n".join(out)
+
+
+@lru_cache(CACHE_SIZE)
+def prettify_single(string: str) -> List[str]:
+    out = []
+    buff = lexer.TokenBuffer([string])
+    while not buff.done:
+        expr = get_expression(buff)
+        out.append(prettify_expr(expr, LINE_LENGTH)[0])
+    return out
 
 
 def make_comments(comments: List[str], depth: int, newline: bool):
