@@ -139,9 +139,6 @@ class Handler(server.BaseHTTPRequestHandler):
             self.wfile.write(bytes(json.dumps({"result": "success", "formatted": prettify(code)}), "utf-8"))
 
         elif path == "/test":
-            code = [x.decode("utf-8") for x in data[b"code[]"]]
-            filename = data[b"filename"][0]
-            save(code, filename)
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()

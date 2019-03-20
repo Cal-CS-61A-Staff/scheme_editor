@@ -1,8 +1,9 @@
 import {saveState, states, temp_file} from "./state_handler";
 
-import {notify_close, open, open_prop} from "./layout";
+import {open} from "./layout";
 import {make, request_update} from "./event_handler";
-import {register_cancel_button, terminable_command} from "./canceller";
+import {terminable_command} from "./canceller";
+import {registerEditor, removeEditor} from "./test_results";
 
 export {register};
 
@@ -48,6 +49,8 @@ function register(layout) {
         let changed = false;
         let saveTimer;
 
+        let name;
+
         container.on("open", function () {
             editorDiv = container.getElement().find(".editor").get(0);
             editor = ace.edit(editorDiv);
@@ -74,8 +77,11 @@ function register(layout) {
                 states[componentState.id].file_name = decoded["file"];
             }
 
-            if (states[componentState.id].file_name.startsWith(temp_file)) {
+            name = states[componentState.id].file_name;
+
+            if (name.startsWith(temp_file)) {
                 editor.setValue(states[componentState.id].file_content);
+                registerEditor(name, editor);
             } else {
                 $.post("/read_file", {
                     filename: states[componentState.id].file_name,
@@ -110,6 +116,7 @@ function register(layout) {
         });
 
         container.on("destroy", function () {
+            removeEditor(name, editor);
             clearInterval(saveTimer);
         });
 
@@ -146,7 +153,7 @@ function register(layout) {
         container.getElement().find(".test-btn").on("click", run_tests);
 
         async function save(running) {
-            if (states[componentState.id].file_name.startsWith(temp_file) || (!running && (!changed))) {
+            if (name.startsWith(temp_file) || (!running && !changed)) {
                 return;
             }
             container.getElement().find(".save-btn > .text").text("Saving...");
@@ -154,7 +161,7 @@ function register(layout) {
             let code = [editor.getValue()];
             await $.post("./save", {
                 code: code,
-                filename: states[componentState.id].file_name,
+                filename: name,
             }).done(function (data) {
                 data = $.parseJSON(data);
                 if (data["result"] === "success") {
@@ -239,20 +246,17 @@ function register(layout) {
             });
         }
 
-        function run_tests() {
+        async function run_tests() {
             if (editor.getValue().trim() === "") {
                 return;
             }
-            let code = [editor.getValue()];
-            let ajax = $.post("./test", {
-                code: code,
-                filename: states[componentState.id].file_name,
-            });
+            await save();
+            let ajax = $.post("./test");
             async function done_fn(data) {
                 data = $.parseJSON(data);
-                states[componentState.id].test_results = data;
+                states[0].test_results = data;
                 await save();
-                open("test_results", componentState.id);
+                open("test_results", 0);
             };
             terminable_command("test cases", ajax, done_fn);
         }
