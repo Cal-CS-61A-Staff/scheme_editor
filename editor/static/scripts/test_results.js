@@ -56,8 +56,14 @@ function register(myLayout) {
                             <td class="text-right"> <button class="btn btn-secondary"> View Case </button> </td>
                         </tr>`);
                         let case_name = `${entry.problem} - Suite ${i + 1}, Case ${j + 1}`;
-                        if (editors.has(temp_file + case_name)) {
+                        if (editors.has(temp_file + case_name) && editors.get(temp_file + case_name) !== test.code) {
                             editors.get(temp_file + case_name).setValue(test.code);
+                            for (let i = 0; i !== states.length; ++i) {
+                                if (states[i].file_name === temp_file + case_name) {
+                                    states[i].up_to_date = false;
+                                    break;
+                                }
+                            }
                         }
                         $(`#${random_id}`).find(".btn").last().click(function () {
                             if (editors.has(temp_file + case_name)) {

@@ -156,15 +156,17 @@ function register(layout) {
         container.getElement().find(".test-btn").on("click", run_tests);
 
         async function save(running) {
-            if (test_case || (!running && !changed)) {
+            if (!running && !changed) {
                 return;
             }
+
             container.getElement().find(".save-btn > .text").text("Saving...");
 
             let code = [editor.getValue()];
             await $.post("./save", {
                 code: code,
                 filename: name,
+                do_save: !test_case,
             }).done(function (data) {
                 data = $.parseJSON(data);
                 if (data["result"] === "success") {
@@ -173,6 +175,7 @@ function register(layout) {
                     if (running) {
                         states[componentState.id].active_code = data["stripped"];
                         states[componentState.id].up_to_date = true;
+                        alert("set to up to date");
                         return;
                     }
                     if (states[componentState.id].active_code === data["stripped"]) {
