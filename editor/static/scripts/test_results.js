@@ -2,12 +2,26 @@ import {make_new_state, saveState, states, temp_file} from "./state_handler";
 import {open} from "./layout";
 import {make} from "./event_handler";
 
-export {register};
+export {register, registerEditor, removeEditor};
+
+let editors = new Map();
+
+function registerEditor(name, editor) {
+    editors.set(name, editor);
+}
+
+function removeEditor(name) {
+    editors.delete(name);
+    console.log("deleting " + name);
+}
 
 function register(myLayout) {
     myLayout.registerComponent('test_results', function (container, componentState) {
+        if (componentState.id !== 0) {
+            alert("Something went wrong with the okpy frontend. Try running the testcases from the console, and let the maintainer of this tool know what happened.")
+        }
         container.getElement().on("update", function () {
-            let data = states[componentState.id].test_results;
+            let data = states[0].test_results;
             container.getElement().html(`<div id="accordion"> </div>`);
             let expanded = false;
             for (let entry of data) {
@@ -41,20 +55,33 @@ function register(myLayout) {
                             <td class="align-middle">${pass_string}</td> 
                             <td class="text-right"> <button class="btn btn-secondary"> View Case </button> </td>
                         </tr>`);
+                        let case_name = `${entry.problem} - Suite ${i + 1}, Case ${j + 1}`;
+                        if (editors.has(temp_file + case_name)) {
+                            editors.get(temp_file + case_name).setValue(test.code);
+                        }
                         $(`#${random_id}`).find(".btn").last().click(function () {
-                            let index = states.length;
-                            let new_state = make_new_state();
-                            new_state.file_name = temp_file + `${entry.problem} - Suite ${i + 1}, Case ${j + 1}`;
-                            new_state.file_content = test.code;
-                            states.push(new_state);
-                            saveState();
-                            open("editor", index);
+                            if (editors.has(temp_file + case_name)) {
+                                for (let i = 0; i !== states.length; ++i) {
+                                    if (states[i].file_name === temp_file + case_name) {
+                                        open("editor", i);
+                                        break;
+                                    }
+                                }
+                            } else {
+                                let index = states.length;
+                                let new_state = make_new_state();
+                                new_state.file_name = temp_file + case_name;
+                                new_state.file_content = test.code;
+                                states.push(new_state);
+                                saveState();
+                                open("editor", index);
+                            }
                         });
                     }
                 }
             }
         });
 
-        make(container, "test_results", componentState.id);
+        make(container, "test_results", 0);
     });
 }
