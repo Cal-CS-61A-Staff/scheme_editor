@@ -20,7 +20,7 @@ from scheme_exceptions import SchemeError, ParseError, TerminatedError
 
 PORT = 8012
 
-main_file = ""
+main_files = []
 
 state = {}
 
@@ -207,7 +207,7 @@ class Handler(server.BaseHTTPRequestHandler):
             with open(path, "rb") as f:  # lol better make sure that port is closed
                 self.wfile.write(f.read()
                                  .replace(b"<START_DATA>",
-                                          bytes(repr(json.dumps({"file": main_file})),
+                                          bytes(repr(json.dumps({"files": main_files})),
                                                 "utf-8")))
         except Exception as e:
             print(e)
@@ -264,9 +264,9 @@ class ThreadedHTTPServer(socketserver.ThreadingMixIn, server.HTTPServer):
     pass
 
 
-def start(file_arg, port):
-    global main_file
-    main_file = file_arg
+def start(file_args, port):
+    global main_files
+    main_files = file_args
     global PORT
     PORT = port
     print(f"http://localhost:{PORT}")

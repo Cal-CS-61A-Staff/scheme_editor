@@ -30,7 +30,7 @@ function make(container, type, id) {
     let color;
     let icon;
     if (type === "editor") {
-        if (id === 0) {
+        if (id < $.parseJSON(start_data)["files"].length) {
             color = "orange";
         } else if (states[id].file_name.startsWith(temp_file)) {
             color = "red";
