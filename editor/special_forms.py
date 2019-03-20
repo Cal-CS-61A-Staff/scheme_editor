@@ -430,3 +430,12 @@ class ConsStream(Callable):
         verify_exact_callable_length(self, 2, len(operands))
         operands[0] = evaluate(operands[0], frame, gui_holder.expression.children[1])
         return Pair(operands[0], Delay().execute(operands[1:], frame, gui_holder))
+
+
+@global_attr("error")
+class Error(Applicable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, eval_operands=True):
+        verify_exact_callable_length(self, 1, len(operands))
+        if eval_operands:
+            operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
+        raise SchemeError(operands[0])
