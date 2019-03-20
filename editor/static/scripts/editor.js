@@ -175,7 +175,6 @@ function register(layout) {
                     if (running) {
                         states[componentState.id].active_code = data["stripped"];
                         states[componentState.id].up_to_date = true;
-                        alert("set to up to date");
                         return;
                     }
                     if (states[componentState.id].active_code === data["stripped"]) {
