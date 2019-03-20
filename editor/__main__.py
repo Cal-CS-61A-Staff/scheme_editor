@@ -22,10 +22,13 @@ configs = [f for f in os.listdir(os.curdir) if f.endswith(".ok")]
 
 if args.files is not None:
     file_names = [os.path.basename(file.name) for file in args.files]
-    args.file.close()
+    for file in args.files:
+        file.close()
+    if not file_names:
+        parser.error("No files provided.")
 else:
     if len(configs) != 1:
-        raise ValueError("Unable to resolve okpy configs, please specify files to be tested explicitly.")
+        parser.error("Unable to resolve okpy configs, files to be tested must be specified explicitly.")
     with open(configs[0]) as f:
         file_names = json.loads(f.read())["src"]
 local_server.start(file_names, args.port)
