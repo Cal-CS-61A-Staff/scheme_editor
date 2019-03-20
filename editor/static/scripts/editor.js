@@ -8,10 +8,14 @@ export {register};
 
 function register(layout) {
     layout.registerComponent('editor', function (container, componentState) {
+        let decoded = $.parseJSON(start_data);
+        let testable = componentState.id < decoded["files"].length;
+        let test_case = states[componentState.id].file_name.startsWith(temp_file);
+
         container.getElement().html(`
         <div class="content">
             <div class="header">        
-                ${(!states[componentState.id].file_name.startsWith(temp_file)) ?
+                ${(!test_case) ?
             `<button type="button" class="btn-light save-btn" aria-label="Save">
                     <span class="text"> Save </span>
                 </button>` : ``}
@@ -20,7 +24,7 @@ function register(layout) {
                 <button type="button" data-toggle="tooltip"
                             title="Open a console and run the program locally."
                             class="btn-success toolbar-btn run-btn">Run</button>
-                ${(componentState.id === 0) ?
+                ${testable ?
             `<button type="button" data-toggle="tooltip"
                             title="Run all ok.py tests locally."
                             class="btn-danger toolbar-btn test-btn">Test</button>` : ``}
@@ -69,12 +73,11 @@ function register(layout) {
                 editor.resize();
             });
 
-            let decoded = $.parseJSON(start_data);
-            if (componentState.id < decoded["files"].length) {
+            if (testable) {
                 states[componentState.id].file_name = decoded["files"][componentState.id];
             }
 
-            if (states[componentState.id].file_name.startsWith(temp_file)) {
+            if (test_case) {
                 editor.setValue(states[componentState.id].file_content);
             } else {
                 $.post("/read_file", {
@@ -146,7 +149,7 @@ function register(layout) {
         container.getElement().find(".test-btn").on("click", run_tests);
 
         async function save(running) {
-            if (states[componentState.id].file_name.startsWith(temp_file) || (!running && (!changed))) {
+            if (test_case || (!running && (!changed))) {
                 return;
             }
             container.getElement().find(".save-btn > .text").text("Saving...");
@@ -246,13 +249,13 @@ function register(layout) {
             let code = [editor.getValue()];
             let ajax = $.post("./test", {
                 code: code,
-                filename: states[componentState.id].file_name,
+                filename: states[0].file_name,
             });
             async function done_fn(data) {
                 data = $.parseJSON(data);
                 states[componentState.id].test_results = data;
                 await save();
-                open("test_results", componentState.id);
+                open("test_results", 0);
             };
             terminable_command("test cases", ajax, done_fn);
         }
