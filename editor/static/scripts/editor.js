@@ -70,8 +70,8 @@ function register(layout) {
             });
 
             let decoded = $.parseJSON(start_data);
-            if (componentState.id === 0) {
-                states[componentState.id].file_name = decoded["file"];
+            if (componentState.id < decoded["files"].length) {
+                states[componentState.id].file_name = decoded["files"][componentState.id];
             }
 
             if (states[componentState.id].file_name.startsWith(temp_file)) {

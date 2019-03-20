@@ -128,12 +128,19 @@ function init() {
             showCloseIcon: true,
         },
         content: [{
-            type: 'component',
-            componentName: 'editor',
-            componentState: {id: 0},
-            isClosable: false,
+            type: 'stack',
+            content: [],
         }]
     };
+    let decoded = $.parseJSON(start_data);
+    for (let i = 0; i !== decoded["files"].length; ++i) {
+        config.content[0].content.push({
+            type: 'component',
+            componentName: 'editor',
+            componentState: {id: i},
+            isClosable: false,
+        });
+    }
     if (layout === undefined) {
         layout = new GoldenLayout(config, $("#body"));
     }
