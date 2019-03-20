@@ -167,6 +167,17 @@ class Define(Callable):
             raise OperandDeduceError(f"Expected a Pair, not {params}, as the first operand of define-macro.")
 
 
+@global_attr("set!")
+class Set(Callable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+        verify_exact_callable_length(self, 2, len(operands))
+        name = operands[0]
+        if not isinstance(name, Symbol):
+            raise OperandDeduceError(f"Expected a Symbol, not {name}, as the first operand of set!")
+        frame.mutate(name, evaluate(operands[1], frame, gui_holder.expression.children[2]))
+        return Undefined
+
+
 @global_attr("begin")
 class Begin(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
