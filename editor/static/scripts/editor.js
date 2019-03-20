@@ -153,7 +153,7 @@ function register(layout) {
         container.getElement().find(".test-btn").on("click", run_tests);
 
         async function save(running) {
-            if (name.startsWith(temp_file) || (!running && (!changed))) {
+            if (name.startsWith(temp_file) || (!running && !changed)) {
                 return;
             }
             container.getElement().find(".save-btn > .text").text("Saving...");
@@ -246,10 +246,11 @@ function register(layout) {
             });
         }
 
-        function run_tests() {
+        async function run_tests() {
             if (editor.getValue().trim() === "") {
                 return;
             }
+            await save();
             let ajax = $.post("./test");
             async function done_fn(data) {
                 data = $.parseJSON(data);
