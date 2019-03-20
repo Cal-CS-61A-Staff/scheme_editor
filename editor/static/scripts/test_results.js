@@ -55,10 +55,18 @@ function register(myLayout) {
                             <td class="align-middle">${pass_string}</td> 
                             <td class="text-right"> <button class="btn btn-secondary"> View Case </button> </td>
                         </tr>`);
+                        let case_name = `${entry.problem} - Suite ${i + 1}, Case ${j + 1}`;
+                        if (editors.has(temp_file + case_name)) {
+                            editors.get(temp_file + case_name).setValue(test.code);
+                        }
                         $(`#${random_id}`).find(".btn").last().click(function () {
-                            let case_name = `${entry.problem} - Suite ${i + 1}, Case ${j + 1}`;
                             if (editors.has(temp_file + case_name)) {
-                                editors.get(temp_file + case_name).setValue(test.code);
+                                for (let i = 0; i !== states.length; ++i) {
+                                    if (states[i].file_name === temp_file + case_name) {
+                                        open("editor", i);
+                                        break;
+                                    }
+                                }
                             } else {
                                 let index = states.length;
                                 let new_state = make_new_state();
