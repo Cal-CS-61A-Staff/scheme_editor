@@ -38,8 +38,11 @@ let base_state = {
 
 let skip_saves = ["states", "environments", "moves", "out", "heap", "frameUpdates"];
 
-let states = [make_new_state()];
-states[0].file_name = $.parseJSON(start_data)["file"];
+let states = [];
+for (let file of $.parseJSON(start_data)["files"]) {
+    states.push(make_new_state());
+    states[states.length - 1].file_name = file;
+}
 
 let temp_file = "__";
 
