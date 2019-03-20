@@ -9,10 +9,14 @@ export {register};
 
 function register(layout) {
     layout.registerComponent('editor', function (container, componentState) {
+        let decoded = $.parseJSON(start_data);
+        let testable = componentState.id < decoded["files"].length;
+        let test_case = states[componentState.id].file_name.startsWith(temp_file);
+
         container.getElement().html(`
         <div class="content">
             <div class="header">        
-                ${(!states[componentState.id].file_name.startsWith(temp_file)) ?
+                ${(!test_case) ?
             `<button type="button" class="btn-light save-btn" aria-label="Save">
                     <span class="text"> Save </span>
                 </button>` : ``}
@@ -21,7 +25,7 @@ function register(layout) {
                 <button type="button" data-toggle="tooltip"
                             title="Open a console and run the program locally."
                             class="btn-success toolbar-btn run-btn">Run</button>
-                ${(componentState.id === 0) ?
+                ${testable ?
             `<button type="button" data-toggle="tooltip"
                             title="Run all ok.py tests locally."
                             class="btn-danger toolbar-btn test-btn">Test</button>` : ``}
@@ -72,14 +76,13 @@ function register(layout) {
                 editor.resize();
             });
 
-            let decoded = $.parseJSON(start_data);
-            if (componentState.id === 0) {
-                states[componentState.id].file_name = decoded["file"];
+            if (testable) {
+                states[componentState.id].file_name = decoded["files"][componentState.id];
             }
 
             name = states[componentState.id].file_name;
 
-            if (name.startsWith(temp_file)) {
+            if (test_case) {
                 editor.setValue(states[componentState.id].file_content);
                 registerEditor(name, editor);
             } else {
@@ -153,7 +156,7 @@ function register(layout) {
         container.getElement().find(".test-btn").on("click", run_tests);
 
         async function save(running) {
-            if (name.startsWith(temp_file) || (!running && !changed)) {
+            if (test_case || (!running && !changed)) {
                 return;
             }
             container.getElement().find(".save-btn > .text").text("Saving...");
