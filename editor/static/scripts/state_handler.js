@@ -60,6 +60,9 @@ async function loadState() {
                 states = data.states;
                 setLayout(data.layout);
                 setAllSettings(data.settings);
+                for (let i = 0; i !== states.length; ++i) {
+                    states[i] = jQuery.extend({}, base_state, states[i]);
+                }
             }
         });
 }
