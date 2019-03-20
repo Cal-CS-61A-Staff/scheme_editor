@@ -28,6 +28,18 @@ class Frame:
         self.vars[varname.value] = varval
         log.logger.frame_store(self, varname.value, varval)
 
+    def mutate(self, varname: Symbol, varval: Expression):
+        if log.logger.fragile and not self.temp:
+            raise IrreversibleOperationError()
+        assert not isinstance(varval, Thunk)
+        if varname.value in self.vars:
+            self.vars[varname.value] = varval
+            log.logger.frame_store(self, varname.value, varval)
+        elif self.parent is None:
+            raise SymbolLookupError(f"Variable not found in current environment: '{varname}'")
+        else:
+            self.parent.mutate(varname, varval)
+
     def lookup(self, varname: Symbol):
         if varname.value in self.vars:
             return self.vars[varname.value]
