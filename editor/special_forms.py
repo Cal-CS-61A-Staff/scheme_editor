@@ -77,10 +77,10 @@ class ProcedureObject(Callable):
 
     def __repr__(self):
         if self.var_param is not None:
-            varparams = " . " + self.var_param.value
+            varparams = " (variadic " + self.var_param.value + ")"
         else:
             varparams = ""
-        return f"({self.name} {' '.join(map(repr, self.params))} {varparams}) [parent = {self.frame.id}]"
+        return f"({self.name} {' '.join(map(repr, self.params))}{varparams}) [parent = {self.frame.id}]"
 
     def __str__(self):
         return f"#[{self.name}]"
@@ -113,7 +113,7 @@ class ProcedureBuilder(Callable):
         params, var_param = dotted_pair_to_list(params)
         for i, param in enumerate(params):
             if i != len(params) - 1 and not isinstance(param, Symbol):
-                raise OperandDeduceError(f"{param} is not a Symbol.")
+                raise OperandDeduceError(f"Expected Symbol in parameter list, received {param}.")
             if isinstance(param, Pair):
                 param_vals = pair_to_list(param)
                 if len(param_vals) != 2 or \
