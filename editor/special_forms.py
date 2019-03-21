@@ -1,6 +1,6 @@
 from typing import List, Optional, Type
 
-from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise
+from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise, NilType
 from environment import global_attr
 from evaluate_apply import Frame, evaluate, Callable, evaluate_all, Applicable
 from log import Holder, VisualExpression, return_symbol, logger
@@ -8,7 +8,7 @@ from helper import pair_to_list, verify_exact_callable_length, verify_min_callab
     make_list, dotted_pair_to_list
 from lexer import TokenBuffer
 from execution_parser import get_expression
-from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError, SchemeError
+from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError, SchemeError, TypeMismatchError
 
 
 class ProcedureObject(Callable):
@@ -111,9 +111,19 @@ class ProcedureBuilder(Callable):
         verify_min_callable_length(self, 2, len(operands))
         params = operands[0]
         params, var_param = dotted_pair_to_list(params)
-        for param in params:
-            if not isinstance(param, Symbol):
+        for i, param in enumerate(params):
+            if i != len(params) - 1 and not isinstance(param, Symbol):
                 raise OperandDeduceError(f"{param} is not a Symbol.")
+            if isinstance(param, Pair):
+                param_vals = pair_to_list(param)
+                if len(param_vals) != 2 or \
+                        not isinstance(param_vals[0], Symbol) or \
+                        not isinstance(param_vals[1], Symbol) or \
+                        param_vals[0].value != "variadic":
+                    raise OperandDeduceError(f"Each member of a parameter list must be a Symbol or a variadic "
+                                             f"parameter, not {param}.")
+                var_param = param_vals[1]
+                params.pop()
 
         return self.procedure(params, var_param, operands[1:], frame, name)
 
@@ -421,6 +431,9 @@ class Force(Applicable):
         gui_holder.apply()
         operand.expr = evaluate(operand.expr, operand.frame, gui_holder.expression.children[0])
         operand.force()
+        if not isinstance(operand.expr, (Pair, NilType, Promise)):
+            raise TypeMismatchError("Unable to force a Promise evaluating to {rest}, expected another Pair, Promise, "
+                                    "or Nil")
         return operand.expr
 
 
