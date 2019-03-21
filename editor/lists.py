@@ -6,7 +6,7 @@ from environment import global_attr
 from evaluate_apply import Frame
 from helper import pair_to_list, make_list, verify_exact_callable_length
 from primitives import SingleOperandPrimitive, BuiltIn
-from scheme_exceptions import OperandDeduceError
+from scheme_exceptions import OperandDeduceError, IrreversibleOperationError
 
 
 @global_attr("append")
@@ -93,6 +93,8 @@ class MakeList(BuiltIn):
 class SetCar(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 2, len(operands))
+        if log.logger.fragile:
+            raise IrreversibleOperationError()
         pair, val = operands
         if not isinstance(pair, Pair):
             raise OperandDeduceError(f"set-car! expected a Pair, received {pair}.")
@@ -105,9 +107,11 @@ class SetCar(BuiltIn):
 class SetCdr(BuiltIn):
         def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
             verify_exact_callable_length(self, 2, len(operands))
+            if log.logger.fragile:
+                raise IrreversibleOperationError()
             pair, val = operands
             if not isinstance(pair, Pair):
                 raise OperandDeduceError(f"set-cdr! expected a Pair, received {pair}.")
-            pair.second = val
+            pair.rest = val
             log.logger.raw_out("WARNING: Mutation operations on pairs are not yet supported by the debugger.")
             return Undefined
