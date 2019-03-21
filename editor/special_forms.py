@@ -1,6 +1,7 @@
 from typing import List, Optional, Type
 
-from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise, NilType
+from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise, NilType, \
+    StreamPromise
 from environment import global_attr
 from evaluate_apply import Frame, evaluate, Callable, evaluate_all, Applicable
 from log import Holder, VisualExpression, return_symbol, logger
@@ -77,7 +78,9 @@ class ProcedureObject(Callable):
 
     def __repr__(self):
         if self.var_param is not None:
-            varparams = " (variadic " + self.var_param.value + ")"
+            varparams = "(variadic " + self.var_param.value + ")"
+            if self.params:
+                varparams = " " + varparams
         else:
             varparams = ""
         return f"({self.name} {' '.join(map(repr, self.params))}{varparams}) [parent = {self.frame.id}]"
@@ -431,7 +434,8 @@ class Force(Applicable):
         gui_holder.apply()
         operand.expr = evaluate(operand.expr, operand.frame, gui_holder.expression.children[0])
         operand.force()
-        if not isinstance(operand.expr, (Pair, NilType, Promise)):
+        if not isinstance(operand, StreamPromise) and \
+                not isinstance(operand.expr, (Pair, NilType, Promise)):
             raise TypeMismatchError("Unable to force a Promise evaluating to {rest}, expected another Pair, Promise, "
                                     "or Nil")
         return operand.expr

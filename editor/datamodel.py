@@ -42,8 +42,8 @@ class Pair(Expression):
     def __init__(self, first: Expression, rest: Expression):
         super().__init__()
         self.first = first
-        if not isinstance(rest, (Pair, NilType, Promise)):
-            raise TypeMismatchError("Unable to construct a Pair with cdr {rest}, expected another Pair, Promise, or Nil")
+        if not isinstance(rest, (Pair, NilType)):
+            raise TypeMismatchError(f"Unable to construct a Pair with a cdr of {rest}, expected another Pair or Nil.")
         self.rest = rest
 
     # def __str__(self):
@@ -135,6 +135,11 @@ class Promise(Expression):
         for target in self.targets:
             target[:] = ["promise", [self.force_i, log.logger.heap.record(self.expr)]]
         log.logger.heap.modify(self.id)
+
+
+class StreamPromise(Promise):
+    def __repr__(self):
+        return "#[stream-promise]"
 
 
 SingletonTrue = Boolean(True)
