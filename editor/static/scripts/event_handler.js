@@ -23,7 +23,7 @@ function make(container, type, id) {
         title = states[id].file_name;
     }
 
-    if (type !== "editor") {
+    if (type !== "editor" && type !== "test_results") {
         title = type_title[type] + " (" + title + ")";
     }
 

@@ -3,7 +3,7 @@ import {saveState, states, temp_file} from "./state_handler";
 import {open} from "./layout";
 import {make, request_update} from "./event_handler";
 import {terminable_command} from "./canceller";
-import {registerEditor, removeEditor} from "./test_results";
+import {registerEditor, removeEditor, notify_changed} from "./test_results";
 
 export {register};
 
@@ -261,8 +261,9 @@ function register(layout) {
                 data = $.parseJSON(data);
                 states[0].test_results = data;
                 await save();
+                notify_changed();
                 open("test_results", 0);
-            };
+            }
             terminable_command("test cases", ajax, done_fn);
         }
     });
