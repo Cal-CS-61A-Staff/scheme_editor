@@ -14,7 +14,6 @@ from documentation import search
 from execution_parser import strip_comments
 from file_manager import get_scm_files, save, read_file, new_file
 from formatter import prettify
-from ok_interface import run_tests
 from runtime_limiter import TimeLimitException, limiter
 from scheme_exceptions import SchemeError, ParseError, TerminatedError
 
@@ -139,6 +138,7 @@ class Handler(server.BaseHTTPRequestHandler):
             self.wfile.write(bytes(json.dumps({"result": "success", "formatted": prettify(code)}), "utf-8"))
 
         elif path == "/test":
+            from ok_interface import run_tests
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()

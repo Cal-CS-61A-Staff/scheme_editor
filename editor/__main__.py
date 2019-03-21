@@ -28,8 +28,10 @@ if args.files is not None:
     for file in args.files:
         file.close()
 else:
-    if len(configs) != 1:
-        parser.error("Unable to resolve okpy configs, files to be tested must be specified explicitly.")
-    with open(configs[0]) as f:
-        file_names = json.loads(f.read())["src"]
+    file_names = []
+    if len(configs) > 1:
+        parser.error("Multiple okpy configs detected, files to be tested must be specified explicitly.")
+    elif len(configs) > 0:
+        with open(configs[0]) as f:
+            file_names = json.loads(f.read())["src"]
 local_server.start(file_names, args.port, args.nobrowser)
