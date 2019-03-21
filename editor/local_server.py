@@ -264,7 +264,7 @@ class ThreadedHTTPServer(socketserver.ThreadingMixIn, server.HTTPServer):
     pass
 
 
-def start(file_args, port):
+def start(file_args, port, open_browser):
     global main_files
     main_files = file_args
     global PORT
@@ -272,5 +272,6 @@ def start(file_args, port):
     print(f"http://localhost:{PORT}")
     socketserver.TCPServer.allow_reuse_address = True
     with ThreadedHTTPServer(("localhost", PORT), Handler) as httpd:
-        webbrowser.open(f"http://localhost:{PORT}", new=0, autoraise=True)
+        if open_browser:
+            webbrowser.open(f"http://localhost:{PORT}", new=0, autoraise=True)
         httpd.serve_forever()

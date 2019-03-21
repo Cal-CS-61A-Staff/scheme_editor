@@ -8,7 +8,7 @@ parser = argparse.ArgumentParser(description="CS61A Scheme Editor - Spring 2019"
 parser.add_argument("-f", "--files",
                     type=argparse.FileType('r+'),
                     help="Scheme files to test",
-                    nargs='+')
+                    nargs='*')
 parser.add_argument("-nt", "--notests",
                     help="Do not interact with OKPy.",
                     action="store_false")
@@ -32,4 +32,4 @@ else:
         parser.error("Unable to resolve okpy configs, files to be tested must be specified explicitly.")
     with open(configs[0]) as f:
         file_names = json.loads(f.read())["src"]
-local_server.start(file_names, args.port)
+local_server.start(file_names, args.port, args.nobrowser)
