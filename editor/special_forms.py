@@ -1,14 +1,15 @@
 from typing import List, Optional, Type
 
 from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise
-from environment import global_attr
+from environment import global_attr, special_form
 from evaluate_apply import Frame, evaluate, Callable, evaluate_all, Applicable
 from log import Holder, VisualExpression, return_symbol, logger
 from helper import pair_to_list, verify_exact_callable_length, verify_min_callable_length, \
     make_list, dotted_pair_to_list
 from lexer import TokenBuffer
 from execution_parser import get_expression
-from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError, SchemeError
+from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError, SchemeError, \
+    CallableResolutionError
 
 
 class ProcedureObject(Callable):
@@ -118,12 +119,12 @@ class ProcedureBuilder(Callable):
         return self.procedure(params, var_param, operands[1:], frame, name)
 
 
-@global_attr("lambda")
+@special_form("lambda")
 class Lambda(ProcedureBuilder):
     procedure = LambdaObject
 
 
-@global_attr("mu")
+@special_form("mu")
 class Mu(ProcedureBuilder):
     procedure = MuObject
 
@@ -132,7 +133,7 @@ class Macro(ProcedureBuilder):
     procedure = MacroObject
 
 
-@global_attr("define-macro")
+@special_form("define-macro")
 class DefineMacro(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -147,7 +148,7 @@ class DefineMacro(Callable):
         return name
 
 
-@global_attr("define")
+@special_form("define")
 class Define(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -167,7 +168,7 @@ class Define(Callable):
             raise OperandDeduceError(f"Expected a Pair, not {params}, as the first operand of define-macro.")
 
 
-@global_attr("set!")
+@special_form("set!")
 class Set(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 2, len(operands))
@@ -178,7 +179,7 @@ class Set(Callable):
         return Undefined
 
 
-@global_attr("begin")
+@special_form("begin")
 class Begin(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 1, len(operands))
@@ -188,7 +189,7 @@ class Begin(Callable):
         return out
 
 
-@global_attr("if")
+@special_form("if")
 class If(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -203,7 +204,7 @@ class If(Callable):
             return evaluate(operands[1], frame, gui_holder.expression.children[2], True)
 
 
-@global_attr("quote")
+@special_form("quote")
 class Quote(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 1, len(operands))
@@ -239,7 +240,7 @@ class Apply(Applicable):
         return func.execute(args, frame, gui_holder.expression.children[0], False)
 
 
-@global_attr("cond")
+@special_form("cond")
 class Cond(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 1, len(operands))
@@ -261,7 +262,7 @@ class Cond(Callable):
         return Undefined
 
 
-@global_attr("and")
+@special_form("and")
 class And(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         value = None
@@ -272,7 +273,7 @@ class And(Callable):
         return value if operands else SingletonTrue
 
 
-@global_attr("or")
+@special_form("or")
 class Or(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         for i, expr in enumerate(operands):
@@ -282,7 +283,7 @@ class Or(Callable):
         return SingletonFalse
 
 
-@global_attr("let")
+@special_form("let")
 class Let(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -320,7 +321,7 @@ class Let(Callable):
         return value
 
 
-@global_attr("quasiquote")
+@special_form("quasiquote")
 class Quasiquote(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 1, len(operands))
@@ -373,6 +374,12 @@ class Quasiquote(Callable):
             return expr
 
 
+@special_form("unquote")
+class Unquote(Applicable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, eval_operands=True):
+        raise CallableResolutionError("Unquote cannot be used outside of quasiquote.")
+
+
 @global_attr("load")
 class Load(Applicable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, eval_operands=True):
@@ -396,7 +403,7 @@ class Load(Applicable):
             raise LoadError(e)
 
 
-@global_attr("delay")
+@special_form("delay")
 class Delay(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 1, len(operands))
@@ -424,7 +431,7 @@ class Force(Applicable):
         return operand.expr
 
 
-@global_attr("cons-stream")
+@special_form("cons-stream")
 class ConsStream(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 2, len(operands))

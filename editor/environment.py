@@ -11,7 +11,7 @@ def make_frame_decorator(defdict):
     def global_builtin(name):
         def decorator(cls):
             cls.__repr__ = lambda self: f"#[{name}]"
-            defdict[Symbol(name)] = cls
+            defdict[name] = cls
             return cls
 
         return decorator
@@ -21,6 +21,9 @@ def make_frame_decorator(defdict):
 
 defdict = {}
 global_attr = make_frame_decorator(defdict)
+
+special_forms = {}
+special_form = make_frame_decorator(special_forms)
 
 
 class MathProcedure(SingleOperandPrimitive):
@@ -38,12 +41,19 @@ class MathProcedure(SingleOperandPrimitive):
         return f"#[{self.name}]"
 
 
+def get_special_form(name: str):
+    if name in special_forms:
+        return special_forms[name]()
+    else:
+        return False
+
+
 def build_global_frame():
     import primitives
     primitives.load_primitives()
     frame = Frame("builtins")
     for k, v in defdict.items():
-        frame.assign(k, v())
+        frame.assign(Symbol(k), v())
 
     # moved to the parser
     # frame.assign(Symbol("nil"), Nil)
