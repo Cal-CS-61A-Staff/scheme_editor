@@ -68,6 +68,9 @@ function register(myLayout) {
                             for (let i = 0; i !== states.length; ++i) {
                                 if (states[i].file_name === temp_file + case_name) {
                                     states[i].up_to_date = false;
+                                    states[i].active_code = "fail";
+                                    console.log("setting state " + i + " to notuptodate");
+                                    console.log(states);
                                     break;
                                 }
                             }

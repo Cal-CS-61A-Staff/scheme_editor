@@ -160,6 +160,10 @@ function register(layout) {
                 return;
             }
 
+            if (test_case) {
+                states[componentState.id].file_content = editor.getValue();
+            }
+
             container.getElement().find(".save-btn > .text").text("Saving...");
 
             let code = [editor.getValue()];
