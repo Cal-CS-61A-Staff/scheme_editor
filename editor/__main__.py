@@ -9,9 +9,6 @@ parser.add_argument("-f", "--files",
                     type=argparse.FileType('r+'),
                     help="Scheme files to test",
                     nargs='*')
-parser.add_argument("-nt", "--notests",
-                    help="Do not interact with OKPy.",
-                    action="store_false")
 parser.add_argument("-nb", "--nobrowser",
                     help="Do not open a new browser window.",
                     action="store_false")
