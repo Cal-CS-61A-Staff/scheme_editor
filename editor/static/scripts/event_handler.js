@@ -23,8 +23,12 @@ function make(container, type, id) {
         title = states[id].file_name;
     }
 
-    if (type !== "editor" && type !== "test_results") {
+    if (type !== "editor") {
         title = type_title[type] + " (" + title + ")";
+    }
+
+    if (type === "test_results") {
+        title = type_title[type];
     }
 
     let color;
