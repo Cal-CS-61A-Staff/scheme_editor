@@ -125,7 +125,6 @@ function register(myLayout) {
                 ++i;
                 history.push("");
                 let displayVal = val.replace(/\n/g, "\n.... ");
-                val = val.replace(/\n/g, "");
                 states[componentState.id].out += "\nscm> " + displayVal;
                 request_update();
                 function run_done(data) {
