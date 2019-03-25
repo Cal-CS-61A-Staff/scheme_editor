@@ -77,7 +77,10 @@ class ProcedureObject(Callable):
 
     def __repr__(self):
         if self.var_param is not None:
-            varparams = "(variadic " + self.var_param.value + ")"
+            if logger.dotted:
+                varparams = ". " + self.var_param.value
+            else:
+                varparams = "(variadic " + self.var_param.value + ")"
             if self.params:
                 varparams = " " + varparams
         else:
@@ -114,7 +117,7 @@ class ProcedureBuilder(Callable):
         params = operands[0]
         params, var_param = dotted_pair_to_list(params)
         for i, param in enumerate(params):
-            if i != len(params) - 1 and not isinstance(param, Symbol):
+            if (logger.dotted or i != len(params) - 1) and not isinstance(param, Symbol):
                 raise OperandDeduceError(f"Expected Symbol in parameter list, received {param}.")
             if isinstance(param, Pair):
                 param_vals = pair_to_list(param)
@@ -432,10 +435,10 @@ class Force(Applicable):
         gui_holder.expression.set_entries([VisualExpression(operand.expr, gui_holder.expression.display_value)])
         gui_holder.apply()
         operand.expr = evaluate(operand.expr, operand.frame, gui_holder.expression.children[0])
+        if not logger.dotted and not isinstance(operand.expr, (Pair, NilType, Promise)):
+            raise TypeMismatchError(
+                f"Unable to force a Promise evaluating to {operand.expr}, expected another Pair, Promise, or Nil")
         operand.force()
-        if not isinstance(operand.expr, (Pair, NilType, Promise)):
-            raise TypeMismatchError("Unable to force a Promise evaluating to {rest}, expected another Pair, Promise, "
-                                    "or Nil")
         return operand.expr
 
 

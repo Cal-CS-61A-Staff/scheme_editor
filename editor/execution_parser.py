@@ -3,6 +3,7 @@ from typing import Union
 from datamodel import Expression, Symbol, Number, Nil, SingletonTrue, SingletonFalse, String
 from helper import make_list
 from lexer import TokenBuffer, SPECIALS
+from log import logger
 from scheme_exceptions import ParseError
 
 
@@ -57,7 +58,7 @@ def get_expression(buffer: TokenBuffer) -> Union[Expression, None]:
                 return make_list([Symbol("unquote"), get_expression(buffer)])
         elif token == "`":
             return make_list([Symbol("quasiquote"), get_expression(buffer)])
-        elif token == ".":
+        elif not logger.dotted and token == ".":
             return make_list([Symbol("variadic"), get_expression(buffer)])
         elif token == "\"":
             return get_string(buffer)
@@ -108,12 +109,12 @@ def get_rest_of_list(buffer: TokenBuffer) -> Expression:
         if next == ")":
             buffer.pop_next_token()
             break
-        # elif next == ".":
-        #     buffer.pop_next_token()
-        #     last = get_expression(buffer)
-        #     if buffer.pop_next_token() != ")":
-        #         raise ParseError(f"Only one expression may follow a dot in a dotted list.")
-        #     break
+        elif logger.dotted and next == ".":
+            buffer.pop_next_token()
+            last = get_expression(buffer)
+            if buffer.pop_next_token() != ")":
+                raise ParseError(f"Only one expression may follow a dot in a dotted list.")
+            break
         expr = get_expression(buffer)
         out.append(expr)
     out = make_list(out, last)

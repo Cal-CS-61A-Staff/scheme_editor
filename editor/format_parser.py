@@ -1,6 +1,7 @@
 from typing import Union, List
 
 from lexer import TokenBuffer, SPECIALS
+from log import logger
 from scheme_exceptions import ParseError
 
 
@@ -72,7 +73,7 @@ def get_expression(buffer: TokenBuffer) -> Formatted:
 def get_rest_of_list(buffer: TokenBuffer):
     out = []
     last = None
-    while buffer.get_next_token() != ")":  # and buffer.get_next_token() != ".":
+    while buffer.get_next_token() != ")" and not (logger.dotted and buffer.get_next_token() == "."):
         out.append(get_expression(buffer))
     if buffer.get_next_token() == ".":
         buffer.pop_next_token()
