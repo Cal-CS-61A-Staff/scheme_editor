@@ -204,6 +204,7 @@ function register(myLayout) {
                         states[componentState.id].roots.push(...data.roots);
                         $.extend(states[componentState.id].heap, data.heap);
                         states[componentState.id].frameUpdates.push(...data.frameUpdates);
+                        states[componentState.id].moves = data.graphics;
                     }
                     go_to_end(componentState.id);
                     request_update();
