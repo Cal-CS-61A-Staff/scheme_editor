@@ -158,8 +158,6 @@ class Logger:
         self.eval_stack = []
 
     def new_query(self, global_frame: 'StoredFrame'=None, curr_i=0, curr_f=0):
-        import graphics
-
         self.node_cache = {}
         self.i = curr_i
         self.f_delta = curr_f
@@ -171,7 +169,6 @@ class Logger:
         self.frame_updates = []
         self.global_frame = global_frame
         self.op_count = 0
-        self.graphics_lookup[id(global_frame.base)] = graphics.Canvas()
 
     def get_canvas(self) -> 'graphics.Canvas':
         return self.graphics_lookup[id(self.global_frame.base)]
