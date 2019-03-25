@@ -60,9 +60,19 @@ function drawPair(i, id, outputDiv, componentState) {
 function register(myLayout) {
     myLayout.registerComponent('output', function (container, componentState) {
         container.getElement().html(`
-        <div class="output-warning">
-            This session may be out of date! Hit "Run" to refresh contents.
+        <div class="content">
+        <div class="header">        
+                <button type="button" data-toggle="tooltip"
+                            title="Step through the program's execution."
+                            class="btn-primary toolbar-btn sub-btn">Debug</button>          
+                <button type="button" data-toggle="tooltip"
+                            title="View environment diagram."
+                            class="btn-info toolbar-btn env-btn">Environments</button>          
+                <button type="button" data-toggle="tooltip"
+                            title="Reformat code and fix (some) minor mistakes."
+                            class="btn-secondary toolbar-btn reformat-btn">Reformat</button>          
         </div>
+        <div class="output-warning">This session may be out of date! Hit "Run" to refresh contents.</div>
         <div class="output-wrapper">
             <div class="output-holder">
                 <div class="output">[click Run to start!]</div>
@@ -71,6 +81,7 @@ function register(myLayout) {
                 <div class="console-input"></div>
             </div>
             <div class="preview"></div>
+        </div>
         </div>
         `);
 
