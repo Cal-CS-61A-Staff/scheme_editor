@@ -85,9 +85,9 @@ def make_color(expression: Expression) -> str:
     return expression.value
 
 
-@global_attr("bk")
-@global_attr("back")
 @global_attr("backward")
+@global_attr("back")
+@global_attr("bk")
 class Backward(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
@@ -141,8 +141,8 @@ class EndFill(BuiltIn):
         raise NotImplementedError("fill not yet implemented")
 
 
-@global_attr("fd")
 @global_attr("forward")
+@global_attr("fd")
 class Forward(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
@@ -151,8 +151,8 @@ class Forward(SingleOperandPrimitive):
         return Undefined
 
 
-@global_attr("lt")
 @global_attr("left")
+@global_attr("lt")
 class Left(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
@@ -161,8 +161,8 @@ class Left(SingleOperandPrimitive):
         return Undefined
 
 
-@global_attr("pd")
 @global_attr("pendown")
+@global_attr("pd")
 class PenDown(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 0, len(operands))
@@ -170,8 +170,8 @@ class PenDown(BuiltIn):
         return Undefined
 
 
-@global_attr("pu")
 @global_attr("penup")
+@global_attr("pu")
 class PenUp(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 0, len(operands))

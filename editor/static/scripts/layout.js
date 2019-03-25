@@ -2,6 +2,7 @@ import * as substitution_tree from "./substitution_tree";
 import * as env_diagram from "./env_diagram";
 import * as editor from "./editor";
 import * as test_results from "./test_results";
+import * as turtle_graphics from "./turtle_graphics";
 import * as output from "./output";
 import * as event_handler from "./event_handler";
 import {states, saveState, make_new_state} from "./state_handler";
@@ -76,7 +77,7 @@ function open(type, index) {
     } else {
         // output, visualizations
         pos = "column";
-        friends = [type, "env_diagram", "output"];
+        friends = [type, "env_diagram", "output", "turtle_graphics"];
     }
 
     let ok = false;
@@ -152,6 +153,7 @@ function init() {
     editor.register(layout);
     test_results.register(layout);
     output.register(layout);
+    turtle_graphics.register(layout);
     event_handler.register(layout);
 
     layout.init();
