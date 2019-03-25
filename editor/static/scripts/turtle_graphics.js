@@ -7,14 +7,14 @@ export { register };
 function register(myLayout) {
     myLayout.registerComponent('turtle_graphics', function (container, componentState) {
         container.getElement().html(`
-        <div class="content">
-            <div class="output-warning">
-                This session may be out of date! Hit "Run" to refresh contents.
-            </div>
-            </div>
-            <div class="drawing">
-                <svg></svg>
-            </div>
+        <div class="output-warning">
+            This session may be out of date! Hit "Run" to refresh contents.
+        </div>
+        </div>
+        <div class="drawing">
+            <svg>
+            <rect width="100%" height="100%" fill="red"/>
+            </svg>
         </div>
         `);
 
