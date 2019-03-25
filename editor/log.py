@@ -1,11 +1,15 @@
 from enum import Enum, auto
-from typing import List, Union, Dict, Tuple
+from typing import List, Union, Dict, Tuple, TYPE_CHECKING
 
 from datamodel import Expression, ValueHolder, Pair, Nil, Symbol, Undefined, Promise, NilType, UndefinedType
 import evaluate_apply
 from helper import pair_to_list
 from log_utils import get_id
 from scheme_exceptions import OperandDeduceError
+
+
+if TYPE_CHECKING:
+    import graphics
 
 
 OP_LIMIT = 2500
@@ -142,6 +146,8 @@ class Logger:
 
         self.heap: Heap = Heap()  # heap of all non-atomic objects
 
+        self.graphics_lookup = {}
+
         self.op_count = 0
 
     def new_expr(self):
@@ -155,6 +161,8 @@ class Logger:
         self.eval_stack = []
 
     def new_query(self, global_frame: 'StoredFrame'=None, curr_i=0, curr_f=0):
+        import graphics
+
         self.node_cache = {}
         self.i = curr_i
         self.f_delta = curr_f
@@ -166,6 +174,10 @@ class Logger:
         self.frame_updates = []
         self.global_frame = global_frame
         self.op_count = 0
+        self.graphics_lookup[id(global_frame.base)] = graphics.Canvas()
+
+    def get_canvas(self) -> 'graphics.Canvas':
+        return self.graphics_lookup[id(self.global_frame.base)]
 
     def preview_mode(self, val):
         self.fragile = val
@@ -184,7 +196,7 @@ class Logger:
             "active_frames": [id(f.base) for f in self.active_frames],
             "frame_lookup": {id(f.base): self.frame_lookup[id(f.base)].export()
                              for f in [self.global_frame] + self.active_frames},
-            "graphics": [],
+            "graphics": self.get_canvas().export(),
             "globalFrameID": id(self.active_frames[0].base) if self.active_frames else -1,
             "heap": self.heap.export(),
             "frameUpdates": sorted(set(self.frame_updates))
