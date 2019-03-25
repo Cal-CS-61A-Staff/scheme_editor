@@ -3,6 +3,7 @@ import {make, request_update} from "./event_handler";
 import {terminable_command} from "./canceller";
 import {display_elem} from "./env_diagram_worker";
 import {go_to_end} from "./navigation";
+import {open} from "./layout";
 
 export {register};
 
@@ -60,17 +61,16 @@ function drawPair(i, id, outputDiv, componentState) {
 function register(myLayout) {
     myLayout.registerComponent('output', function (container, componentState) {
         container.getElement().html(`
-        <div class="content">
-        <div class="header">        
-                <button type="button" data-toggle="tooltip"
-                            title="Step through the program's execution."
-                            class="btn-primary toolbar-btn sub-btn">Debug</button>          
-                <button type="button" data-toggle="tooltip"
-                            title="View environment diagram."
-                            class="btn-info toolbar-btn env-btn">Environments</button>          
-                <button type="button" data-toggle="tooltip"
-                            title="Reformat code and fix (some) minor mistakes."
-                            class="btn-secondary toolbar-btn reformat-btn">Reformat</button>          
+        <div class="header bg-white">
+            <!--<button type="button" data-toggle="tooltip"-->
+                        <!--title="Clear."-->
+                        <!--class="btn-danger toolbar-btn clear-btn">Clear</button>          -->
+            <!--<button type="button" data-toggle="tooltip"-->
+                        <!--title="Copy code entered into console to clipboard".-->
+                        <!--class="btn-dark toolbar-btn copy-btn">Copy to clipboard</button>          -->
+            <button type="button" data-toggle="tooltip"
+                        title="Open turtle graphics view."
+                        class="btn-primary toolbar-btn graphics-btn">Graphics</button>          
         </div>
         <div class="output-warning">This session may be out of date! Hit "Run" to refresh contents.</div>
         <div class="output-wrapper">
@@ -81,7 +81,6 @@ function register(myLayout) {
                 <div class="console-input"></div>
             </div>
             <div class="preview"></div>
-        </div>
         </div>
         `);
 
@@ -127,6 +126,8 @@ function register(myLayout) {
         container.getElement().on("click", function () {
             editor.focus();
         });
+
+        container.getElement().find(".graphics-btn").on("click", () => open("turtle_graphics", componentState.id));
 
         container.on("open", function () {
             editorDiv = container.getElement().find(".console-input").get(0);
