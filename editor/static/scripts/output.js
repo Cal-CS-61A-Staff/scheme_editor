@@ -25,17 +25,6 @@ function escapeHtml(string) {
 function register(myLayout) {
     myLayout.registerComponent('output', function (container, componentState) {
         container.getElement().html(`
-        <div class="header bg-white">
-            <!--<button type="button" data-toggle="tooltip"-->
-                        <!--title="Clear."-->
-                        <!--class="btn-danger toolbar-btn clear-btn">Clear</button>          -->
-            <!--<button type="button" data-toggle="tooltip"-->
-                        <!--title="Copy code entered into console to clipboard".-->
-                        <!--class="btn-dark toolbar-btn copy-btn">Copy to clipboard</button>          -->
-            <button type="button" data-toggle="tooltip"
-                        title="Open turtle graphics view."
-                        class="btn-primary toolbar-btn graphics-btn">Graphics</button>          
-        </div>
         <div class="output-warning">This session may be out of date! Hit "Run" to refresh contents.</div>
         <div class="output-wrapper">
             <div class="output-holder">
@@ -49,6 +38,9 @@ function register(myLayout) {
         `);
 
         make(container, "output", componentState.id);
+
+        // TODO: REMOVE THIS
+        setTimeout(() => open("turtle_graphics", componentState.id), 0);
 
         let preview = "";
         let editorDiv;
@@ -67,8 +59,6 @@ function register(myLayout) {
         container.getElement().on("click", function () {
             editor.focus();
         });
-
-        container.getElement().find(".graphics-btn").on("click", () => open("turtle_graphics", componentState.id));
 
         container.on("open", function () {
             editorDiv = container.getElement().find(".console-input").get(0);
