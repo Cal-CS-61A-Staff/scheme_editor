@@ -13,7 +13,6 @@ function register(myLayout) {
         </div>
         <div class="drawing">
             <svg>
-            <rect width="100%" height="100%" fill="red"/>
             </svg>
         </div>
         `);

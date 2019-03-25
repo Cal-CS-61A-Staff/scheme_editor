@@ -1,12 +1,23 @@
 import math
 from typing import List
 
+import log
 from datamodel import Expression, Number, Undefined, String, Symbol
 from environment import global_attr
 from evaluate_apply import Frame
 from helper import verify_exact_callable_length, verify_min_callable_length
 from primitives import SingleOperandPrimitive, BuiltIn
 from scheme_exceptions import OperandDeduceError
+
+ABSOLUTE_MOVE = "M"
+RELATIVE_MOVE = "m"
+ABSOLUTE_LINE = "L"
+RELATIVE_LINE = "l"
+COMPLETE_PATH = "Z"
+
+
+def make_action(command: str, *params: float) -> str:
+    return command + " " + " ".join(str(param) for param in params)
 
 
 class Canvas:
@@ -26,7 +37,9 @@ class Canvas:
 
     def move(self, x: float, y: float):
         if self.pen_down:
-            self.moves.extend([["moveTo", self.x, self.y], ["lineTo", x, y]])
+            self.moves[-1].append(make_action(ABSOLUTE_LINE, x, y))
+        else:
+            self.moves[-1].append(make_action(ABSOLUTE_MOVE, x, y))
         self.x = x
         self.y = y
 
@@ -59,12 +72,7 @@ class Canvas:
         ])
 
     def export(self):
-        if self.moves:
-            out = [["fillStyle", self.bg_color],
-                   ["rect", 0, 0, self.SIZE, self.SIZE]
-                   ] + self.moves
-        else:
-            out = []
+        out = ["".join(move) for move in self.moves]
         self.reset()
         return out
 
@@ -73,7 +81,7 @@ class Canvas:
         self.y = self.SIZE / 2
         self.angle = 0
         self.bg_color = "#ffffff"
-        self.moves = []
+        self.moves = [[]]
         self.pen_down = True
         self.color = "#000000"
         self.size = 1
@@ -92,7 +100,7 @@ class Backward(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
             raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
-        canvas.forward(-operand.value)
+        log.logger.get_canvas().forward(-operand.value)
         return Undefined
 
 
@@ -106,7 +114,7 @@ class BeginFill(BuiltIn):
 @global_attr("bgcolor")
 class BGColor(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression):
-        canvas.set_bg(make_color(operand))
+        log.logger.get_canvas().set_bg(make_color(operand))
         return Undefined
 
 
@@ -123,14 +131,14 @@ class Circle(BuiltIn):
 class Clear(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 0, len(operands))
-        canvas.moves = []
+        log.logger.get_canvas().moves = []
         return Undefined
 
 
 @global_attr("color")
 class Color(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression):
-        canvas.color = make_color(operand)
+        log.logger.get_canvas().color = make_color(operand)
         return Undefined
 
 
@@ -147,7 +155,7 @@ class Forward(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
             raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
-        canvas.forward(operand.value)
+        log.logger.get_canvas().forward(operand.value)
         return Undefined
 
 
@@ -157,7 +165,7 @@ class Left(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
             raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
-        canvas.rotate(operand.value)
+        log.logger.get_canvas().rotate(operand.value)
         return Undefined
 
 
@@ -166,7 +174,7 @@ class Left(SingleOperandPrimitive):
 class PenDown(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 0, len(operands))
-        canvas.pendown()
+        log.logger.get_canvas().pendown()
         return Undefined
 
 
@@ -175,7 +183,7 @@ class PenDown(BuiltIn):
 class PenUp(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 0, len(operands))
-        canvas.penup()
+        log.logger.get_canvas().penup()
         return Undefined
 
 
@@ -187,7 +195,7 @@ class Pixel(BuiltIn):
         for v in x, y:
             if not isinstance(v, Number):
                 raise OperandDeduceError(f"Expected operand to be Number, not {v}")
-        canvas.rect(x.value, y.value, make_color(c))
+        log.logger.get_canvas().rect(x.value, y.value, make_color(c))
         return Undefined
 
 
@@ -196,7 +204,7 @@ class PixelSize(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
             raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
-        canvas.size = operand.value
+        log.logger.get_canvas().size = operand.value
         return Undefined
 
 
@@ -212,13 +220,13 @@ class RGB(BuiltIn):
         return String("#" + "".join('{:02X}'.format(round(x.value * 255)) for x in operands))
 
 
-@global_attr("rt")
 @global_attr("right")
+@global_attr("rt")
 class Right(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
             raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
-        canvas.rotate(-operand.value)
+        log.logger.get_canvas().rotate(-operand.value)
         return Undefined
 
 
@@ -227,7 +235,7 @@ class Right(SingleOperandPrimitive):
 class ScreenSize(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 0, len(operands))
-        return Number(canvas.SIZE)
+        return Number(log.logger.get_canvas().SIZE)
 
 
 @global_attr("seth")
@@ -236,7 +244,7 @@ class SetHeading(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
             raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
-        canvas.abs_rotate(-operand.value)
+        log.logger.get_canvas().abs_rotate(-operand.value)
         return Undefined
 
 
@@ -249,8 +257,5 @@ class SetPosition(BuiltIn):
         for operand in operands:
             if not isinstance(operand, Number):
                 raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
-        canvas.move(operands[0].value, operands[1].value)
+        log.logger.get_canvas().move(operands[0].value, operands[1].value)
         return Undefined
-
-
-canvas = Canvas()
