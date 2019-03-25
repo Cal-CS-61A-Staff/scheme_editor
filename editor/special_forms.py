@@ -1,7 +1,6 @@
 from typing import List, Optional, Type
 
-from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise, NilType, \
-    StreamPromise
+from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise, NilType
 from environment import global_attr
 from evaluate_apply import Frame, evaluate, Callable, evaluate_all, Applicable
 from log import Holder, VisualExpression, return_symbol, logger
@@ -434,8 +433,7 @@ class Force(Applicable):
         gui_holder.apply()
         operand.expr = evaluate(operand.expr, operand.frame, gui_holder.expression.children[0])
         operand.force()
-        if not isinstance(operand, StreamPromise) and \
-                not isinstance(operand.expr, (Pair, NilType, Promise)):
+        if not isinstance(operand.expr, (Pair, NilType, Promise)):
             raise TypeMismatchError("Unable to force a Promise evaluating to {rest}, expected another Pair, Promise, "
                                     "or Nil")
         return operand.expr
@@ -446,7 +444,7 @@ class ConsStream(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 2, len(operands))
         operands[0] = evaluate(operands[0], frame, gui_holder.expression.children[1])
-        return Pair(operands[0], StreamPromise(operands[1], frame))
+        return Pair(operands[0], Promise(operands[1], frame))
 
 
 @global_attr("error")
