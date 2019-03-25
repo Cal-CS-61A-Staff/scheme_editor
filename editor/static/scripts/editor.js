@@ -68,7 +68,7 @@ function register(layout) {
             editor.container.style.background = "white";
             editor.focus();
 
-            saveTimer = setInterval(save, 5000);
+            saveTimer = setInterval(() => save(), 5000);
 
             states[componentState.id].editor_open = true;
 
@@ -139,7 +139,7 @@ function register(layout) {
 
         container.getElement().find(".run-btn").on("click", run);
 
-        container.getElement().find(".save-btn").on("click", save);
+        container.getElement().find(".save-btn").on("click", () => save());
 
         container.getElement().find(".reformat-btn").on("click", reformat);
 
@@ -185,9 +185,8 @@ function register(layout) {
                         if (!states[componentState.id].up_to_date) {
                             states[componentState.id].up_to_date = true;
                             request_update();
-                        } else {
-                            states[componentState.id].up_to_date = true;
                         }
+                        states[componentState.id].up_to_date = true;
                     } else {
                         states[componentState.id].up_to_date = false;
                     }
