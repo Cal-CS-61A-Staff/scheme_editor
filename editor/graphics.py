@@ -7,7 +7,7 @@ from environment import global_attr
 from evaluate_apply import Frame
 from helper import verify_exact_callable_length, verify_min_callable_length
 from primitives import SingleOperandPrimitive, BuiltIn
-from scheme_exceptions import OperandDeduceError
+from scheme_exceptions import OperandDeduceError, IrreversibleOperationError
 
 ABSOLUTE_MOVE = "M"
 RELATIVE_MOVE = "m"
@@ -18,6 +18,14 @@ COMPLETE_PATH = "Z"
 
 def make_action(command: str, *params: float) -> str:
     return command + " " + " ".join(str(param) for param in params)
+
+
+def graphics_fragile(func):
+    def out(*args, **kwargs):
+        if log.logger.fragile:
+            raise IrreversibleOperationError()
+        return func(*args, **kwargs)
+    return out
 
 
 class Canvas:
@@ -35,6 +43,7 @@ class Canvas:
 
         self.reset()
 
+    @graphics_fragile
     def move(self, x: float, y: float):
         if self.pen_down:
             self.moves[-1].append(make_action(ABSOLUTE_LINE, x, y))
@@ -43,26 +52,33 @@ class Canvas:
         self.x = x
         self.y = y
 
+    @graphics_fragile
     def set_bg(self, color):
         self.bg_color = color
 
+    @graphics_fragile
     def rotate(self, theta: float):
         self.angle += theta
         self.angle %= 360
 
+    @graphics_fragile
     def abs_rotate(self, theta: float):
         self.angle = theta % 360
 
+    @graphics_fragile
     def forward(self, dist: float):
         self.move(self.x + dist * math.cos(self.angle / 360 * 2 * math.pi),
                   self.y + dist * math.sin(self.angle / 360 * 2 * math.pi))
 
+    @graphics_fragile
     def pendown(self):
         self.pen_down = True
 
+    @graphics_fragile
     def penup(self):
         self.pen_down = False
 
+    @graphics_fragile
     def rect(self, x: float, y: float, color: str):
         old_color = self.color
         self.moves.extend([
@@ -72,16 +88,16 @@ class Canvas:
         ])
 
     def export(self):
-        out = ["".join(move) for move in self.moves]
-        self.reset()
+        out = [" ".join(move) for move in self.moves]
         return out
 
+    @graphics_fragile
     def reset(self):
-        self.x = self.SIZE / 2
-        self.y = self.SIZE / 2
-        self.angle = 0
+        self.x = 0
+        self.y = 0
+        self.angle = -90
         self.bg_color = "#ffffff"
-        self.moves = [[]]
+        self.moves = [[make_action(ABSOLUTE_MOVE, self.x, self.y)]]
         self.pen_down = True
         self.color = "#000000"
         self.size = 1
@@ -165,7 +181,7 @@ class Left(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
             raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
-        log.logger.get_canvas().rotate(operand.value)
+        log.logger.get_canvas().rotate(-operand.value)
         return Undefined
 
 
@@ -226,7 +242,7 @@ class Right(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
             raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
-        log.logger.get_canvas().rotate(-operand.value)
+        log.logger.get_canvas().rotate(operand.value)
         return Undefined
 
 
