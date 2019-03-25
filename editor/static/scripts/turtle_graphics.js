@@ -26,7 +26,7 @@ function register(myLayout) {
 
         let ready = false;
 
-        container.getElement().find(".envs").on("update", function () {
+        container.getElement().find(".drawing").on("update", function () {
             let zoom;
             let pan;
 
@@ -47,12 +47,8 @@ function register(myLayout) {
             }
         });
 
-        container.getElement().find(".envs").on("reset", function () {
+        container.getElement().find(".drawing").on("reset", function () {
             svgPanZoom(rawSVG).reset();
-        });
-
-        container.getElement().find(`#${random_id}`).on("click", function () {
-            setTimeout(request_update, 0);
         });
 
         container.on("resize", function () {
