@@ -42,8 +42,9 @@ class Pair(Expression):
     def __init__(self, first: Expression, rest: Expression):
         super().__init__()
         self.first = first
-        if not isinstance(rest, (Pair, NilType)):
-            raise TypeMismatchError(f"Unable to construct a Pair with a cdr of {rest}, expected another Pair or Nil.")
+        if not isinstance(rest, (Pair, NilType, StreamPromise)):
+            raise TypeMismatchError(
+                f"Unable to construct a Pair with a cdr of {rest}, expected another Pair, Nil, or StreamPromise")
         self.rest = rest
 
     # def __str__(self):

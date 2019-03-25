@@ -446,7 +446,7 @@ class ConsStream(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 2, len(operands))
         operands[0] = evaluate(operands[0], frame, gui_holder.expression.children[1])
-        return Pair(operands[0], Delay().execute(operands[1:], frame, gui_holder))
+        return Pair(operands[0], StreamPromise(operands[1], frame))
 
 
 @global_attr("error")
