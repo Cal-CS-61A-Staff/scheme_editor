@@ -58,10 +58,10 @@ function register(myLayout) {
             <div class="output-warning">
                 This session may be out of date! Hit "Run" to refresh contents.
             </div>
-            </div>
-            <div class="envs">
-                <svg></svg>
-            </div>
+        </div>
+        <div class="envs">
+            <svg></svg>
+        </div>
         </div>
         `);
 

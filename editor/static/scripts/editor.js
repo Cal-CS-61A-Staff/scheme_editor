@@ -220,7 +220,7 @@ function register(layout) {
 
                 await save(true);
 
-                await open("output", componentState.id);
+                open("output", componentState.id);
                 // noinspection JSIgnoredPromiseFromCall
                 saveState(true);
                 $("*").trigger("reset");

@@ -5,8 +5,7 @@ import {draw} from "./turtle_graphics_worker";
 export { register };
 
 function register(myLayout) {
-    myLayout.registerComponent('env_diagram', function (container, componentState) {
-        let random_id = Math.random().toString(36).replace(/[^a-z]+/g, '');
+    myLayout.registerComponent('turtle_graphics', function (container, componentState) {
         container.getElement().html(`
         <div class="content">
             <div class="output-warning">
