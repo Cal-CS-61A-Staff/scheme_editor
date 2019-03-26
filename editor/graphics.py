@@ -34,10 +34,9 @@ def graphics_fragile(func):
 
 
 class Move:
-    def __init__(self, stroke, fill, thickness):
+    def __init__(self, stroke, fill):
         self.stroke = stroke
         self.fill = fill
-        self.thickness = thickness
         self.seq = []
 
     def export(self):
@@ -81,16 +80,31 @@ class Canvas:
         self.y = y
 
     @graphics_fragile
+    def set_pixel_size(self, size: float):
+        self.size = size
+
+    @graphics_fragile
+    def pixel(self, x: float, y: float, color: str):
+        pixel_move = Move(color, color)
+        pixel_move.seq.append(make_action(ABSOLUTE_MOVE, x * self.size, y * self.size))
+        pixel_move.seq.append(make_action(RELATIVE_LINE, self.size, 0))
+        pixel_move.seq.append(make_action(RELATIVE_LINE, 0, self.size))
+        pixel_move.seq.append(make_action(RELATIVE_LINE, -self.size, 0))
+        pixel_move.seq.append(make_action(RELATIVE_LINE, 0, -self.size))
+        self.moves.insert(len(self.moves) - 1, pixel_move)
+
+    @graphics_fragile
     def begin_fill(self):
         if self.fill_move is not None:
             raise TurtleDrawingError("Fill is already in progress.")
         self.fill_move = self.new_move()
+        self.fill_move.stroke = "transparent"
+        self.fill_move.fill = self.moves[-1].stroke
 
     @graphics_fragile
     def end_fill(self):
         if self.fill_move is None:
             raise TurtleDrawingError("No fill is currently in progress.")
-        self.fill_move.fill = self.moves[-1].stroke
         self.moves.insert(len(self.moves) - 1, self.fill_move)
         self.fill_move = None
 
@@ -119,10 +133,6 @@ class Canvas:
     @graphics_fragile
     def penup(self):
         self.pen_down = False
-
-    @graphics_fragile
-    def rect(self, x: float, y: float, color: str):
-        raise NotImplementedError()
 
     @graphics_fragile
     def arc(self, signed_radius: float):
@@ -171,7 +181,7 @@ class Canvas:
 
     @graphics_fragile
     def new_move(self) -> Move:
-        out = Move("black", "transparent", 1)
+        out = Move("black", "transparent")
         out.seq.append(make_action(ABSOLUTE_MOVE, self.x, self.y))
         return out
 
@@ -308,7 +318,7 @@ class Pixel(BuiltIn):
         for v in x, y:
             if not isinstance(v, Number):
                 raise OperandDeduceError(f"Expected operand to be Number, not {v}")
-        log.logger.get_canvas().rect(x.value, y.value, make_color(c))
+        log.logger.get_canvas().pixel(x.value, y.value, make_color(c))
         return Undefined
 
 
@@ -317,7 +327,7 @@ class PixelSize(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
             raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
-        log.logger.get_canvas().size = operand.value
+        log.logger.get_canvas().set_pixel_size(operand.value)
         return Undefined
 
 
