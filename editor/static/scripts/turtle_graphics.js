@@ -37,7 +37,7 @@ function register(myLayout) {
             svg.clear();
             ready = true;
             draw(svg, rawSVG, states[componentState.id].moves);
-            svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
+            svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: true, controlIconsEnabled: true});
             if (isNaN(zoom)) {
                 svgPanZoom(rawSVG).reset();
             } else {
