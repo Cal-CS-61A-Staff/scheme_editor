@@ -12,7 +12,7 @@ function register(myLayout) {
         </div>
         </div>
         <div class="drawing">
-            <svg>
+            <svg style="background: white">
             </svg>
         </div>
         `);
@@ -36,7 +36,7 @@ function register(myLayout) {
             }
             svg.clear();
             ready = true;
-            draw(svg, states[componentState.id].moves);
+            draw(svg, rawSVG, states[componentState.id].moves);
             svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
             if (isNaN(zoom)) {
                 svgPanZoom(rawSVG).reset();
