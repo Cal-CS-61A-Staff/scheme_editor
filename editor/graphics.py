@@ -227,6 +227,13 @@ class EndFill(BuiltIn):
         return Undefined
 
 
+@global_attr("exitonclick")
+class ExitOnClick(BuiltIn):
+    def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
+        verify_exact_callable_length(self, 0, len(operands))
+        return Undefined
+
+
 @global_attr("forward")
 @global_attr("fd")
 class Forward(SingleOperandPrimitive):
