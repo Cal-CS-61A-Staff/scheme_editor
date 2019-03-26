@@ -16,6 +16,8 @@ RELATIVE_MOVE = "m"
 ABSOLUTE_LINE = "L"
 RELATIVE_LINE = "l"
 COMPLETE_PATH = "Z"
+ABSOLUTE_ARC = "A"
+RELATIVE_ARC = "a"
 
 
 def make_action(command: str, *params: float) -> str:
@@ -27,6 +29,7 @@ def graphics_fragile(func):
         if log.logger.fragile:
             raise IrreversibleOperationError()
         return func(*args, **kwargs)
+
     return out
 
 
@@ -122,6 +125,20 @@ class Canvas:
         raise NotImplementedError()
 
     @graphics_fragile
+    def arc(self, signed_radius: float):
+        action = make_action(RELATIVE_ARC,
+                             signed_radius,
+                             signed_radius,
+                             0,
+                             1,
+                             int(signed_radius > 0),
+                             0.01 * math.cos(self.angle / 360 * 2 * math.pi),
+                             0.01 * math.sin(self.angle / 360 * 2 * math.pi))
+        self.moves[-1].seq.append(action)
+        if self.fill_move:
+            self.fill_move.seq.append(action)
+
+    @graphics_fragile
     def show_turtle(self):
         self.turtle_visible = True
 
@@ -201,7 +218,10 @@ class Circle(BuiltIn):
         verify_min_callable_length(self, 1, len(operands))
         if len(operands) > 2:
             verify_exact_callable_length(self, 2, len(operands))
-        raise NotImplementedError("circle not yet implemented")
+        if not isinstance(operands[0], Number):
+            raise OperandDeduceError(f"Expected radius to be Number, not {operands[0]}")
+        log.logger.get_canvas().arc(operands[0].value)
+        return Undefined
 
 
 @global_attr("clear")
