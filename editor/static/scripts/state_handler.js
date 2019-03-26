@@ -7,7 +7,7 @@ export {states, temp_file, loadState, saveState, make_new_state};
 let base_state = {
     states: {},
     environments: [],
-    moves: [],
+    moves: {"path": [], "showTurtle": false},
     out: "",
     heap: {},
     frameUpdates: [],
