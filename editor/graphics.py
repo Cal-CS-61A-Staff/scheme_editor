@@ -1,7 +1,9 @@
 import math
+import re
 from typing import List
 
 import log
+from css_colors import COLORS
 from datamodel import Expression, Number, Undefined, String, Symbol
 from environment import global_attr
 from evaluate_apply import Frame
@@ -28,6 +30,21 @@ def graphics_fragile(func):
     return out
 
 
+class Move:
+    def __init__(self, stroke, fill, thickness):
+        self.stroke = stroke
+        self.fill = fill
+        self.thickness = thickness
+        self.seq = []
+
+    def export(self):
+        return {
+            "seq": " ".join(self.seq),
+            "stroke": self.stroke,
+            "fill": self.fill,
+        }
+
+
 class Canvas:
     SIZE = 1000
 
@@ -36,19 +53,23 @@ class Canvas:
         self.y = None
         self.angle = None
         self.bg_color = None
-        self.moves = None
+        self.moves: List[Move] = None
         self.pen_down = None
-        self.color = None
         self.size = None
 
         self.reset()
 
     @graphics_fragile
+    def set_color(self, color):
+        self.moves.append(self.new_move())
+        self.moves[-1].stroke = color
+
+    @graphics_fragile
     def move(self, x: float, y: float):
         if self.pen_down:
-            self.moves[-1].append(make_action(ABSOLUTE_LINE, x, y))
+            self.moves[-1].seq.append(make_action(ABSOLUTE_LINE, x, y))
         else:
-            self.moves[-1].append(make_action(ABSOLUTE_MOVE, x, y))
+            self.moves[-1].seq.append(make_action(ABSOLUTE_MOVE, x, y))
         self.x = x
         self.y = y
 
@@ -80,16 +101,14 @@ class Canvas:
 
     @graphics_fragile
     def rect(self, x: float, y: float, color: str):
-        old_color = self.color
-        self.moves.extend([
-            ["fillStyle", color],
-            ["rect", x, y, self.size, self.size],
-            ["fillStyle", old_color]
-        ])
+        raise NotImplementedError()
 
     def export(self):
-        out = [" ".join(move) for move in self.moves]
-        return out
+        path = [move.export() for move in self.moves]
+        return {
+            "path": path,
+            "bgColor": self.bg_color,
+        }
 
     @graphics_fragile
     def reset(self):
@@ -97,16 +116,25 @@ class Canvas:
         self.y = 0
         self.angle = -90
         self.bg_color = "#ffffff"
-        self.moves = [[make_action(ABSOLUTE_MOVE, self.x, self.y)]]
+        self.moves = [self.new_move()]
         self.pen_down = True
-        self.color = "#000000"
         self.size = 1
+
+    @graphics_fragile
+    def new_move(self) -> Move:
+        out = Move("black", "transparent", 1)
+        out.seq.append(make_action(ABSOLUTE_MOVE, self.x, self.y))
+        return out
 
 
 def make_color(expression: Expression) -> str:
     if not isinstance(expression, String) and not isinstance(expression, Symbol):
-        raise OperandDeduceError(f"Unable to convert {expression} to a color.")
-    return expression.value
+        raise OperandDeduceError(f"Expected a String or Symbol, received {expression}.")
+    color = expression.value.lower()
+    # regex from https://stackoverflow.com/questions/30241375/python-how-to-check-if-string-is-a-hex-color-code
+    if color not in COLORS and not re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', color):
+        raise OperandDeduceError(f"Expected a valid CSS or hex color code, received {expression}.")
+    return color
 
 
 @global_attr("backward")
@@ -154,7 +182,7 @@ class Clear(BuiltIn):
 @global_attr("color")
 class Color(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression):
-        log.logger.get_canvas().color = make_color(operand)
+        log.logger.get_canvas().set_color(make_color(operand))
         return Undefined
 
 
@@ -233,7 +261,7 @@ class RGB(BuiltIn):
                 raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
             if not 0 <= operand.value <= 1:
                 raise OperandDeduceError(f"RGB values must be between 0 and 1, not {operand}")
-        return String("#" + "".join('{:02X}'.format(round(x.value * 255)) for x in operands))
+        return String("#" + "".join('{:02X}'.format(int(x.value * 255)) for x in operands))
 
 
 @global_attr("right")
