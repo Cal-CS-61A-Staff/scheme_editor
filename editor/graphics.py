@@ -55,7 +55,7 @@ class Canvas:
         self.bg_color = None
         self.moves: List[Move] = None
         self.pen_down = None
-        self.show_turtle = True
+        self.turtle_visible = True
         self.size = None
 
         self.reset()
@@ -132,6 +132,7 @@ class Canvas:
         self.moves = [self.new_move()]
         self.pen_down = True
         self.size = 1
+        self.turtle_visible = True
 
     @graphics_fragile
     def new_move(self) -> Move:
