@@ -1,6 +1,6 @@
 import math
 import re
-from typing import List
+from typing import List, Optional
 
 import log
 from css_colors import COLORS
@@ -9,7 +9,7 @@ from environment import global_attr
 from evaluate_apply import Frame
 from helper import verify_exact_callable_length, verify_min_callable_length
 from primitives import SingleOperandPrimitive, BuiltIn
-from scheme_exceptions import OperandDeduceError, IrreversibleOperationError
+from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, TurtleDrawingError
 
 ABSOLUTE_MOVE = "M"
 RELATIVE_MOVE = "m"
@@ -54,6 +54,7 @@ class Canvas:
         self.angle = None
         self.bg_color = None
         self.moves: List[Move] = None
+        self.fill_move: Optional[Move] = None
         self.pen_down = None
         self.turtle_visible = True
         self.size = None
@@ -71,8 +72,24 @@ class Canvas:
             self.moves[-1].seq.append(make_action(ABSOLUTE_LINE, x, y))
         else:
             self.moves[-1].seq.append(make_action(ABSOLUTE_MOVE, x, y))
+        if self.fill_move is not None:
+            self.fill_move.seq.append(make_action(ABSOLUTE_LINE, x, y))
         self.x = x
         self.y = y
+
+    @graphics_fragile
+    def begin_fill(self):
+        if self.fill_move is not None:
+            raise TurtleDrawingError("Fill is already in progress.")
+        self.fill_move = self.new_move()
+
+    @graphics_fragile
+    def end_fill(self):
+        if self.fill_move is None:
+            raise TurtleDrawingError("No fill is currently in progress.")
+        self.fill_move.fill = self.moves[-1].stroke
+        self.moves.insert(len(self.moves) - 1, self.fill_move)
+        self.fill_move = None
 
     @graphics_fragile
     def set_bg(self, color):
@@ -130,6 +147,7 @@ class Canvas:
         self.angle = -90
         self.bg_color = "#ffffff"
         self.moves = [self.new_move()]
+        self.fill_move = None
         self.pen_down = True
         self.size = 1
         self.turtle_visible = True
@@ -166,7 +184,8 @@ class Backward(SingleOperandPrimitive):
 class BeginFill(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 0, len(operands))
-        raise NotImplementedError("fill not yet implemented")
+        log.logger.get_canvas().begin_fill()
+        return Undefined
 
 
 @global_attr("bgcolor")
@@ -204,7 +223,8 @@ class Color(SingleOperandPrimitive):
 class EndFill(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 0, len(operands))
-        raise NotImplementedError("fill not yet implemented")
+        log.logger.get_canvas().end_fill()
+        return Undefined
 
 
 @global_attr("forward")
@@ -332,4 +352,12 @@ class ShowTurtle(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 0, len(operands))
         log.logger.get_canvas().show_turtle()
+        return Undefined
+
+
+@global_attr("speed")
+class Speed(SingleOperandPrimitive):
+    def execute_simple(self, operand: Expression) -> Expression:
+        if not isinstance(operand, Number):
+            raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
         return Undefined
