@@ -58,12 +58,12 @@ class Canvas:
 
     @graphics_fragile
     def rotate(self, theta: float):
-        self.angle += theta
+        self.angle -= theta
         self.angle %= 360
 
     @graphics_fragile
     def abs_rotate(self, theta: float):
-        self.angle = theta % 360
+        self.angle = -theta % 360
 
     @graphics_fragile
     def forward(self, dist: float):
@@ -147,7 +147,7 @@ class Circle(BuiltIn):
 class Clear(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 0, len(operands))
-        log.logger.get_canvas().moves = []
+        log.logger.get_canvas().reset()
         return Undefined
 
 
@@ -181,7 +181,7 @@ class Left(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
             raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
-        log.logger.get_canvas().rotate(-operand.value)
+        log.logger.get_canvas().rotate(operand.value)
         return Undefined
 
 
@@ -242,7 +242,7 @@ class Right(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
             raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
-        log.logger.get_canvas().rotate(operand.value)
+        log.logger.get_canvas().rotate(-operand.value)
         return Undefined
 
 
@@ -254,19 +254,19 @@ class ScreenSize(BuiltIn):
         return Number(log.logger.get_canvas().SIZE)
 
 
-@global_attr("seth")
 @global_attr("setheading")
+@global_attr("seth")
 class SetHeading(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
             raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
-        log.logger.get_canvas().abs_rotate(-operand.value)
+        log.logger.get_canvas().abs_rotate(90 - operand.value)
         return Undefined
 
 
+@global_attr("setposition")
 @global_attr("setpos")
 @global_attr("goto")
-@global_attr("setposition")
 class SetPosition(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame):
         verify_exact_callable_length(self, 2, len(operands))
