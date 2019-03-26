@@ -343,7 +343,7 @@ class SetPosition(BuiltIn):
         for operand in operands:
             if not isinstance(operand, Number):
                 raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
-        log.logger.get_canvas().move(operands[0].value, operands[1].value)
+        log.logger.get_canvas().move(operands[0].value, -operands[1].value)
         return Undefined
 
 
