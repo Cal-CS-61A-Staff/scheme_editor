@@ -55,6 +55,7 @@ class Canvas:
         self.bg_color = None
         self.moves: List[Move] = None
         self.pen_down = None
+        self.show_turtle = True
         self.size = None
 
         self.reset()
@@ -103,11 +104,23 @@ class Canvas:
     def rect(self, x: float, y: float, color: str):
         raise NotImplementedError()
 
+    @graphics_fragile
+    def show_turtle(self):
+        self.turtle_visible = True
+
+    @graphics_fragile
+    def hide_turtle(self):
+        self.turtle_visible = False
+
     def export(self):
         path = [move.export() for move in self.moves]
         return {
             "path": path,
             "bgColor": self.bg_color,
+            "turtleX": self.x,
+            "turtleY": self.y,
+            "turtleRot": self.angle,
+            "showTurtle": self.turtle_visible,
         }
 
     @graphics_fragile
@@ -200,6 +213,14 @@ class Forward(SingleOperandPrimitive):
         if not isinstance(operand, Number):
             raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
         log.logger.get_canvas().forward(operand.value)
+        return Undefined
+
+
+@global_attr("hideturtle")
+class HideTurtle(BuiltIn):
+    def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
+        verify_exact_callable_length(self, 0, len(operands))
+        log.logger.get_canvas().hide_turtle()
         return Undefined
 
 
@@ -302,4 +323,12 @@ class SetPosition(BuiltIn):
             if not isinstance(operand, Number):
                 raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
         log.logger.get_canvas().move(operands[0].value, operands[1].value)
+        return Undefined
+
+
+@global_attr("showturtle")
+class ShowTurtle(BuiltIn):
+    def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
+        verify_exact_callable_length(self, 0, len(operands))
+        log.logger.get_canvas().show_turtle()
         return Undefined
