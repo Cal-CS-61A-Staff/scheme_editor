@@ -275,6 +275,7 @@ class Forward(SingleOperandPrimitive):
 
 
 @global_attr("hideturtle")
+@global_attr("ht")
 class HideTurtle(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 0, len(operands))
@@ -385,6 +386,7 @@ class SetPosition(BuiltIn):
 
 
 @global_attr("showturtle")
+@global_attr("st")
 class ShowTurtle(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         verify_exact_callable_length(self, 0, len(operands))
