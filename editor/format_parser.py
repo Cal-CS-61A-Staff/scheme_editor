@@ -42,7 +42,7 @@ def get_expression(buffer: TokenBuffer) -> Formatted:
         comments = token.comments
         if token == "(":
             out = get_rest_of_list(buffer)
-        elif token in ("'", "`", "."):
+        elif token in ("'", "`"):
             out = get_expression(buffer)
             out.prefix = token.value
         elif token == ",":
@@ -73,7 +73,7 @@ def get_expression(buffer: TokenBuffer) -> Formatted:
 def get_rest_of_list(buffer: TokenBuffer):
     out = []
     last = None
-    while buffer.get_next_token() != ")" and not (logger.dotted and buffer.get_next_token() == "."):
+    while buffer.get_next_token() != ")" and buffer.get_next_token() != ".":
         out.append(get_expression(buffer))
     if buffer.get_next_token() == ".":
         buffer.pop_next_token()
