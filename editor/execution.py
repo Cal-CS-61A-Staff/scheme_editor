@@ -42,7 +42,7 @@ def string_exec(strings, out, global_frame=None):
                 res = evaluate(expr, global_frame, holder)
                 if res is not Undefined:
                     out(res)
-                if log.logger.autodraw and isinstance(res, Pair):
+                if not log.logger.fragile and log.logger.autodraw and isinstance(res, Pair):
                     log.logger.raw_out("AUTODRAW" +
                                        json.dumps([log.logger.i, log.logger.heap.record(res)]) + "\n")
         except (SchemeError, ZeroDivisionError, RecursionError, ValueError) as e:
