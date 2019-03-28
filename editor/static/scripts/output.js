@@ -224,5 +224,9 @@ function register(myLayout) {
                 },
             });
         });
+
+        container.on("shown", function () {
+            request_update();
+        })
     });
 }

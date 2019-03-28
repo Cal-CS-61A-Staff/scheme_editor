@@ -154,7 +154,7 @@ function display_elem(x, y, id, all_data, container, depth, cache, index, x1=fal
             if (index >= data[1][0]) {
                 data = [data[1][1]];
             } else {
-                data = [[false, "..."]];
+                data = [[false, "···"]];
             }
         }
         if (!x1) {
