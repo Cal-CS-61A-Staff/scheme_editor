@@ -1,4 +1,6 @@
-from datamodel import Undefined
+import json
+
+from datamodel import Undefined, Pair
 from evaluate_apply import evaluate
 from log import Holder, Root
 from execution_parser import get_expression
@@ -40,6 +42,9 @@ def string_exec(strings, out, global_frame=None):
                 res = evaluate(expr, global_frame, holder)
                 if res is not Undefined:
                     out(res)
+                if log.logger.autodraw and isinstance(res, Pair):
+                    log.logger.raw_out("AUTODRAW" +
+                                       json.dumps([log.logger.i, log.logger.heap.record(res)]) + "\n")
         except (SchemeError, ZeroDivisionError, RecursionError, ValueError) as e:
             if not log.logger.fragile:
                 log.logger.raw_out("Traceback (most recent call last)\n")

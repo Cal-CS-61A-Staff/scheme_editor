@@ -1,6 +1,7 @@
 import {saveState, states} from "./state_handler";
 import {make, request_update} from "./event_handler";
 import {terminable_command} from "./canceller";
+import {display_elem} from "./env_diagram_worker";
 
 export {register};
 
@@ -48,7 +49,34 @@ function register(myLayout) {
         let i = 0;
 
         container.getElement().find(".output").on("update", function () {
-            container.getElement().find(".output").html(escapeHtml(states[componentState.id].out.trim()));
+            let output = states[componentState.id].out.trim().split("\n");
+            let outputDiv = container.getElement().find(".output");
+            outputDiv.html("");
+            for (let line of output) {
+                if (line.startsWith("AUTODRAW")) {
+                    let newSVG = document.createElement("svg");
+                    let decoded = $.parseJSON(line.slice("AUTODRAW".length));
+                    let i = decoded[0];
+                    let id = decoded[1];
+                    outputDiv.append(newSVG);
+                    display_elem(0, 10,
+                        id,
+                        states[componentState.id].heap,
+                        SVG(newSVG),
+                        0,
+                        new Map(),
+                        i,
+                        );
+                    let bBox = newSVG.children[0].getBBox();
+                    let vBox = newSVG.children[0].getAttribute("viewBox");
+                    console.log(vBox);
+                    // newSVG.children[0].setAttribute("viewBox", [bBox.x, bBox.y, bBox.width, bBox.height].join(" "));
+                } else {
+                    outputDiv.append(escapeHtml(line + "\n"));
+                }
+            }
+
+
             container.getElement().find(".preview").html("<i>" + escapeHtml(preview) + "</i>");
             container.getElement().find(".output-wrapper").scrollTop(
             container.getElement().find(".output-wrapper")[0].scrollHeight);

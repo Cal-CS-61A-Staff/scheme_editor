@@ -1,9 +1,8 @@
 import {charWidth, charHeight} from "./measure";
 import {hide_return_frames} from "./settings";
 import {get_curr_frame} from "./navigation";
-import {states} from "./state_handler";
 
-export {display_env_pointers};
+export {display_env_pointers, display_elem};
 
 function display_env_pointers(environments, heap, container, i, pointers, vert_offset) {
     container.clear();

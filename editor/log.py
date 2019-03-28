@@ -131,6 +131,8 @@ class Logger:
         self.strict_mode = False  # legacy - used for okpy testing of the interpreter
         self.fragile = False  # flag for if new assignments prohibited, like in previewing
 
+        self.autodraw = True
+
         self.node_cache: Dict[str, Union[StaticNode, FatNode]] = {}  # a cache of visual expressions
         self.export_states = []  # all the nodes generated in the current evaluation, in exported form
         self.roots = []  # the root node of each expr we are currently evaluating
