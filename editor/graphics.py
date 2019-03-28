@@ -134,19 +134,44 @@ class Canvas:
     def penup(self):
         self.pen_down = False
 
+    # partially adapted from
+    # https://stackoverflow.com/questions/5736398/how-to-calculate-the-svg-path-for-an-arc-of-a-circle
     @graphics_fragile
-    def arc(self, signed_radius: float):
-        action = make_action(RELATIVE_ARC,
-                             signed_radius,
-                             signed_radius,
-                             0,
-                             1,
-                             int(signed_radius > 0),
-                             0.01 * math.cos(self.angle / 360 * 2 * math.pi),
-                             0.01 * math.sin(self.angle / 360 * 2 * math.pi))
-        self.moves[-1].seq.append(action)
+    def arc(self, signed_radius: float, degrees: float):
+        DELTA = 0.1
+
+        if degrees >= 360 - DELTA:
+            degrees = 360 - DELTA
+        elif degrees <= -360 + DELTA:
+            degrees = -360 + DELTA
+
+        def polar_to_cartesian(center_x, center_y, radius, angle_in_degrees):
+            angle_in_radians = (angle_in_degrees - 90) * math.pi / 180
+
+            return center_x + (radius * math.cos(angle_in_radians)), \
+                center_y + (radius * math.sin(angle_in_radians))
+
+        def draw_arc(x, y, radius, start_angle, end_angle):
+            end_x, end_y = polar_to_cartesian(x, y, radius, end_angle)
+
+            large_arc_flag = int(abs(degrees) > 180)
+            sweep_flag = int((degrees < 0) != (signed_radius < 0))
+
+            return make_action(ABSOLUTE_ARC, radius, radius, 0, large_arc_flag, sweep_flag, end_x, end_y), \
+                end_x, \
+                end_y
+
+        center_x, center_y = polar_to_cartesian(self.x, self.y, signed_radius, self.angle)
+
+        degree_start = self.angle + 180
+        degree_end = degree_start - degrees
+
+        arc_action, end_x, end_y = draw_arc(center_x, center_y, abs(signed_radius), degree_start, degree_end)
+
+        self.moves[-1].seq.append(arc_action)
         if self.fill_move:
-            self.fill_move.seq.append(action)
+            self.fill_move.seq.append(arc_action)
+        self.move(end_x, end_y)
 
     @graphics_fragile
     def show_turtle(self):
@@ -230,7 +255,10 @@ class Circle(BuiltIn):
             verify_exact_callable_length(self, 2, len(operands))
         if not isinstance(operands[0], Number):
             raise OperandDeduceError(f"Expected radius to be Number, not {operands[0]}")
-        log.logger.get_canvas().arc(operands[0].value)
+        if len(operands) > 2 and not isinstance(operands[1], Number):
+            raise OperandDeduceError(f"Expected angle to be Number, not {operands[1]}")
+        degs = 360 if len(operands) == 1 else operands[1].value
+        log.logger.get_canvas().arc(operands[0].value, degs)
         return Undefined
 
 
