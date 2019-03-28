@@ -115,7 +115,7 @@ class ProcedureBuilder(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, name: str = "lambda"):
         verify_min_callable_length(self, 2, len(operands))
         params = operands[0]
-        if not logger.dotted and not isinstance(params, Pair):
+        if not logger.dotted and not isinstance(params, (Pair, NilType)):
             raise OperandDeduceError(f"Expected Pair as parameter list, received ")
         params, var_param = dotted_pair_to_list(params)
         for i, param in enumerate(params):
