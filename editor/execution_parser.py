@@ -45,25 +45,24 @@ def get_expression(buffer: TokenBuffer) -> Union[Expression, None]:
     token = buffer.pop_next_token()
     if token is None:
         return None
-    if token in SPECIALS:
-        if token == "(":
-            return get_rest_of_list(buffer)
-        elif token == "'":
-            return make_list([Symbol("quote"), get_expression(buffer)])
-        elif token == ",":
-            if buffer.get_next_token() == "@":
-                buffer.pop_next_token()
-                return make_list([Symbol("unquote-splicing"), get_expression(buffer)])
-            else:
-                return make_list([Symbol("unquote"), get_expression(buffer)])
-        elif token == "`":
-            return make_list([Symbol("quasiquote"), get_expression(buffer)])
-        elif not logger.dotted and token == ".":
-            return make_list([Symbol("variadic"), get_expression(buffer)])
-        elif token == "\"":
-            return get_string(buffer)
+    elif token == "(":
+        return get_rest_of_list(buffer)
+    elif token == "'":
+        return make_list([Symbol("quote"), get_expression(buffer)])
+    elif token == ",":
+        if buffer.get_next_token() == "@":
+            buffer.pop_next_token()
+            return make_list([Symbol("unquote-splicing"), get_expression(buffer)])
         else:
-            raise ParseError(f"Unexpected token: '{token}'")
+            return make_list([Symbol("unquote"), get_expression(buffer)])
+    elif token == "`":
+        return make_list([Symbol("quasiquote"), get_expression(buffer)])
+    elif not logger.dotted and token == ".":
+        return make_list([Symbol("variadic"), get_expression(buffer)])
+    elif token == "\"":
+        return get_string(buffer)
+    elif token in SPECIALS:
+        raise ParseError(f"Unexpected token: '{token}'")
     elif is_number(token.value):
         try:
             return Number(int(token.value))
