@@ -54,23 +54,21 @@ function register(myLayout) {
             outputDiv.html("");
             for (let line of output) {
                 if (line.startsWith("AUTODRAW")) {
-                    let newSVG = document.createElement("svg");
+                    let rawSVG = document.createElement("svg");
+                    let svg = SVG(rawSVG);
                     let decoded = $.parseJSON(line.slice("AUTODRAW".length));
                     let i = decoded[0];
                     let id = decoded[1];
-                    outputDiv.append(newSVG);
+                    outputDiv.append(rawSVG);
                     display_elem(0, 10,
                         id,
                         states[componentState.id].heap,
-                        SVG(newSVG),
+                        svg,
                         0,
                         new Map(),
                         i,
                         );
-                    let bBox = newSVG.children[0].getBBox();
-                    let vBox = newSVG.children[0].getAttribute("viewBox");
-                    console.log(vBox);
-                    // newSVG.children[0].setAttribute("viewBox", [bBox.x, bBox.y, bBox.width, bBox.height].join(" "));
+                    rawSVG.children[0].setAttribute("height", svg.bbox().h + 20);
                 } else {
                     outputDiv.append(escapeHtml(line + "\n"));
                 }
