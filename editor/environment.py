@@ -45,7 +45,7 @@ def get_special_form(name: str):
     if name in special_forms:
         return special_forms[name]()
     else:
-        return False
+        return None
 
 
 def build_global_frame():

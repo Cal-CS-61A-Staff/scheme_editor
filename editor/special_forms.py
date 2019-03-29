@@ -374,12 +374,6 @@ class Quasiquote(Callable):
             return expr
 
 
-@special_form("unquote")
-class Unquote(Applicable):
-    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, eval_operands=True):
-        raise CallableResolutionError("Unquote cannot be used outside of quasiquote.")
-
-
 @global_attr("load")
 class Load(Applicable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, eval_operands=True):
