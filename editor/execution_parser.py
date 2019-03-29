@@ -7,14 +7,17 @@ from scheme_exceptions import ParseError
 
 
 def strip_comments(code):
-    out = ""
-    for string in code:
-        if not string.strip():
-            continue
-        buff = TokenBuffer([string])
-        while not buff.done:
-            out += str(get_expression(buff))
-    return out
+    try:
+        out = ""
+        for string in code:
+            if not string.strip():
+                continue
+            buff = TokenBuffer([string])
+            while not buff.done:
+                out += str(get_expression(buff))
+        return out
+    except ParseError:
+        return str(code)
 
 
 def tokenize(buffer: TokenBuffer):
