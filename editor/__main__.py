@@ -4,13 +4,13 @@ import os
 
 import local_server
 
-parser = argparse.ArgumentParser(description="Rahul's Scheme IDE!")
+parser = argparse.ArgumentParser(description="CS61A Scheme Editor - Spring 2019")
 parser.add_argument("-f", "--files",
                     type=argparse.FileType('r+'),
                     help="Scheme files to test",
                     nargs='*')
-parser.add_argument("-l", "--logging",
-                    help="Print log statements",
+parser.add_argument("-nb", "--nobrowser",
+                    help="Do not open a new browser window.",
                     action="store_true")
 parser.add_argument("-p", "--port",
                     type=int,
@@ -24,11 +24,11 @@ if args.files is not None:
     file_names = [os.path.basename(file.name) for file in args.files]
     for file in args.files:
         file.close()
-    if not file_names:
-        parser.error("No files provided.")
 else:
-    if len(configs) != 1:
-        parser.error("Unable to resolve okpy configs, files to be tested must be specified explicitly.")
-    with open(configs[0]) as f:
-        file_names = json.loads(f.read())["src"]
-local_server.start(file_names, args.port)
+    file_names = []
+    if len(configs) > 1:
+        parser.error("Multiple okpy configs detected, files to be tested must be specified explicitly.")
+    elif len(configs) > 0:
+        with open(configs[0]) as f:
+            file_names = json.loads(f.read())["src"]
+local_server.start(file_names, args.port, not args.nobrowser)
