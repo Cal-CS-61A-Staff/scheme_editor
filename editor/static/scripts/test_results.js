@@ -2,9 +2,15 @@ import {make_new_state, saveState, states, temp_file} from "./state_handler";
 import {open} from "./layout";
 import {make} from "./event_handler";
 
-export {register, registerEditor, removeEditor};
+export {register, registerEditor, removeEditor, notify_changed};
 
 let editors = new Map();
+
+let up_to_date = true;
+
+function notify_changed() {
+    up_to_date = false;
+}
 
 function registerEditor(name, editor) {
     editors.set(name, editor);
@@ -12,7 +18,6 @@ function registerEditor(name, editor) {
 
 function removeEditor(name) {
     editors.delete(name);
-    console.log("deleting " + name);
 }
 
 function register(myLayout) {
@@ -56,8 +61,19 @@ function register(myLayout) {
                             <td class="text-right"> <button class="btn btn-secondary"> View Case </button> </td>
                         </tr>`);
                         let case_name = `${entry.problem} - Suite ${i + 1}, Case ${j + 1}`;
-                        if (editors.has(temp_file + case_name)) {
+                        if (!up_to_date &&
+                            editors.has(temp_file + case_name) &&
+                            editors.get(temp_file + case_name) !== test.code) {
                             editors.get(temp_file + case_name).setValue(test.code);
+                            for (let i = 0; i !== states.length; ++i) {
+                                if (states[i].file_name === temp_file + case_name) {
+                                    states[i].up_to_date = false;
+                                    states[i].active_code = "fail";
+                                    console.log("setting state " + i + " to notuptodate");
+                                    console.log(states);
+                                    break;
+                                }
+                            }
                         }
                         $(`#${random_id}`).find(".btn").last().click(function () {
                             if (editors.has(temp_file + case_name)) {
@@ -79,6 +95,7 @@ function register(myLayout) {
                         });
                     }
                 }
+                up_to_date = true;
             }
         });
 
