@@ -57,8 +57,11 @@ def get_expression(buffer: TokenBuffer) -> Union[Expression, None]:
             return make_list([Symbol("unquote"), get_expression(buffer)])
     elif token == "`":
         return make_list([Symbol("quasiquote"), get_expression(buffer)])
-    elif not logger.dotted and token == ".":
-        return make_list([Symbol("variadic"), get_expression(buffer)])
+    elif token == ".":
+        if logger.dotted:
+            raise ParseError(f"Unexpected token: '{token}'")
+        else:
+            return make_list([Symbol("variadic"), get_expression(buffer)])
     elif token == "\"":
         return get_string(buffer)
     elif token in SPECIALS:
