@@ -11,7 +11,7 @@ parser.add_argument("-f", "--files",
                     nargs='*')
 parser.add_argument("-nb", "--nobrowser",
                     help="Do not open a new browser window.",
-                    action="store_false")
+                    action="store_true")
 parser.add_argument("-p", "--port",
                     type=int,
                     default=31415,
@@ -31,4 +31,4 @@ else:
     elif len(configs) > 0:
         with open(configs[0]) as f:
             file_names = json.loads(f.read())["src"]
-local_server.start(file_names, args.port, args.nobrowser)
+local_server.start(file_names, args.port, not args.nobrowser)
