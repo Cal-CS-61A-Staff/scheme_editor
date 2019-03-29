@@ -91,6 +91,16 @@ class Same(PromptOutput, namedtuple('Same', ['prompt', 'output'])):
         return True
 
 
+class Locked(PromptOutput, namedtuple('Locked', ['prompt'])):
+    def representation(self):
+        return "; Test case locked\n{prompt}".format(
+            prompt=self.prompt,
+        )
+
+    def success(self):
+        return False
+
+
 class TestCaseResult(namedtuple('TestCaseResult', ['cases_passed', 'cases_out', 'setup_out'])):
 
     @property
@@ -170,7 +180,10 @@ def process(output, success):
         expected = remove_comments_and_combine(lines[expected_index + 1:but_got_idx])
         actual = remove_comments_and_combine(lines[but_got_idx + 1:])
         actual = re.sub(r"Traceback.*\n\.\.\.\n(.*)", r"\1", actual)
-        return AreDifferent("\n".join(prompt), expected, actual)
+        if re.match("[0-9a-f]{32}", expected):  # looks like a hash
+            return Locked("\n".join(prompt))
+        else:
+            return AreDifferent("\n".join(prompt), expected, actual)
     elif "Traceback" in result or "# Error:" in result:
         return Error("\n".join(prompt).strip("\n"), result)
     else:
