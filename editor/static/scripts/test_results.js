@@ -95,8 +95,8 @@ function register(myLayout) {
                         });
                     }
                 }
-                up_to_date = true;
             }
+            up_to_date = true;
         });
 
         make(container, "test_results", 0);
