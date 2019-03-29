@@ -57,8 +57,7 @@ class ProcedureObject(Callable):
         gui_holder.expression.set_entries(
             [VisualExpression(expr, gui_holder.expression.display_value) for expr in body])
 
-        if self.evaluates_operands:
-            gui_holder.apply()
+        gui_holder.apply()
 
         for i, expression in enumerate(body):
             out = evaluate(expression,
