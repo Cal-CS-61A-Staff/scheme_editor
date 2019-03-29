@@ -116,7 +116,9 @@ class Handler(server.BaseHTTPRequestHandler):
         elif path == "/save":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
             filename = data[b"filename"][0]
-            save(code, filename)
+            do_save = data[b"do_save"][0] == b"true"
+            if do_save:
+                save(code, filename)
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
