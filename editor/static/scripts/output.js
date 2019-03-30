@@ -83,6 +83,10 @@ function register(myLayout) {
         let history = [""];
         let i = 0;
 
+        function updatePreview() {
+            container.getElement().find(".preview").html("<i>" + escapeHtml(preview) + "</i>");
+        }
+
         container.getElement().find(".output").on("update", function () {
             let output = states[componentState.id].out.trim().split("\n");
             let outputDiv = container.getElement().find(".output");
@@ -103,8 +107,7 @@ function register(myLayout) {
                 }
             }
 
-
-            container.getElement().find(".preview").html("<i>" + escapeHtml(preview) + "</i>");
+            updatePreview();
             container.getElement().find(".output-wrapper").scrollTop(
             container.getElement().find(".output-wrapper")[0].scrollHeight);
         });
@@ -153,7 +156,7 @@ function register(myLayout) {
                     }).done(function (data) {
                         preview = "";
                         if (!data) {
-                            request_update();
+                            updatePreview();
                         }
                         data = $.parseJSON(data);
                         if (data.success) {
@@ -161,7 +164,7 @@ function register(myLayout) {
                         } else {
                             preview = "";
                         }
-                        request_update();
+                        updatePreview();
                     })
                 }
             });
