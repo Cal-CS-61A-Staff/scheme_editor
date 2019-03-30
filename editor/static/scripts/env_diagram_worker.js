@@ -5,7 +5,7 @@ import {states} from "./state_handler";
 
 export {display_env_pointers};
 
-function display_env_pointers(environments, heap, container, i, pointers, vert_offset) {
+function display_env_pointers(environments, heap, container, i, start_i, pointers, vert_offset) {
     container.clear();
 
     let cache = new Map();
@@ -27,8 +27,8 @@ function display_env_pointers(environments, heap, container, i, pointers, vert_o
                 break;
             }
             if (hide_return_frames() &&
-                frame["bindings"][k][1][0] === "Return Value" &&
-                frame["bindings"][k][0] < i) {
+                ((frame["bindings"][k][1][0] === "Return Value" && frame["bindings"][k][0] < i)
+                    || (frame !== environments[0] && frame["bindings"][k][0] < start_i))) {
                 k = 0;
                 break;
             }
@@ -144,7 +144,7 @@ function curved_arrow(container, x1, y1, x2, y2) {
     straight_arrow(container, x1, y1, x2, y2);
 }
 
-function display_elem(x, y, id, all_data, container, depth, cache, index, x1=false, y1=false) {
+function display_elem(x, y, id, all_data, container, depth, cache, index, x1 = false, y1 = false) {
     if (id[0]) {
         // non atomic
         let data = all_data[id[1]];
@@ -208,8 +208,7 @@ function display_elem(x, y, id, all_data, container, depth, cache, index, x1=fal
                 .dx(x).dy(y)
                 .stroke({color: "#000000", width: 2})
                 .fill({color: "#FFFFFF"}).back();
-        }
-        else if (data.length > 1) {
+        } else if (data.length > 1) {
             container.rect(pos, minWidth)
                 .dx(x).dy(y)
                 .stroke({color: "#000000", width: 2})
