@@ -17,11 +17,28 @@ let entityMap = {
     '=': '&#x3D;'
 };
 
+let FUNCTIONS = new Map();
+
 function escapeHtml(string) {
   return String(string).replace(/[&<>"'`=\/]/g, function (s) {
     return entityMap[s];
   });
 }
+
+FUNCTIONS.set("AUTODRAW", (i, id, outputDiv, componentState) => {
+    let rawSVG = document.createElement("svg");
+    let svg = SVG(rawSVG);
+    outputDiv.append(rawSVG);
+    display_elem(0, 10,
+        id,
+        states[componentState.id].heap,
+        svg,
+        0,
+        new Map(),
+        i,
+        );
+    rawSVG.children[0].setAttribute("height", svg.bbox().h + 20);
+});
 
 function register(myLayout) {
     myLayout.registerComponent('output', function (container, componentState) {
@@ -54,24 +71,13 @@ function register(myLayout) {
             let outputDiv = container.getElement().find(".output");
             outputDiv.html("");
             for (let line of output) {
-                if (line.startsWith("AUTODRAW")) {
-                    let rawSVG = document.createElement("svg");
-                    let svg = SVG(rawSVG);
-                    let decoded = $.parseJSON(line.slice("AUTODRAW".length));
-                    let i = decoded[0];
-                    let id = decoded[1];
-                    outputDiv.append(rawSVG);
-                    display_elem(0, 10,
-                        id,
-                        states[componentState.id].heap,
-                        svg,
-                        0,
-                        new Map(),
-                        i,
-                        );
-                    rawSVG.children[0].setAttribute("height", svg.bbox().h + 20);
-                } else {
-                    outputDiv.append(escapeHtml(line + "\n"));
+                for (let key of FUNCTIONS.keys()) {
+                    if (line.startsWith(key)) {
+                        let decoded = $.parseJSON(line.slice(key.length));
+                        FUNCTIONS.get(key)(...decoded, outputDiv, componentState);
+                    } else {
+                        outputDiv.append(escapeHtml(line + "\n"));
+                    }
                 }
             }
 
