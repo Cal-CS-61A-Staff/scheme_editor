@@ -24,9 +24,9 @@ class Token:
 
 
 class TokenBuffer:
-    def __init__(self, lines):
+    def __init__(self, lines, do_comments=False):
         self.string = "\n".join(lines)
-        self.tokens = tokenize(self.string)
+        self.tokens = tokenize(self.string, do_comments)
         self.done = not self.tokens
         self.i = 0
 
@@ -43,7 +43,7 @@ class TokenBuffer:
         return out
 
 
-def tokenize(string) -> List[Token]:
+def tokenize(string, do_comments) -> List[Token]:
     string = string.strip()
     tokens = []
     comments = {}
@@ -131,7 +131,8 @@ def tokenize(string) -> List[Token]:
                 prev_newline = True
             i += 1
 
-    for key, val in comments.items():
-        tokens[min(key, len(tokens) - 1)].comments.extend(val)
+    if do_comments:
+        for key, val in comments.items():
+            tokens[min(key, len(tokens) - 1)].comments.extend(val)
 
     return tokens

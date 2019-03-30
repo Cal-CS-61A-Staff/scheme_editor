@@ -33,7 +33,7 @@ def prettify(strings: List[str]) -> str:
 @lru_cache(CACHE_SIZE)
 def prettify_single(string: str) -> List[str]:
     out = []
-    buff = lexer.TokenBuffer([string])
+    buff = lexer.TokenBuffer([string], True)
     while not buff.done:
         expr = get_expression(buff)
         out.append(prettify_expr(expr, LINE_LENGTH)[0])
