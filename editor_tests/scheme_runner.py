@@ -27,7 +27,7 @@ class TestCase(ABC):
     def compare(observed, expected, code=""):
         for key in expected:
             if key == "out" and "Error" in expected[key][0]:
-                assert "Error" in observed[key][0]
+                assert "Traceback" in observed[key][0]
             else:
                 assert observed[key] == expected[key], \
                     f"Code: {code}\nObserved: \n{repr(observed[key])}\nExpected: \n{repr(expected[key])}"

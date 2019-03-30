@@ -2,7 +2,7 @@ import {states} from "./state_handler";
 import {request_update} from "./event_handler";
 import {get_i} from "./substitution_tree_worker";
 
-export {init_events, get_curr_frame, get_active_node};
+export {init_events, get_curr_frame, get_active_node, go_to_end};
 
 function fix_expr_i(i) {
     if (states[i].states[states[i].expr_i][0] <= states[i].index &&

@@ -27,6 +27,10 @@ function make(container, type, id) {
         title = type_title[type] + " (" + title + ")";
     }
 
+    if (type === "test_results") {
+        title = type_title[type];
+    }
+
     let color;
     let icon;
     if (type === "editor") {
