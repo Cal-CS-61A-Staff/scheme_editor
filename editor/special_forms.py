@@ -3,13 +3,12 @@ from typing import List, Optional, Type
 from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise
 from environment import global_attr, special_form
 from evaluate_apply import Frame, evaluate, Callable, evaluate_all, Applicable
-from log import Holder, VisualExpression, return_symbol, logger
+from execution_parser import get_expression
 from helper import pair_to_list, verify_exact_callable_length, verify_min_callable_length, \
     make_list, dotted_pair_to_list
 from lexer import TokenBuffer
-from execution_parser import get_expression
-from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError, SchemeError, \
-    CallableResolutionError
+from log import Holder, VisualExpression, return_symbol, logger
+from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError, SchemeError
 
 
 class ProcedureObject(Callable):
