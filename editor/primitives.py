@@ -35,3 +35,4 @@ def load_primitives():
     __import__("type_checking")
     __import__("console")
     __import__("graphics")
+    __import__("visualizing")

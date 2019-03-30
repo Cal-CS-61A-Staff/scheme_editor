@@ -26,6 +26,23 @@ function escapeHtml(string) {
 }
 
 FUNCTIONS.set("AUTODRAW", (i, id, outputDiv, componentState) => {
+    if (componentState.autoDraw) {
+        drawPair(i, id, outputDiv, componentState);
+    }
+});
+
+FUNCTIONS.set("DRAW", drawPair);
+
+FUNCTIONS.set("ENABLE_AUTODRAW", (outputDiv, componentState) => {
+    componentState.autoDraw = true;
+});
+
+FUNCTIONS.set("DISABLE_AUTODRAW", (outputDiv, componentState) => {
+    componentState.autoDraw = false;
+});
+
+
+function drawPair(i, id, outputDiv, componentState) {
     let rawSVG = document.createElement("svg");
     let svg = SVG(rawSVG);
     outputDiv.append(rawSVG);
@@ -36,9 +53,9 @@ FUNCTIONS.set("AUTODRAW", (i, id, outputDiv, componentState) => {
         0,
         new Map(),
         i,
-        );
+    );
     rawSVG.children[0].setAttribute("height", svg.bbox().h + 20);
-});
+}
 
 function register(myLayout) {
     myLayout.registerComponent('output', function (container, componentState) {
@@ -70,14 +87,19 @@ function register(myLayout) {
             let output = states[componentState.id].out.trim().split("\n");
             let outputDiv = container.getElement().find(".output");
             outputDiv.html("");
+            componentState.autoDraw = false;
             for (let line of output) {
+                let ok = false;
                 for (let key of FUNCTIONS.keys()) {
                     if (line.startsWith(key)) {
                         let decoded = $.parseJSON(line.slice(key.length));
                         FUNCTIONS.get(key)(...decoded, outputDiv, componentState);
-                    } else {
-                        outputDiv.append(escapeHtml(line + "\n"));
+                        ok = true;
+                        break;
                     }
+                }
+                if (!ok) {
+                    outputDiv.append(escapeHtml(line + "\n"));
                 }
             }
 
