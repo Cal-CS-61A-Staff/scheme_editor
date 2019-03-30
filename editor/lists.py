@@ -1,7 +1,7 @@
 from typing import List
 
 import log
-from datamodel import Expression, Pair, Nil, Number, Undefined, NilType
+from datamodel import Expression, Pair, Nil, Number, Undefined, NilType, Promise
 from environment import global_attr
 from evaluate_apply import Frame
 from helper import pair_to_list, make_list, verify_exact_callable_length
@@ -112,7 +112,7 @@ class SetCdr(BuiltIn):
             pair, val = operands
             if not isinstance(pair, Pair):
                 raise OperandDeduceError(f"set-cdr! expected a Pair, received {pair}.")
-            if not isinstance(val, (Pair, NilType)):
+            if not isinstance(val, (Pair, Promise, NilType)):
                 raise OperandDeduceError(f"Unable to assign {val} to cdr, expected a Pair, Nil, or Promise.")
             pair.rest = val
             log.logger.raw_out("WARNING: Mutation operations on pairs are not yet supported by the debugger.")
