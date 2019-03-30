@@ -62,15 +62,12 @@ function register(myLayout) {
                         </tr>`);
                         let case_name = `${entry.problem} - Suite ${i + 1}, Case ${j + 1}`;
                         if (!up_to_date &&
-                            editors.has(temp_file + case_name) &&
-                            editors.get(temp_file + case_name) !== test.code) {
+                            editors.has(temp_file + case_name)) {
                             editors.get(temp_file + case_name).setValue(test.code);
                             for (let i = 0; i !== states.length; ++i) {
                                 if (states[i].file_name === temp_file + case_name) {
                                     states[i].up_to_date = false;
                                     states[i].active_code = "fail";
-                                    console.log("setting state " + i + " to notuptodate");
-                                    console.log(states);
                                     break;
                                 }
                             }
@@ -95,8 +92,8 @@ function register(myLayout) {
                         });
                     }
                 }
-                up_to_date = true;
             }
+            up_to_date = true;
         });
 
         make(container, "test_results", 0);
