@@ -1,6 +1,7 @@
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from log_utils import get_id
+from scheme_exceptions import TypeMismatchError
 
 if TYPE_CHECKING:
     from evaluate_apply import Frame
@@ -38,9 +39,13 @@ class Number(ValueHolder):
 
 
 class Pair(Expression):
-    def __init__(self, first: Expression, rest: Union['Pair', 'Nil']):
+    def __init__(self, first: Expression, rest: Expression):
+        import log
         super().__init__()
         self.first = first
+        if not log.logger.dotted and not isinstance(rest, (Pair, NilType, Promise)):
+            raise TypeMismatchError(
+                f"Unable to construct a Pair with a cdr of {rest}, expected a Pair, Nil, or Promise.")
         self.rest = rest
 
     # def __str__(self):

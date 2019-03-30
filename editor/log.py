@@ -128,6 +128,7 @@ class Logger:
         self.frame_updates = []  # when the env diagram is updated
         self.global_frame: StoredFrame = None
 
+        self.dotted = False  # Whether dotted lists are allowed (i.e. fa18 vs sp19 Scheme)
         self.strict_mode = False  # legacy - used for okpy testing of the interpreter
         self.fragile = False  # flag for if new assignments prohibited, like in previewing
 

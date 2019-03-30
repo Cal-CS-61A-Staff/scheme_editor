@@ -1,14 +1,15 @@
 from typing import List, Optional, Type
 
-from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise
+from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise, NilType
 from environment import global_attr
+from environment import special_form
 from evaluate_apply import Frame, evaluate, Callable, evaluate_all, Applicable
-from log import Holder, VisualExpression, return_symbol, logger
+from execution_parser import get_expression
 from helper import pair_to_list, verify_exact_callable_length, verify_min_callable_length, \
     make_list, dotted_pair_to_list
 from lexer import TokenBuffer
-from execution_parser import get_expression
-from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError, SchemeError
+from log import Holder, VisualExpression, return_symbol, logger
+from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError, SchemeError, TypeMismatchError
 
 
 class ProcedureObject(Callable):
@@ -56,8 +57,7 @@ class ProcedureObject(Callable):
         gui_holder.expression.set_entries(
             [VisualExpression(expr, gui_holder.expression.display_value) for expr in body])
 
-        if self.evaluates_operands:
-            gui_holder.apply()
+        gui_holder.apply()
 
         for i, expression in enumerate(body):
             out = evaluate(expression,
@@ -77,10 +77,15 @@ class ProcedureObject(Callable):
 
     def __repr__(self):
         if self.var_param is not None:
-            varparams = " . " + self.var_param.value
+            if logger.dotted:
+                varparams = ". " + self.var_param.value
+            else:
+                varparams = "(variadic " + self.var_param.value + ")"
+            if self.params:
+                varparams = " " + varparams
         else:
             varparams = ""
-        return f"({self.name} {' '.join(map(repr, self.params))} {varparams}) [parent = {self.frame.id}]"
+        return f"({self.name} {' '.join(map(repr, self.params))}{varparams}) [parent = {self.frame.id}]"
 
     def __str__(self):
         return f"#[{self.name}]"
@@ -110,20 +115,32 @@ class ProcedureBuilder(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, name: str = "lambda"):
         verify_min_callable_length(self, 2, len(operands))
         params = operands[0]
+        if not logger.dotted and not isinstance(params, (Pair, NilType)):
+            raise OperandDeduceError(f"Expected Pair as parameter list, received ")
         params, var_param = dotted_pair_to_list(params)
-        for param in params:
-            if not isinstance(param, Symbol):
-                raise OperandDeduceError(f"{param} is not a Symbol.")
+        for i, param in enumerate(params):
+            if (logger.dotted or i != len(params) - 1) and not isinstance(param, Symbol):
+                raise OperandDeduceError(f"Expected Symbol in parameter list, received {param}.")
+            if isinstance(param, Pair):
+                param_vals = pair_to_list(param)
+                if len(param_vals) != 2 or \
+                        not isinstance(param_vals[0], Symbol) or \
+                        not isinstance(param_vals[1], Symbol) or \
+                        param_vals[0].value != "variadic":
+                    raise OperandDeduceError(f"Each member of a parameter list must be a Symbol or a variadic "
+                                             f"parameter, not {param}.")
+                var_param = param_vals[1]
+                params.pop()
 
         return self.procedure(params, var_param, operands[1:], frame, name)
 
 
-@global_attr("lambda")
+@special_form("lambda")
 class Lambda(ProcedureBuilder):
     procedure = LambdaObject
 
 
-@global_attr("mu")
+@special_form("mu")
 class Mu(ProcedureBuilder):
     procedure = MuObject
 
@@ -132,7 +149,7 @@ class Macro(ProcedureBuilder):
     procedure = MacroObject
 
 
-@global_attr("define-macro")
+@special_form("define-macro")
 class DefineMacro(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -147,7 +164,7 @@ class DefineMacro(Callable):
         return name
 
 
-@global_attr("define")
+@special_form("define")
 class Define(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -167,7 +184,7 @@ class Define(Callable):
             raise OperandDeduceError(f"Expected a Pair, not {params}, as the first operand of define-macro.")
 
 
-@global_attr("set!")
+@special_form("set!")
 class Set(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 2, len(operands))
@@ -178,7 +195,7 @@ class Set(Callable):
         return Undefined
 
 
-@global_attr("begin")
+@special_form("begin")
 class Begin(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 1, len(operands))
@@ -188,7 +205,7 @@ class Begin(Callable):
         return out
 
 
-@global_attr("if")
+@special_form("if")
 class If(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -203,7 +220,7 @@ class If(Callable):
             return evaluate(operands[1], frame, gui_holder.expression.children[2], True)
 
 
-@global_attr("quote")
+@special_form("quote")
 class Quote(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 1, len(operands))
@@ -239,7 +256,7 @@ class Apply(Applicable):
         return func.execute(args, frame, gui_holder.expression.children[0], False)
 
 
-@global_attr("cond")
+@special_form("cond")
 class Cond(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 1, len(operands))
@@ -261,7 +278,7 @@ class Cond(Callable):
         return Undefined
 
 
-@global_attr("and")
+@special_form("and")
 class And(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         value = None
@@ -272,7 +289,7 @@ class And(Callable):
         return value if operands else SingletonTrue
 
 
-@global_attr("or")
+@special_form("or")
 class Or(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         for i, expr in enumerate(operands):
@@ -282,7 +299,7 @@ class Or(Callable):
         return SingletonFalse
 
 
-@global_attr("let")
+@special_form("let")
 class Let(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_min_callable_length(self, 2, len(operands))
@@ -320,7 +337,7 @@ class Let(Callable):
         return value
 
 
-@global_attr("quasiquote")
+@special_form("quasiquote")
 class Quasiquote(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 1, len(operands))
@@ -396,7 +413,7 @@ class Load(Applicable):
             raise LoadError(e)
 
 
-@global_attr("delay")
+@special_form("delay")
 class Delay(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 1, len(operands))
@@ -420,16 +437,19 @@ class Force(Applicable):
         gui_holder.expression.set_entries([VisualExpression(operand.expr, gui_holder.expression.display_value)])
         gui_holder.apply()
         operand.expr = evaluate(operand.expr, operand.frame, gui_holder.expression.children[0])
+        if not logger.dotted and not isinstance(operand.expr, (Pair, NilType)):
+            raise TypeMismatchError(
+                f"Unable to force a Promise evaluating to {operand.expr}, expected another Pair or Nil")
         operand.force()
         return operand.expr
 
 
-@global_attr("cons-stream")
+@special_form("cons-stream")
 class ConsStream(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
         verify_exact_callable_length(self, 2, len(operands))
         operands[0] = evaluate(operands[0], frame, gui_holder.expression.children[1])
-        return Pair(operands[0], Delay().execute(operands[1:], frame, gui_holder))
+        return Pair(operands[0], Promise(operands[1], frame))
 
 
 @global_attr("error")
