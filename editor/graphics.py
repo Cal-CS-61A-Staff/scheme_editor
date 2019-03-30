@@ -48,7 +48,7 @@ class Move:
 
 
 class Canvas:
-    SIZE = 1000
+    SIZE = 1024
 
     def __init__(self):
         self.x = None
