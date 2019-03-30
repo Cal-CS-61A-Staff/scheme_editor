@@ -115,8 +115,6 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
 
         holders.append(gui_holder)
 
-        from special_forms import MacroObject
-
         if isinstance(expr, Number) \
                 or isinstance(expr, Callable) \
                 or isinstance(expr, Boolean) \
@@ -125,10 +123,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
             ret = expr
         elif isinstance(expr, Symbol):
             gui_holder.evaluate()
-            out = frame.lookup(expr)
-            if isinstance(out, Callable) and not isinstance(out, Applicable) and not isinstance(out, MacroObject):
-                raise SymbolLookupError(f"Variable not found in current environment: '{expr.value}'")
-            ret = out
+            ret = frame.lookup(expr)
         elif isinstance(expr, Pair):
             if tail_context:
                 if log_stack:
@@ -137,13 +132,10 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
             else:
                 gui_holder.evaluate()
                 operator = expr.first
-                if isinstance(operator, Symbol) \
-                        and isinstance(frame.lookup(operator), Callable) \
-                        and not isinstance(frame.lookup(operator), Applicable) \
-                        and not isinstance(frame.lookup(operator), MacroObject):
-                    operator = frame.lookup(operator)  # we don't evaluate special forms
+                import environment
+                if isinstance(operator, Symbol) and environment.get_special_form(operator.value):
+                    operator = environment.get_special_form(operator.value)
                 else:
-                    # evaluating operator and storing it in visual_expression
                     operator = evaluate(operator, frame, visual_expression.children[0])
                 operands = pair_to_list(expr.rest)
                 out = apply(operator, operands, frame, gui_holder)
