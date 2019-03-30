@@ -90,6 +90,7 @@ function register(myLayout) {
                 states[componentState.id].heap,
                 svg,
                 states[componentState.id].index,
+                states[componentState.id].start,
                 container.getElement().find(".box-pointer-checkbox").is(":checked"),
                 !states[componentState.id].up_to_date);
             svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});

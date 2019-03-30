@@ -3,7 +3,7 @@ import {saveState, states, temp_file} from "./state_handler";
 import {open} from "./layout";
 import {make, request_update} from "./event_handler";
 import {terminable_command} from "./canceller";
-import {registerEditor, removeEditor} from "./test_results";
+import {registerEditor, removeEditor, notify_changed} from "./test_results";
 
 export {register};
 
@@ -68,7 +68,7 @@ function register(layout) {
             editor.container.style.background = "white";
             editor.focus();
 
-            saveTimer = setInterval(save, 5000);
+            saveTimer = setInterval(() => save(), 5000);
 
             states[componentState.id].editor_open = true;
 
@@ -139,7 +139,7 @@ function register(layout) {
 
         container.getElement().find(".run-btn").on("click", run);
 
-        container.getElement().find(".save-btn").on("click", save);
+        container.getElement().find(".save-btn").on("click", () => save());
 
         container.getElement().find(".reformat-btn").on("click", reformat);
 
@@ -156,15 +156,21 @@ function register(layout) {
         container.getElement().find(".test-btn").on("click", run_tests);
 
         async function save(running) {
-            if (test_case || (!running && !changed)) {
+            if (!running && !changed) {
                 return;
             }
+
+            if (test_case) {
+                states[componentState.id].file_content = editor.getValue();
+            }
+
             container.getElement().find(".save-btn > .text").text("Saving...");
 
             let code = [editor.getValue()];
             await $.post("./save", {
                 code: code,
                 filename: name,
+                do_save: !test_case,
             }).done(function (data) {
                 data = $.parseJSON(data);
                 if (data["result"] === "success") {
@@ -179,9 +185,8 @@ function register(layout) {
                         if (!states[componentState.id].up_to_date) {
                             states[componentState.id].up_to_date = true;
                             request_update();
-                        } else {
-                            states[componentState.id].up_to_date = true;
                         }
+                        states[componentState.id].up_to_date = true;
                     } else {
                         states[componentState.id].up_to_date = false;
                     }
@@ -259,8 +264,9 @@ function register(layout) {
                 data = $.parseJSON(data);
                 states[0].test_results = data;
                 await save();
+                notify_changed();
                 open("test_results", 0);
-            };
+            }
             terminable_command("test cases", ajax, done_fn);
         }
     });

@@ -2,6 +2,7 @@ import {saveState, states} from "./state_handler";
 import {make, request_update} from "./event_handler";
 import {terminable_command} from "./canceller";
 import {open} from "./layout";
+import {go_to_end} from "./navigation";
 
 export {register};
 
@@ -127,7 +128,6 @@ function register(myLayout) {
                 ++i;
                 history.push("");
                 let displayVal = val.replace(/\n/g, "\n.... ");
-                val = val.replace(/\n/g, "");
                 states[componentState.id].out += "\nscm> " + displayVal;
                 request_update();
                 function run_done(data) {
@@ -148,6 +148,7 @@ function register(myLayout) {
                         states[componentState.id].frameUpdates.push(...data.frameUpdates);
                         states[componentState.id].moves = data.graphics;
                     }
+                    go_to_end(componentState.id);
                     request_update();
                     saveState(true);
                 }

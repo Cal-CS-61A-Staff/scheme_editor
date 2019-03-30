@@ -5,13 +5,13 @@ import lexer as lexer
 from format_parser import get_expression, Formatted, FormatAtom, FormatList
 
 LINE_LENGTH = 80
-MAX_EXPR_COUNT = 5
+MAX_EXPR_COUNT = 10
 MAX_EXPR_LEN = 50
 INDENT = 4
 
 DEFINE_VALS = ["define", "define-macro"]
 DECLARE_VALS = ["lambda", "mu"]
-SHORTHAND = {"quote": "'", "quasiquote": "`", "unquote": ",", "unquote-splicing": ",@"}
+SHORTHAND = {"quote": "'", "quasiquote": "`", "unquote": ",", "unquote-splicing": ",@", "variadic": "."}
 MULTILINE_VALS = ["let", "cond"]
 
 FREE_TOKENS = ["if", "define", "define-macro", "mu", "lambda"]
@@ -33,7 +33,7 @@ def prettify(strings: List[str]) -> str:
 @lru_cache(CACHE_SIZE)
 def prettify_single(string: str) -> List[str]:
     out = []
-    buff = lexer.TokenBuffer([string])
+    buff = lexer.TokenBuffer([string], True)
     while not buff.done:
         expr = get_expression(buff)
         out.append(prettify_expr(expr, LINE_LENGTH)[0])
@@ -62,10 +62,7 @@ def verify(out: str, remaining: int) -> Tuple[str, bool]:
     expr_count = max(sum(to_count(y) for y in x.split()) for x in out.split("\n"))
 
     expr_length = expr_count <= MAX_EXPR_COUNT
-    print(out)
-    print(expr_length)
 
-    print(total_length and expr_length)
     return out, total_length and expr_length
 
 
@@ -91,8 +88,6 @@ def log(message: str):
 
 
 def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
-    print(inline_format(expr))
-
     if isinstance(expr, FormatAtom):
         if len(expr.comments) <= 1:
             return verify(inline_format(expr) + make_comments(expr.comments, len(expr.value), False), remaining)
