@@ -113,7 +113,7 @@ class SetCdr(BuiltIn):
             if not isinstance(pair, Pair):
                 raise OperandDeduceError(f"set-cdr! expected a Pair, received {pair}.")
             if not isinstance(val, (Pair, NilType)):
-                raise OperandDeduceError(f"Unable to assign {val} to cdr, expected a Pair, Nil, or Promise")
+                raise OperandDeduceError(f"Unable to assign {val} to cdr, expected a Pair, Nil, or Promise.")
             pair.rest = val
             log.logger.raw_out("WARNING: Mutation operations on pairs are not yet supported by the debugger.")
             return Undefined
