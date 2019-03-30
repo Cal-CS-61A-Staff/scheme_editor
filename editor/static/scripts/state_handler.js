@@ -29,7 +29,7 @@ let base_state = {
     tests_open: false,
 
     active_code: "",
-    up_to_date: true,
+    up_to_date: false,
 
     test_results: undefined,
 
