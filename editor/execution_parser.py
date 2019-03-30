@@ -3,6 +3,7 @@ from typing import Union
 from datamodel import Expression, Symbol, Number, Nil, SingletonTrue, SingletonFalse, String
 from helper import make_list
 from lexer import TokenBuffer, SPECIALS
+from log import logger
 from scheme_exceptions import ParseError
 
 
@@ -47,23 +48,27 @@ def get_expression(buffer: TokenBuffer) -> Union[Expression, None]:
     token = buffer.pop_next_token()
     if token is None:
         return None
-    if token in SPECIALS:
-        if token == "(":
-            return get_rest_of_list(buffer)
-        elif token == "'":
-            return make_list([Symbol("quote"), get_expression(buffer)])
-        elif token == ",":
-            if buffer.get_next_token() == "@":
-                buffer.pop_next_token()
-                return make_list([Symbol("unquote-splicing"), get_expression(buffer)])
-            else:
-                return make_list([Symbol("unquote"), get_expression(buffer)])
-        elif token == "`":
-            return make_list([Symbol("quasiquote"), get_expression(buffer)])
-        elif token == "\"":
-            return get_string(buffer)
+    elif token == "(":
+        return get_rest_of_list(buffer)
+    elif token == "'":
+        return make_list([Symbol("quote"), get_expression(buffer)])
+    elif token == ",":
+        if buffer.get_next_token() == "@":
+            buffer.pop_next_token()
+            return make_list([Symbol("unquote-splicing"), get_expression(buffer)])
         else:
+            return make_list([Symbol("unquote"), get_expression(buffer)])
+    elif token == "`":
+        return make_list([Symbol("quasiquote"), get_expression(buffer)])
+    elif token == ".":
+        if logger.dotted:
             raise ParseError(f"Unexpected token: '{token}'")
+        else:
+            return make_list([Symbol("variadic"), get_expression(buffer)])
+    elif token == "\"":
+        return get_string(buffer)
+    elif token in SPECIALS:
+        raise ParseError(f"Unexpected token: '{token}'")
     elif is_number(token.value):
         try:
             return Number(int(token.value))
@@ -109,7 +114,7 @@ def get_rest_of_list(buffer: TokenBuffer) -> Expression:
         if next == ")":
             buffer.pop_next_token()
             break
-        elif next == ".":
+        elif logger.dotted and next == ".":
             buffer.pop_next_token()
             last = get_expression(buffer)
             if buffer.pop_next_token() != ")":

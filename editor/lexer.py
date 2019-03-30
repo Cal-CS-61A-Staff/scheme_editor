@@ -2,7 +2,7 @@ from typing import Union, List
 
 from scheme_exceptions import ParseError
 
-SPECIALS = ["(", ")", ".", "'", "`", ",", "@", "\"", ";"]
+SPECIALS = ["(", ")", "'", "`", ",", "@", "\"", ";"]
 
 
 class Token:
@@ -76,8 +76,7 @@ def tokenize(string) -> List[Token]:
 
         else:
             curr = ""
-            while i != len(string) and not string[i].isspace() \
-                    and (string[i] == "." or string[i] not in SPECIALS):
+            while i != len(string) and not string[i].isspace() and string[i] not in SPECIALS:
                 curr += string[i]
                 i += 1
             if curr:
