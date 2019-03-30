@@ -9,7 +9,8 @@ from helper import pair_to_list, verify_exact_callable_length, verify_min_callab
     make_list, dotted_pair_to_list
 from lexer import TokenBuffer
 from log import Holder, VisualExpression, return_symbol, logger
-from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError, SchemeError, TypeMismatchError
+from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError, SchemeError, TypeMismatchError, \
+    CallableResolutionError
 
 
 class ProcedureObject(Callable):
@@ -335,6 +336,18 @@ class Let(Callable):
 
         new_frame.assign(return_symbol, value)
         return value
+
+
+@special_form("variadic")
+class Variadic(Callable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+        raise CallableResolutionError("Variadic type parameter must be within a parameter list.")
+
+
+@special_form("unquote")
+class Unquote(Callable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+        raise CallableResolutionError("Cannot evaluate unquote outside quasiquote.")
 
 
 @special_form("quasiquote")
