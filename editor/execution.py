@@ -6,7 +6,7 @@ from log import Holder, Root
 from execution_parser import get_expression
 from lexer import TokenBuffer
 from runtime_limiter import TimeLimitException
-from scheme_exceptions import SchemeError
+from scheme_exceptions import SchemeError, ParseError
 
 MAX_TRACEBACK_LENGTH = 20
 
@@ -46,6 +46,8 @@ def string_exec(strings, out, global_frame=None):
                     log.logger.raw_out("AUTODRAW" +
                                        json.dumps([log.logger.i, log.logger.heap.record(res)]) + "\n")
         except (SchemeError, ZeroDivisionError, RecursionError, ValueError) as e:
+            if isinstance(e, ParseError):
+                raise
             if not log.logger.fragile:
                 log.logger.raw_out("Traceback (most recent call last)\n")
                 for j, expr in enumerate(log.logger.eval_stack[:MAX_TRACEBACK_LENGTH - 1]):
