@@ -1,6 +1,7 @@
 import {saveState, states} from "./state_handler";
 import {make, request_update} from "./event_handler";
 import {terminable_command} from "./canceller";
+import {display_elem} from "./env_diagram_worker";
 import {go_to_end} from "./navigation";
 
 export {register};
@@ -16,10 +17,44 @@ let entityMap = {
     '=': '&#x3D;'
 };
 
+let FUNCTIONS = new Map();
+
 function escapeHtml(string) {
   return String(string).replace(/[&<>"'`=\/]/g, function (s) {
     return entityMap[s];
   });
+}
+
+FUNCTIONS.set("AUTODRAW", (i, id, outputDiv, componentState) => {
+    if (componentState.autoDraw) {
+        drawPair(i, id, outputDiv, componentState);
+    }
+});
+
+FUNCTIONS.set("DRAW", drawPair);
+
+FUNCTIONS.set("ENABLE_AUTODRAW", (outputDiv, componentState) => {
+    componentState.autoDraw = true;
+});
+
+FUNCTIONS.set("DISABLE_AUTODRAW", (outputDiv, componentState) => {
+    componentState.autoDraw = false;
+});
+
+
+function drawPair(i, id, outputDiv, componentState) {
+    let rawSVG = document.createElement("svg");
+    let svg = SVG(rawSVG);
+    outputDiv.append(rawSVG);
+    display_elem(0, 10,
+        id,
+        states[componentState.id].heap,
+        svg,
+        0,
+        new Map(),
+        i,
+    );
+    rawSVG.children[0].setAttribute("height", svg.bbox().h + 20);
 }
 
 function register(myLayout) {
@@ -48,9 +83,32 @@ function register(myLayout) {
         let history = [""];
         let i = 0;
 
+        function updatePreview() {
+              container.getElement().find(".preview").html("<i>" + escapeHtml(preview) + "</i>");
+        }
+
         myLayout.eventHub.on("update", function () {
             container.getElement().find(".output").html(escapeHtml(states[componentState.id].out.trim()));
-            container.getElement().find(".preview").html("<i>" + escapeHtml(preview) + "</i>");
+            let output = states[componentState.id].out.trim().split("\n");
+            let outputDiv = container.getElement().find(".output");
+            outputDiv.html("");
+            componentState.autoDraw = false;
+            for (let line of output) {
+                let ok = false;
+                for (let key of FUNCTIONS.keys()) {
+                    if (line.startsWith(key)) {
+                        let decoded = $.parseJSON(line.slice(key.length));
+                        FUNCTIONS.get(key)(...decoded, outputDiv, componentState);
+                        ok = true;
+                        break;
+                    }
+                }
+                if (!ok) {
+                    outputDiv.append(escapeHtml(line + "\n"));
+                }
+            }
+
+            updatePreview();
             container.getElement().find(".output-wrapper").scrollTop(
             container.getElement().find(".output-wrapper")[0].scrollHeight);
         });
@@ -99,7 +157,7 @@ function register(myLayout) {
                     }).done(function (data) {
                         preview = "";
                         if (!data) {
-                            request_update();
+                            updatePreview();
                         }
                         data = $.parseJSON(data);
                         if (data.success) {
@@ -107,7 +165,7 @@ function register(myLayout) {
                         } else {
                             preview = "";
                         }
-                        request_update();
+                        updatePreview();
                     })
                 }
             });
@@ -199,5 +257,9 @@ function register(myLayout) {
                 },
             });
         });
+
+        container.on("shown", function () {
+            request_update();
+        })
     });
 }
