@@ -91,6 +91,9 @@ function open(type, index) {
         pos = "row";
         friends = [];
         targetWidth = 50;
+        if (containers["test_results"].has(0)) {
+                containers["test_results"].get(0).close();
+        }
     } else {
         // output, visualizations
         pos = "column";
