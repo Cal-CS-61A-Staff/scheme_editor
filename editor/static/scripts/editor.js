@@ -100,10 +100,7 @@ function register(layout) {
             });
         });
 
-        container.getElement().on("update", function (e) {
-            if (e.target !== e.currentTarget) {
-                return;
-            }
+        layout.eventHub.on("update",() => {
             if (states[componentState.id].environments.length === 0) {
                 // program has never been run
                 container.getElement().find(".env-btn")//.prop("disabled", true)

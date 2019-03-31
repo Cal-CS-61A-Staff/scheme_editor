@@ -50,7 +50,7 @@ function register(myLayout) {
         let history = [""];
         let i = 0;
 
-        container.getElement().find(".output").on("update", function () {
+        myLayout.eventHub.on("update", function () {
             container.getElement().find(".output").html(escapeHtml(states[componentState.id].out.trim()));
             container.getElement().find(".preview").html("<i>" + escapeHtml(preview) + "</i>");
             container.getElement().find(".output-wrapper").scrollTop(

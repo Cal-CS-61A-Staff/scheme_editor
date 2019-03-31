@@ -72,15 +72,10 @@ function register(myLayout) {
 
         let rawSVG = container.getElement().find(".tree > svg").get(0);
         let svg = SVG.adopt(rawSVG).size(container.width, container.height);
-        console.log("adopted");
 
         let ready = false;
 
-        container.getElement().on("update", async (e) => {
-            if (e.target !== e.currentTarget) {
-                return;
-            }
-
+        myLayout.eventHub.on("update", async () => {
             let zoom;
             let pan;
 
