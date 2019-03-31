@@ -169,7 +169,13 @@ class Handler(server.BaseHTTPRequestHandler):
         elif path == "/save_state":
             global state
             for key, val in json.loads(data[b"state"][0]).items():
-                state[key] = val
+                if key == "states":
+                    if "states" not in state:
+                        state["states"] = val
+                    else:
+                        merge(state["states"], val)
+                else:
+                    state[key] = val
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
@@ -217,6 +223,15 @@ class Handler(server.BaseHTTPRequestHandler):
 
     def log_message(self, *args, **kwargs):
         pass
+
+
+def merge(states, new_states):
+    for i, new_state in enumerate(new_states):
+        if i == len(states):
+            states.append(new_state)
+        else:
+            for key, val in new_state.items():
+                states[i][key] = val
 
 
 def handle(code, curr_i, curr_f, global_frame_id):

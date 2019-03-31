@@ -1,4 +1,4 @@
-import {states} from "./state_handler";
+import {saveState, states} from "./state_handler";
 import {request_update} from "./event_handler";
 import {get_i} from "./substitution_tree_worker";
 
@@ -58,7 +58,7 @@ function next_expr(i) {
     states[i].start = states[i].states[states[i].expr_i][0];
     states[i].end = states[i].states[states[i].expr_i][1];
     states[i].index = states[i].start;
-    // state_handler.saveState();
+    saveState();
     request_update();
 }
 
@@ -67,7 +67,7 @@ function prev_expr(i) {
     states[i].start = states[i].states[states[i].expr_i][0];
     states[i].end = states[i].states[states[i].expr_i][1];
     states[i].index = states[i].start;
-    // state_handler.saveState();
+    saveState();
     request_update();
 }
 
@@ -78,7 +78,7 @@ function next_i(i) {
     } else {
         states[i].index = Math.min(states[i].index, states[i].end - 1);
     }
-    // state_handler.saveState();
+    saveState();
     request_update();
 }
 
@@ -90,7 +90,7 @@ function prev_i(i) {
     } else {
         states[i].index = Math.max(states[i].index, states[i].start);
     }
-    // state_handler.saveState();
+    saveState();
     request_update();
 }
 
