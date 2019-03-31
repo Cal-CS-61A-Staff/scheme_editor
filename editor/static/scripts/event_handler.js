@@ -1,8 +1,8 @@
 import {notify_close, notify_open, open_prop} from "./layout";
 import {saveState, states, temp_file} from "./state_handler";
-import {register_cancel_button, terminable_command} from "./canceller";
+import {register_cancel_button} from "./canceller";
 
-export {request_update, make, begin_slow, end_slow, init_complete}
+export {request_update, make, begin_slow, end_slow, init_complete, register}
 
 const type_title = {
     "env_diagram": "Environments",
@@ -11,8 +11,14 @@ const type_title = {
     "test_results": "Test Results"
 };
 
+let layout;
+
+function register(inp_layout) {
+    layout = inp_layout;
+}
+
 function request_update() {
-    $("*").trigger("update");
+    layout.eventHub.emit("update");
 }
 
 function make(container, type, id) {
@@ -72,10 +78,7 @@ function make(container, type, id) {
         setTimeout(saveState, 0);
     });
 
-    container.getElement().on("update", (e) => {
-        if (e.target !== e.currentTarget) {
-            return;
-        }
+    layout.eventHub.on("update", (e) => {
         if (states[id].up_to_date) {
             container.getElement().find(".output-warning").hide();
         } else {
