@@ -47,6 +47,7 @@ def string_exec(strings, out, global_frame=None):
                                        json.dumps([log.logger.i, log.logger.heap.record(res)]) + "\n")
         except (SchemeError, ZeroDivisionError, RecursionError, ValueError) as e:
             if isinstance(e, ParseError):
+                log.logger.new_expr()
                 raise
             if not log.logger.fragile:
                 log.logger.raw_out("Traceback (most recent call last)\n")
