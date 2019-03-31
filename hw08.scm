@@ -1,7 +1,8 @@
 (define (reverse lst)
   (if (null? lst)
       nil
-      (append (reverse (cdr lst)) (list (car lst)))))
+      (append (reverse (cdr lst))
+              (list (car lst)))))
 
 (define (longest-increasing-subsequence lst)
   (define (helper lst prev)
@@ -11,10 +12,12 @@
      ((<= (car lst) prev)
       (helper (cdr lst) prev))
      (else
-      (let ((yes
-             (cons (car lst) (helper (cdr lst) (car lst))))
+      (let ((yes (cons (car lst)
+                       (helper (cdr lst) (car lst))))
             (no (helper (cdr lst) prev)))
-        (if (> (length yes) (length no)) yes no)))))
+        (if (> (length yes) (length no))
+            yes
+            no)))))
   (helper lst -1))
 
 (define (cadr s) (car (cdr s)))
@@ -38,14 +41,18 @@
     'Error)))
 
 ; Variables are represented as symbols
-(define (variable? x) (symbol? x))
+(define (variable? x)
+  (symbol? x))
 
 (define (same-variable? v1 v2)
-  (and (variable? v1) (variable? v2) (eq? v1 v2)))
+  (and (variable? v1)
+       (variable? v2)
+       (eq? v1 v2)))
 
 ; Numbers are compared with =
 (define (=number? expr num)
-  (and (number? expr) (= expr num)))
+  (and (number? expr)
+       (= expr num)))
 
 ; Sums are represented as lists that start with +.
 (define (make-sum a1 a2)
@@ -59,7 +66,9 @@
    (else
     (list '+ a1 a2))))
 
-(define (sum? x) (and (list? x) (eq? (car x) '+)))
+(define (sum? x)
+  (and (list? x)
+       (eq? (car x) '+)))
 
 (define (addend s) (cadr s))
 
@@ -80,7 +89,8 @@
     (list '* m1 m2))))
 
 (define (product? x)
-  (and (list? x) (eq? (car x) '*)))
+  (and (list? x)
+       (eq? (car x) '*)))
 
 (define (multiplier p) (cadr p))
 
@@ -93,8 +103,9 @@
 (define (derive-product expr var)
   (let ((left (multiplier expr))
         (right (multiplicand expr)))
-    (make-sum (make-product (derive left var) right)
-              (make-product left (derive right var)))))
+    (make-sum
+     (make-product (derive left var) right)
+     (make-product left (derive right var)))))
 
 ; Exponentiations are represented as lists that start with ^.
 (define (make-exp base exponent)
@@ -102,17 +113,20 @@
    (and (number? base) (number? exponent))
    (if (= exponent 0)
        1
-       (* base (make-exp base (- exponent 1))))
+       (* base
+          (make-exp base (- exponent 1))))
    (if (eq? exponent 1)
        base
        (if (eq? exponent 0) 1 `(^ ,base ,exponent)))))
 
 (define (base exp) (car (cdr exp)))
 
-(define (exponent exp) (car (cdr (cdr exp))))
+(define (exponent exp)
+  (car (cdr (cdr exp))))
 
 (define (exp? exp)
-  (and (= (length exp) 3) (eq? (car exp) '^)))
+  (and (= (length exp) 3)
+       (eq? (car exp) '^)))
 
 (define x^2 (make-exp 'x 2))
 
