@@ -73,7 +73,7 @@ function register(myLayout) {
 
         let ready = false;
 
-        container.getElement().find(".envs").on("update", function () {
+        myLayout.eventHub.on("update", function () {
             let zoom;
             let pan;
 

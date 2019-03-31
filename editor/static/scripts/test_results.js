@@ -25,7 +25,7 @@ function register(myLayout) {
         if (componentState.id !== 0) {
             alert("Something went wrong with the okpy frontend. Try running the testcases from the console, and let the maintainer of this tool know what happened.")
         }
-        container.getElement().on("update", function () {
+        myLayout.eventHub.on("update", function () {
             let data = states[0].test_results;
             container.getElement().html(`<div id="accordion"> </div>`);
             let expanded = false;

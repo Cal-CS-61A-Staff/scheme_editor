@@ -1,9 +1,8 @@
 import {charWidth, charHeight} from "./measure";
 import {hide_return_frames} from "./settings";
 import {get_curr_frame} from "./navigation";
-import {states} from "./state_handler";
 
-export {display_env_pointers};
+export {display_env_pointers, display_elem};
 
 function display_env_pointers(environments, heap, container, i, start_i, pointers, vert_offset) {
     container.clear();
@@ -155,7 +154,7 @@ function display_elem(x, y, id, all_data, container, depth, cache, index, x1 = f
             if (index >= data[1][0]) {
                 data = [data[1][1]];
             } else {
-                data = [[false, "..."]];
+                data = [[false, "···"]];
             }
         }
         if (!x1) {
