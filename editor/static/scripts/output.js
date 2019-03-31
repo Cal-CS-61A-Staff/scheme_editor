@@ -84,10 +84,11 @@ function register(myLayout) {
         let i = 0;
 
         function updatePreview() {
-            container.getElement().find(".preview").html("<i>" + escapeHtml(preview) + "</i>");
+              container.getElement().find(".preview").html("<i>" + escapeHtml(preview) + "</i>");
         }
 
-        container.getElement().find(".output").on("update", function () {
+        myLayout.eventHub.on("update", function () {
+            container.getElement().find(".output").html(escapeHtml(states[componentState.id].out.trim()));
             let output = states[componentState.id].out.trim().split("\n");
             let outputDiv = container.getElement().find(".output");
             outputDiv.html("");
