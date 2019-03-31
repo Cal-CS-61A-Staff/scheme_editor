@@ -204,8 +204,7 @@ function register(myLayout) {
                         states[componentState.id].moves = data.graphics;
 
                         if (data.graphics_open) {
-                            setTimeout(() =>
-                                open("turtle_graphics", componentState.id), 0);
+                            open("turtle_graphics", componentState.id);
                         }
                     }
                     go_to_end(componentState.id);
