@@ -14,7 +14,10 @@ MAX_TRACEBACK_LENGTH = 20
 def string_exec(strings, out, global_frame=None):
     import log
 
+    empty = False
+
     if global_frame is None:
+        empty = True
         from environment import build_global_frame
         log.logger.f_delta -= 1
         global_frame = build_global_frame()
@@ -26,8 +29,6 @@ def string_exec(strings, out, global_frame=None):
     log.logger.roots = []
     log.logger.frame_updates = []
     log.logger._out = []
-
-    empty = True
 
     for i, string in enumerate(strings):
         try:
