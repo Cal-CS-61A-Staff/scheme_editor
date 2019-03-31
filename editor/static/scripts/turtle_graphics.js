@@ -25,7 +25,7 @@ function register(myLayout) {
 
         let ready = false;
 
-        container.getElement().find(".drawing").on("update", function () {
+        myLayout.eventHub.on("update", function () {
             let zoom;
             let pan;
 
