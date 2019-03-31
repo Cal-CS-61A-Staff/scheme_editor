@@ -55,18 +55,11 @@ function register(myLayout) {
             let pan;
 
             if (ready) {
-                zoom = svgPanZoom(rawSVG).getZoom();
-                pan = svgPanZoom(rawSVG).getPan();
                 svgPanZoom(rawSVG).destroy();
             }
             svg.size(container.width, container.height);
             svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: true, controlIconsEnabled: true});
-            if (isNaN(zoom)) {
-                svgPanZoom(rawSVG).reset();
-            } else {
-                svgPanZoom(rawSVG).zoom(zoom);
-                svgPanZoom(rawSVG).pan(pan);
-            }
+            svgPanZoom(rawSVG).reset();
 
             ready = true;
         });
