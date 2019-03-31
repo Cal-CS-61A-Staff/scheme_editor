@@ -51,9 +51,6 @@ function register(myLayout) {
         });
 
         container.on("resize", function () {
-            let zoom;
-            let pan;
-
             if (ready) {
                 svgPanZoom(rawSVG).destroy();
             }
