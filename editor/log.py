@@ -147,6 +147,7 @@ class Logger:
         self.heap: Heap = Heap()  # heap of all non-atomic objects
 
         self.graphics_lookup = {}
+        self.graphics_open = False
 
         self.op_count = 0
 
@@ -172,8 +173,10 @@ class Logger:
         self.frame_updates = []
         self.global_frame = global_frame
         self.op_count = 0
+        self.graphics_open = False
 
     def get_canvas(self) -> 'graphics.Canvas':
+        self.graphics_open = True
         return self.graphics_lookup[id(self.global_frame.base)]
 
     def preview_mode(self, val):
@@ -193,6 +196,7 @@ class Logger:
             "active_frames": [id(f.base) for f in self.active_frames],
             "frame_lookup": {id(f.base): self.frame_lookup[id(f.base)].export()
                              for f in [self.global_frame] + self.active_frames},
+            "graphics_open": self.graphics_open,
             "graphics": self.get_canvas().export(),
             "globalFrameID": id(self.active_frames[0].base) if self.active_frames else -1,
             "heap": self.heap.export(),

@@ -223,6 +223,9 @@ function register(layout) {
                 await save(true);
 
                 open("output", componentState.id);
+                if (data.graphics_open) {
+                    open("turtle_graphics", componentState.id);
+                }
                 // noinspection JSIgnoredPromiseFromCall
                 saveState(true);
                 $("*").trigger("reset");

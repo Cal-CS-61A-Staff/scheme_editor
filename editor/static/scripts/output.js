@@ -75,9 +75,6 @@ function register(myLayout) {
 
         make(container, "output", componentState.id);
 
-        // TODO: REMOVE THIS
-        setTimeout(() => open("turtle_graphics", componentState.id), 0);
-
         let preview = "";
         let editorDiv;
         let editor;
@@ -205,6 +202,11 @@ function register(myLayout) {
                         $.extend(states[componentState.id].heap, data.heap);
                         states[componentState.id].frameUpdates.push(...data.frameUpdates);
                         states[componentState.id].moves = data.graphics;
+
+                        if (data.graphics_open) {
+                            setTimeout(() =>
+                                open("turtle_graphics", componentState.id), 0);
+                        }
                     }
                     go_to_end(componentState.id);
                     request_update();

@@ -20,7 +20,7 @@ let base_state = {
     roots: ["demo"],
 
     globalFrameID: -1,
-
+    
     editor_open: false,
     sub_open: false,
     env_open: false,
