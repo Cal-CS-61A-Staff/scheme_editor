@@ -60,7 +60,7 @@ function register(myLayout) {
                 svgPanZoom(rawSVG).destroy();
             }
             svg.size(container.width, container.height);
-            svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: false, controlIconsEnabled: true});
+            svgPanZoom(rawSVG, {fit: false, zoomEnabled: true, center: true, controlIconsEnabled: true});
             if (isNaN(zoom)) {
                 svgPanZoom(rawSVG).reset();
             } else {
