@@ -50,6 +50,7 @@ class SchemeTestCase(TestCase):
         try:
             if reset:
                 log.logger = log.Logger()
+                log.logger.autodraw = False
                 log.announce = log.logger.log
             if global_frame is not None:
                 log.logger.new_query(log.logger.frame_lookup[id(global_frame)])
