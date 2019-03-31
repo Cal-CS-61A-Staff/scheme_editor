@@ -91,6 +91,7 @@ function register(myLayout) {
             if (editorDiv) {
                 if (states[componentState.id].globalFrameID === -1) {
                     $(editorDiv).hide();
+                    editor.setValue("");
                 } else {
                     $(editorDiv).show();
                 }

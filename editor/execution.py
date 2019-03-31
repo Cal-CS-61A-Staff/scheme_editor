@@ -27,6 +27,8 @@ def string_exec(strings, out, global_frame=None):
     log.logger.frame_updates = []
     log.logger._out = []
 
+    empty = True
+
     for i, string in enumerate(strings):
         try:
             if not string.strip():
@@ -36,6 +38,7 @@ def string_exec(strings, out, global_frame=None):
                 expr = get_expression(buff)
                 if expr is None:
                     continue
+                empty = False
                 log.logger.new_expr()
                 holder = Holder(expr, None)
                 Root.setroot(holder)
@@ -64,3 +67,7 @@ def string_exec(strings, out, global_frame=None):
             if not log.logger.fragile:
                 log.logger.out("Time limit exceeded.")
         log.logger.new_expr()
+
+    if empty:
+        log.logger.new_expr()
+        raise ParseError("File is empty")
