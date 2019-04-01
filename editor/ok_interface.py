@@ -10,6 +10,12 @@ from scheme_exceptions import TerminatedError
 newdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/ok"
 sys.path.append(newdir)
 
+newdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/tests"
+sys.path.append(newdir)
+
+newdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(newdir)
+
 # CODE TAKEN FROM OK-CLIENT : https://github.com/okpy/ok-client/blob/master/client/cli/ok.py
 
 FAILURE_SETUP_HEADER = '''; There was an error in running the setup code (probably in loading your file)
@@ -205,7 +211,16 @@ def process_case(case):
     return TestCaseResult(interpret_success_overall, interpret_out_overall, process(setup_out, True))
 
 
+def reload_tests():
+    print("\n".join(sys.modules))
+    for testname in filter(lambda x: x.lower().endswith(".py"), os.listdir(os.curdir + "/tests")):
+        testname = "tests." + testname[:-3]
+        if testname in sys.modules:
+            del sys.modules[testname]
+
+
 def run_tests():
+    reload_tests()
     LOGGING_FORMAT = '%(levelname)s  | %(filename)s:%(lineno)d | %(message)s'
     logging.basicConfig(format=LOGGING_FORMAT)
     log = logging.getLogger('client')  # Get top-level logger
