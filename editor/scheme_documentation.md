@@ -14,9 +14,6 @@ returns the corresponding value if it exists. If it doesn't, it repeats this
 process on each subsequent parent frame, until either the symbol is found, or
 there are no more parent frames to check.
 
-### Atomic Expressions
-## Overview and Terminology
-
 ### Expressions and Environments
 
 Scheme works by evaluating **expressions** in **environments**. Every expression
