@@ -71,4 +71,7 @@ def string_exec(strings, out, global_frame=None):
 
     if empty:
         log.logger.new_expr()
-        raise ParseError("File is empty")
+        holder = Holder(Undefined, None)
+        Root.setroot(holder)
+        evaluate(Undefined, global_frame, holder)
+        log.logger.new_expr()
