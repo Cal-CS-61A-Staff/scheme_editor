@@ -1,19 +1,4 @@
 ## Overview and Terminology
-
-### Expressions and Environments
-
-Scheme works by evaluating **expressions** in **environments**. Every expression
-evaluates to a **value**. Some expressions are **self-evaluating**, which means
-they are both an expression and a value, and that it evaluates to itself.
-
-A **frame** is a mapping from symbols (names) to values, as well as an optional
-parent frame. The current environment refers to the current frame, as well as a
-chain of parent frames up to the **global frame** (which has no parent). When
-looking up a symbol in an environment, Scheme first checks the current frame and
-returns the corresponding value if it exists. If it doesn't, it repeats this
-process on each subsequent parent frame, until either the symbol is found, or
-there are no more parent frames to check.
-
 ### Expressions and Environments
 
 Scheme works by evaluating **expressions** in **environments**. Every expression
