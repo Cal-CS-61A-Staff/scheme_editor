@@ -1,5 +1,4 @@
 ## Overview and Terminology
-
 ### Expressions and Environments
 
 Scheme works by evaluating **expressions** in **environments**. Every expression
@@ -132,25 +131,25 @@ string. Additional string manipulation can be done through JS interop.
 ### Pairs and Lists
 
 Pairs are a built-in data structure consisting of two fields, a `car` and a
-`cdr` (also sometimes called first and second, or first and rest). Each of these
-two fields can contain any Scheme data type, including another pair. Pairs can
-be constructed by passing the values for the two fields as arguments to `cons`.
+`cdr` (also sometimes called first and second, or first and rest). The first
+value can contain any scheme datatype. However, the second value must contain
+nil, a pair, or a stream promise.
 
 `nil` is a special value in Scheme which represents the empty list. It can be
 inputted by typing `nil` or `()` into the interpreter.
 
-A **list** is defined as either `nil` or a pair whose `cdr` is another list. This
-may also be referred to as a **well-formed list**.
+A **list** is defined as either `nil` or a pair whose `cdr` is another list.
+Pairs are displayed as a parenthesized, space separated, sequence of the elements
+in the sequence they represent. For example, `(cons (cons 1 nil) (cons 1 nil))`
+is displayed as `((1) 2)`. Note that this means that `cons` is asymmetric.
 
-Pairs are displayed in the form `(a . b)` where `a` is the `car` and `b` is the
-`cdr`. If `b` is `nil`, it will be omitted along with the preceding dot, so a
-pair constructed as `(cons 1 nil)` would be displayed as `(1)`. If `b` is
-another pair, the dot preceding `b` and the parentheses wrapping around it are
-omitted, so a list constructed as `(cons 1 (cons 2 nil))` would be displayed as
-`(1 2)`. This works even for non-list pair structures: `(cons 1 (cons 2 3))` is
-displayed as `(1 2 . 3)`.
+> There is one exception to the above rule in the case of streams. Streams are
+> represented as the `car` of the stream, followed by a dot, followed by the
+> promise that makes up its cdr. For example
+    scm> (cons-stream 1 nil)
+    (1 . #[promise (not forced)])
 
-Pair/list literals can be constructed through the quote special form, so
+List literals can be constructed through the quote special form, so
 `(cons 1 (cons 'a nil))` and `'(1 a)` are equivalent.
 
 ### Procedures
@@ -206,6 +205,40 @@ built-in. The expression of a promise will only ever be evaluated once. The
 first call of `force` will store the result, which will be immediately returned
 on subsequent calls of `force` on the same promise.
 
+A promise must contain a pair or nil since it is used as the `cdr` of a stream. If
+it is found to contain something else when forced, `force` will error. If `force`
+errors for any reason, the promise remains unforced.
+
+For example
+
+    scm> (define p (delay (begin (print "hi") (/ 1 0))))
+    p
+    scm> p
+    #[promise (unforced)]
+    scm> (force p)
+    hi
+    Error
+    scm> p
+    #[promise (unforced)]
+    scm> (force p)
+    hi
+    Error
+
+Or, for an example with type errors:
+
+    scm> (define p (delay (begin (print "hi") 2)))
+    p
+    scm> p
+    #[promise (unforced)]
+    scm> (force p)
+    hi
+    Error
+    scm> p
+    #[promise (unforced)]
+    scm> (force p)
+    hi
+    Error
+
 Promises are used to define **streams**, which are to lists what promises are to
 regular values. A stream is defined as a pair where the cdr is a promise that
 evaluates to another stream or `nil`. The `cons-stream` special form and the
@@ -243,14 +276,54 @@ environment. `<name>` must be a valid Scheme symbol.
 Constructs a new lambda procedure with `param`s as its parameters and the `body`
 expressions as its body and binds it to `name` in the current environment.
 `name` must be a valid Scheme symbol. Each `param` must be a unique valid Scheme
-symbol. At the staff level and above, `(<name> [param] ...)` can be dotted, with
-a variable number of excess arguments bound as a list to the symbol after the
-dot. This shortcut is equivalent to:
+symbol. This shortcut is equivalent to:
 
     (define <name> (lambda ([param] ...) <body> ...))
 
 However, some interpreters may give lambdas created using the shortcut an
 intrinsic name of `name` for the purpose of visualization or debugging.
+
+In either case, the return value is the symbol `<name>`.
+
+    scm> (define x 2)
+    x
+    scm> (define (f x) x)
+    f
+
+#### Variadic functions
+
+In staff implementations of the scheme language, you can define a function that takes a variable number of arguments by using the `variadic` special form. The construct `variadic` constructs a "variadic symbol" that is bound to multiple rather than a single variable. This is only allowed at the end of an arguments list
+
+    scm> (define (f x (variadic y)) (append y (list x)))
+    f
+    scm> (f 1 2 3)
+    (2 3 1)
+    scm> (define (f (variadic y) x) (append y (list x)))
+    Error
+
+This is also possible in lambdas:
+
+    scm> (define f (lambda (x (variadic y)) (append y (list x))))
+    f
+    scm> (f 1 2 3)
+    (2 3 1)
+    scm> (define my-list (lambda ((variadic x)) x))
+    my-list
+    scm> (my-list 2 3 4)
+    (2 3 4)
+
+You can use the special symbol `.` to construct the `variadic` special form:
+
+    scm> (define (f x . y) (append y (list x)))
+    f
+    scm> (f 1 2 3)
+    (2 3 1)
+    scm> '. x
+    (variadic x)
+
+This is analogous to `,` for `unquote`.
+
+> Note: this is pretty much the same as `*args` in python, except that you can't call a function using `variadic`, you instead have to use the `#[apply]` built-in function.
 
 ### **`if`**
 
@@ -356,6 +429,8 @@ Evaluates `expression` and binds the result to `name` in the first frame it can
 be found in from the current environment. If `name` is not bound in the current
 environment, this causes an error.
 
+The return value is undefined.
+
 ### **`quasiquote`**
 
     (quasiquote <expression>)
@@ -396,8 +471,7 @@ then spliced into the structure containing it in `expression`.
 Constructs a new macro procedure with `param`s as its parameters and the `body`
 expressions as its body and binds it to `name` in the current environment.
 `name` must be a valid Scheme symbol. Each `param` must be a unique valid Scheme
-symbol. `(<name> [param] ...)` can be dotted, with a variable number of excess
-arguments bound as a list to the symbol after the dot.
+symbol. `(<name> [param] ...)` can be [variadic](#variadic-functions).
 
 Macro procedures should be lexically scoped, like lambda procedures.
 
@@ -492,12 +566,13 @@ Returns true if `arg` is a integer; false otherwise.
 
     (list? <arg>)
 
-Returns true if `arg` is a well-formed list; false otherwise.
-If the list has a cycle, this may cause an error or infinite loop.
+Returns true if `arg` is a well-formed list (i.e., it doesn't contain
+a stream); false otherwise. If the list has a cycle, this may cause an
+error or infinite loop.
 
     scm> (list? '(1 2 3))
     True
-    scm> (list? '(1 2 . 3))
+    scm> (list? (cons-stream 1 nil))
     False
 
 <a class='builtin-header' id='number?'>**`number?`**</a>
@@ -549,18 +624,16 @@ Returns true if `arg` is a symbol; false otherwise.
     (append [lst] ...)
 
 Returns the result of appending the items of all `lst`s in order into a single
-well-formed list. Returns `nil` if no `lst`s. All `lst` except for the last
-must be well-formed lists. If the last `lst` is not, it will be be added to the
-end of a now dotted list (or just returned if it is the only `lst`).
+list. Returns `nil` if no `lst`s.
 
     scm> (append '(1 2 3) '(4 5 6))
     (1 2 3 4 5 6)
     scm> (append)
     ()
+    scm> (append '(1 2 3) '(a b c) '(foo bar baz))
+    (1 2 3 a b c foo bar baz)
     scm> (append '(1 2 3) 4)
-    (1 2 3 . 4)
-    scm> (append '(1 2 3) '(4 . 5))
-    (1 2 3 4 . 5)
+    Error
 
 <a class='builtin-header' id='car'>**`car`**</a>
 
@@ -584,36 +657,36 @@ Returns a new pair with `first` as the `car` and `rest` as the `cdr`
 
     (length <arg>)
 
-Returns the length of `arg`. If `arg` is not a well-formed list, this
+Returns the length of `arg`. If `arg` is not a list, this
 will cause an error.
 
 <a class='builtin-header' id='list'>**`list`**</a>
 
     (list <item> ...)
 
-Returns a well-formed list with the `item`s in order as its elements.
+Returns a list with the `item`s in order as its elements.
 
 <a class='builtin-header' id='map'>**`map`**</a>
 
     (map <proc> <lst>)
 
-Returns a well-formed list constructed by calling `proc` (a one-argument
-procedure) on each item in `lst` (a well-formed list).
+Returns a list constructed by calling `proc` (a one-argument
+procedure) on each item in `lst`.
 
 <a class='builtin-header' id='filter'>**`filter`**</a>
 
     (filter <pred> <lst>)
 
-Returns a well-formed list consisting of only the elements of `lst` (a
-well-formed list) that return true when called on `pred` (a one-argument
+Returns a list consisting of only the elements of `lst` that
+return true when called on `pred` (a one-argument
 procedure).
 
 <a class='builtin-header' id='reduce'>**`reduce`**</a>
 
     (reduce <combiner> <lst>)
 
-Returns the result of sequentially combining each element in `lst` (a
-well-formed list) using `combiner` (a two-argument procedure). `reduce` works
+Returns the result of sequentially combining each element in `lst`
+using `combiner` (a two-argument procedure). `reduce` works
 from left-to-right, with the existing combined value passed as the first
 argument and the new value as the second argument. `lst` must contain at least
 one item.

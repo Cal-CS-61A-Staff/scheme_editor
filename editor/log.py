@@ -8,7 +8,7 @@ from log_utils import get_id
 from scheme_exceptions import OperandDeduceError
 
 
-OP_LIMIT = 2500
+OP_LIMIT = 25000
 
 
 class HolderState(Enum):
@@ -131,6 +131,8 @@ class Logger:
         self.dotted = False  # Whether dotted lists are allowed (i.e. fa18 vs sp19 Scheme)
         self.strict_mode = False  # legacy - used for okpy testing of the interpreter
         self.fragile = False  # flag for if new assignments prohibited, like in previewing
+
+        self.autodraw = True
 
         self.node_cache: Dict[str, Union[StaticNode, FatNode]] = {}  # a cache of visual expressions
         self.export_states = []  # all the nodes generated in the current evaluation, in exported form

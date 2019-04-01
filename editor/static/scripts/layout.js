@@ -3,6 +3,7 @@ import * as env_diagram from "./env_diagram";
 import * as editor from "./editor";
 import * as test_results from "./test_results";
 import * as output from "./output";
+import * as event_handler from "./event_handler";
 import {states, saveState, make_new_state} from "./state_handler";
 import {init_complete, request_update} from "./event_handler";
 
@@ -151,6 +152,7 @@ function init() {
     editor.register(layout);
     test_results.register(layout);
     output.register(layout);
+    event_handler.register(layout);
 
     layout.init();
     init_complete();

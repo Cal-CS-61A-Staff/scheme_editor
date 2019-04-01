@@ -9,7 +9,8 @@ from helper import pair_to_list, verify_exact_callable_length, verify_min_callab
     make_list, dotted_pair_to_list
 from lexer import TokenBuffer
 from log import Holder, VisualExpression, return_symbol, logger
-from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError, SchemeError, TypeMismatchError
+from scheme_exceptions import OperandDeduceError, IrreversibleOperationError, LoadError, SchemeError, TypeMismatchError, \
+    CallableResolutionError
 
 
 class ProcedureObject(Callable):
@@ -116,7 +117,7 @@ class ProcedureBuilder(Callable):
         verify_min_callable_length(self, 2, len(operands))
         params = operands[0]
         if not logger.dotted and not isinstance(params, (Pair, NilType)):
-            raise OperandDeduceError(f"Expected Pair as parameter list, received ")
+            raise OperandDeduceError(f"Expected Pair as parameter list, received {params}.")
         params, var_param = dotted_pair_to_list(params)
         for i, param in enumerate(params):
             if (logger.dotted or i != len(params) - 1) and not isinstance(param, Symbol):
@@ -335,6 +336,18 @@ class Let(Callable):
 
         new_frame.assign(return_symbol, value)
         return value
+
+
+@special_form("variadic")
+class Variadic(Callable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+        raise CallableResolutionError("Variadic type parameter must be within a parameter list.")
+
+
+@special_form("unquote")
+class Unquote(Callable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+        raise CallableResolutionError("Cannot evaluate unquote outside quasiquote.")
 
 
 @special_form("quasiquote")
