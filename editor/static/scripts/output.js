@@ -1,6 +1,7 @@
 import {saveState, states} from "./state_handler";
 import {make, request_update} from "./event_handler";
 import {terminable_command} from "./canceller";
+import {open} from "./layout";
 import {display_elem} from "./env_diagram_worker";
 import {go_to_end} from "./navigation";
 import {open} from "./layout";
