@@ -7,12 +7,10 @@ from helper import pair_to_list
 from log_utils import get_id
 from scheme_exceptions import OperandDeduceError
 
-
 if TYPE_CHECKING:
     import graphics
 
-
-OP_LIMIT = 2500
+OP_LIMIT = 25000
 
 
 class HolderState(Enum):
