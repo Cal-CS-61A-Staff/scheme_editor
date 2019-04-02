@@ -289,7 +289,7 @@ def start(file_args, port, open_browser):
     PORT = port
     print(f"http://localhost:{PORT}")
     socketserver.TCPServer.allow_reuse_address = True
-    with ThreadedHTTPServer(("localhost", PORT), Handler) as httpd:
-        if open_browser:
-            webbrowser.open(f"http://localhost:{PORT}", new=0, autoraise=True)
-        httpd.serve_forever()
+    httpd = ThreadedHTTPServer(("localhost", PORT), Handler)
+    if open_browser:
+        webbrowser.open(f"http://localhost:{PORT}", new=0, autoraise=True)
+    httpd.serve_forever()
