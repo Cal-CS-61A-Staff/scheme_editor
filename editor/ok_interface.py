@@ -17,13 +17,6 @@ FAILURE_SETUP_HEADER = '''; There was an error in running the setup code (probab
 
 FAILURE_SETUP_FOOTER = "; Raw ok output over"
 
-##############
-# OKPY IMPORTS
-# noinspection PyUnresolvedReferences
-from client.api import assignment
-
-import logging
-
 
 class PrintCapture:
     def __init__(self):
@@ -206,6 +199,11 @@ def process_case(case):
 
 
 def run_tests():
+    # noinspection PyUnresolvedReferences
+    from client.api import assignment
+
+    import logging
+
     LOGGING_FORMAT = '%(levelname)s  | %(filename)s:%(lineno)d | %(message)s'
     logging.basicConfig(format=LOGGING_FORMAT)
     log = logging.getLogger('client')  # Get top-level logger
