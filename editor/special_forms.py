@@ -372,7 +372,8 @@ class Quasiquote(Callable):
             except OperandDeduceError:
                 pass
             else:
-                is_well_formed = not any(map(lambda x: isinstance(x, Symbol) and x.value in ["unquote", "quasiquote"], lst))
+                is_well_formed = not any(map(
+                    lambda x: isinstance(x, Symbol) and x.value in ["unquote", "quasiquote", "unquote-splicing"], lst))
 
         visual_expression = VisualExpression(expr)
         gui_holder.link_visual(visual_expression)
