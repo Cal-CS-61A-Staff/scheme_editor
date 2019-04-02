@@ -88,7 +88,7 @@
                     A long-running operation is currently in progress.
                 </p>
                 <p>
-                    If your program has entered an infinite loop, open the terminal that you used to start the IDE
+                    If the editor isn't responding, open the terminal that you used to start the IDE
                     (where you ran <code>python editor</code>) and stop the process by pressing <kbd>Ctrl</kbd> +
                     <kbd>C</kbd>.
                 </p>
@@ -172,8 +172,36 @@
                     <span class="input-group-text">.scm</span>
                   </div>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-dismiss="modal" id="newFileButton">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="disconnectedModal" tabindex="-1" role="dialog" data-backdrop="static"
+     aria-labelledby="disconnectedModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="disconnectedModalLabel">Process Disconnected</h5>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Warning! The <code>editor</code> process is no longer responding to queries from the front end. You have likely stopped the process in the terminal.
+                <p>
+                    Run <code>python editor -nb</code> in a terminal, then reconnect.
+                </p>
+                <p>
+                    Remember to run `python ok` (to unlock or submit tests) in a <b>separate</b> terminal window, to keep the editor session alive.
+                </p>
+            </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-success" data-dismiss="modal" id="newFileButton">Create</button>
+                <button type="button" id="reconnect-button" data-toggle="tooltip"
+                            title="Reconnect to the Scheme process."
+                            class="btn btn-primary"
+                            data-dismiss="modal">Reconnect</button>
             </div>
         </div>
     </div>
