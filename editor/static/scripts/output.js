@@ -4,7 +4,6 @@ import {terminable_command} from "./canceller";
 import {open} from "./layout";
 import {display_elem} from "./env_diagram_worker";
 import {go_to_end} from "./navigation";
-import {open} from "./layout";
 
 export {register};
 
