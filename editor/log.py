@@ -1,4 +1,4 @@
-from enum import Enum, auto
+from enum import Enum
 from typing import List, Union, Dict, Tuple, TYPE_CHECKING
 
 from datamodel import Expression, ValueHolder, Pair, Nil, Symbol, Undefined, Promise, NilType, UndefinedType
@@ -14,10 +14,10 @@ OP_LIMIT = 25000
 
 
 class HolderState(Enum):
-    UNEVALUATED = auto()
-    EVALUATING = auto()
-    EVALUATED = auto()
-    APPLYING = auto()
+    UNEVALUATED = 1
+    EVALUATING = 2
+    EVALUATED = 3
+    APPLYING = 4
 
 
 class VisualExpression:
@@ -98,13 +98,6 @@ class Root:
     @classmethod
     def setroot(cls, root: Holder):
         cls.root = root
-
-
-def silence(*args): pass
-
-
-def print_announce(message, local, root):
-    print(f"{message:10}: {repr(local):50} {repr(root):20}")
 
 
 def limited(f):
