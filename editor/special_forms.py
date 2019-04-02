@@ -350,6 +350,12 @@ class Unquote(Callable):
         raise CallableResolutionError("Cannot evaluate unquote outside quasiquote.")
 
 
+@special_form("unquote-splicing")
+class UnquoteSplicing(Callable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+        raise CallableResolutionError("Cannot evaluate unquote-splicing outside quasiquote.")
+
+
 @special_form("quasiquote")
 class Quasiquote(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
