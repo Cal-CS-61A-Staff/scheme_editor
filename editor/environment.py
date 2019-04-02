@@ -1,10 +1,11 @@
 import math
+from typing import List
 
 import execution
 from datamodel import Symbol, Expression, Number
 from evaluate_apply import Frame
-from primitives import SingleOperandPrimitive
-from scheme_exceptions import MathError
+from primitives import SingleOperandPrimitive, BuiltIn
+from scheme_exceptions import MathError, OperandDeduceError
 
 
 def make_frame_decorator(defdict):
@@ -26,16 +27,20 @@ special_forms = {}
 special_form = make_frame_decorator(special_forms)
 
 
-class MathProcedure(SingleOperandPrimitive):
+class MathProcedure(BuiltIn):
     def __init__(self, func, name):
         super().__init__()
         self.func = func
         self.name = name
 
-    def execute_simple(self, operand: Expression):
-        if not isinstance(operand, Number):
-            raise MathError()
-        return Number(self.func(operand.value), force_float=True)
+    def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
+        for operand in operands:
+            if not isinstance(operand, Number):
+                raise MathError()
+        try:
+            return Number(self.func(*(operand.value for operand in operands)))
+        except TypeError:
+            raise OperandDeduceError(f"Incorrect number of arguments for #[{self.name}].")
 
     def __repr__(self):
         return f"#[{self.name}]"
