@@ -415,7 +415,7 @@ class Load(Applicable):
             raise IrreversibleOperationError()
         try:
             with open(f"{operands[0].value}.scm") as file:
-                code = "(begin" + "\n".join(file.readlines()) + ")"
+                code = "(begin" + "\n".join(file.readlines()) + "\n)"
                 buffer = TokenBuffer([code])
                 expr = get_expression(buffer)
                 # noinspection PyTypeChecker

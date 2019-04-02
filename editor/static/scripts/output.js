@@ -87,6 +87,15 @@ function register(myLayout) {
         }
 
         myLayout.eventHub.on("update", function () {
+            if (editorDiv) {
+                if (states[componentState.id].globalFrameID === -1) {
+                    $(editorDiv).hide();
+                    editor.setValue("");
+                } else {
+                    $(editorDiv).show();
+                }
+            }
+
             container.getElement().find(".output").html(escapeHtml(states[componentState.id].out.trim()));
             let output = states[componentState.id].out.trim().split("\n");
             let outputDiv = container.getElement().find(".output");
