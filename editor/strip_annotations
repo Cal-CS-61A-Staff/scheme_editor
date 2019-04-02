@@ -1,8 +1,0 @@
-py-backwards -i local_server.py -t 3.5 -o compiled -d
-
-#!/bin/bash
-mkdir -p stripped
-for file in *.py
-do
-  py-backwards -i "$file" -t 3.5 -o compiled -d
-done
