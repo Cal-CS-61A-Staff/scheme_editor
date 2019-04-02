@@ -198,7 +198,16 @@ def process_case(case):
     return TestCaseResult(interpret_success_overall, interpret_out_overall, process(setup_out, True))
 
 
+def reload_tests():
+    for testname in filter(lambda x: x.lower().endswith(".py"), os.listdir(os.curdir + "/tests")):
+        testname = "tests." + testname[:-3]
+        if testname in sys.modules:
+            del sys.modules[testname]
+
+
 def run_tests():
+    reload_tests()
+
     # noinspection PyUnresolvedReferences
     from client.api import assignment
 
