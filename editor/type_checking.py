@@ -23,7 +23,7 @@ class IsBoolean(SingleOperandPrimitive):
 @global_attr("integer?")
 class IsInteger(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression):
-        return bools[isinstance(operand, Number)]
+        return bools[isinstance(operand, Number) and isinstance(operand.value, int)]
 
 
 @global_attr("list?")
