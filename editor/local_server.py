@@ -168,7 +168,7 @@ class Handler(server.BaseHTTPRequestHandler):
 
         elif path == "/save_state":
             global state
-            for key, val in json.loads(data[b"state"][0]).items():
+            for key, val in json.loads(data[b"state"][0].decode("utf-8")).items():
                 if key == "states":
                     if "states" not in state:
                         state["states"] = val
