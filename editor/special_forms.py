@@ -357,7 +357,7 @@ class Quasiquote(Callable):
         return Quasiquote.quasiquote_evaluate(operands[0], frame, gui_holder.expression.children[1])
 
     @classmethod
-    def quasiquote_evaluate(cls, expr: Expression, frame: Frame, gui_holder: Holder):
+    def quasiquote_evaluate(cls, expr: Expression, frame: Frame, gui_holder: Holder, splicing=False):
         is_well_formed = False
 
         if isinstance(expr, Pair):
@@ -374,9 +374,11 @@ class Quasiquote(Callable):
             visual_expression.children[2:] = []
 
         if isinstance(expr, Pair):
-            if isinstance(expr.first, Symbol) and expr.first.value == "unquote":
+            if isinstance(expr.first, Symbol) and expr.first.value in ("unquote", "unquote-splicing"):
+                if expr.first.value == "unquote-splicing" and not splicing:
+                    raise OperandDeduceError("Unquote-splicing must be in list template.")
                 gui_holder.evaluate()
-                verify_exact_callable_length(Symbol("unquote"), 1, len(pair_to_list(expr)) - 1)
+                verify_exact_callable_length(expr.first, 1, len(pair_to_list(expr)) - 1)
                 out = evaluate(expr.rest.first, frame, visual_expression.children[1])
                 visual_expression.value = out
                 gui_holder.complete()
@@ -389,7 +391,13 @@ class Quasiquote(Callable):
                 if is_well_formed:
                     out = []
                     for sub_expr, holder in zip(pair_to_list(expr), visual_expression.children):
-                        out.append(Quasiquote.quasiquote_evaluate(sub_expr, frame, holder))
+                        splicing = isinstance(sub_expr, Pair) and isinstance(sub_expr.first, Symbol) \
+                                and sub_expr.first.value == "unquote-splicing"
+                        evaluated = Quasiquote.quasiquote_evaluate(sub_expr, frame, holder, splicing)
+                        if splicing:
+                            out.extend(pair_to_list(evaluated))
+                        else:
+                            out.append(evaluated)
                     out = make_list(out)
                 else:
                     out = Pair(Quasiquote.quasiquote_evaluate(expr.first, frame, visual_expression.children[0]),
