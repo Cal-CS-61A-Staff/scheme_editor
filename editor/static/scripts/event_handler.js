@@ -8,7 +8,8 @@ const type_title = {
     "env_diagram": "Environments",
     "substitution_tree": "Debugger",
     "output": "Output",
-    "test_results": "Test Results"
+    "test_results": "Test Results",
+    "turtle_graphics": "Turtle Graphics"
 };
 
 let layout;
@@ -60,6 +61,9 @@ function make(container, type, id) {
     } else if (type === "env_diagram") {
         color = "blue";
         icon = "project-diagram";
+    } else if (type === "turtle_graphics") {
+        color = "green";
+        icon = "paint-brush";
     }
     title = `<span style="color: ${color};" class="fa fa-${icon}" aria-hidden=\"true\"></span> ` + title;
 

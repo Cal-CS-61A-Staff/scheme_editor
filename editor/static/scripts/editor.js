@@ -190,7 +190,10 @@ function register(layout) {
                 } else {
                     alert("Save error - try copying code from editor to a file manually");
                 }
-            });
+            }).fail(() => {
+                    $("#disconnectedModal").modal("show");
+                }
+            );
         }
 
         async function run() {
@@ -220,7 +223,10 @@ function register(layout) {
 
                 await save(true);
 
-                await open("output", componentState.id);
+                open("output", componentState.id);
+                if (data.graphics_open) {
+                    open("turtle_graphics", componentState.id);
+                }
                 // noinspection JSIgnoredPromiseFromCall
                 saveState(true);
                 $("*").trigger("reset");
