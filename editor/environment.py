@@ -39,7 +39,7 @@ class MathProcedure(BuiltIn):
                 raise MathError()
         try:
             return Number(self.func(*(operand.value for operand in operands)))
-        except TypeError as e:
+        except TypeError:
             raise OperandDeduceError(f"Incorrect number of arguments for #[{self.name}].")
 
     def __repr__(self):
