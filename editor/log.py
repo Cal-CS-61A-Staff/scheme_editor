@@ -8,7 +8,7 @@ from log_utils import get_id
 from scheme_exceptions import OperandDeduceError
 
 
-OP_LIMIT = 2500
+OP_LIMIT = 25000
 
 
 class HolderState(Enum):
