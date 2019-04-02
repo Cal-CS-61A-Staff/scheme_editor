@@ -1,5 +1,6 @@
 #!/bin/bash
+mkdir -p stripped
 for file in *.py
 do
-  strip-hints "$file" > stripped/"$file"
+  strip-hints --no-ast --to-empty --only-assigns-and-defs "$file" > stripped/"$file"
 done
