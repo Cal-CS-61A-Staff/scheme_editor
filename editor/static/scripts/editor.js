@@ -190,13 +190,13 @@ function register(layout) {
                 } else {
                     alert("Save error - try copying code from editor to a file manually");
                 }
-            });
+            }).fail(() => {
+                    $("#disconnectedModal").modal("show");
+                }
+            );
         }
 
         async function run() {
-            if (editor.getValue().trim() === "") {
-                return;
-            }
             let code = [editor.getValue()];
             async function run_done(data) {
                 data = $.parseJSON(data);
@@ -218,11 +218,15 @@ function register(layout) {
                     states[componentState.id].frameUpdates = data.frameUpdates;
                 } else {
                     states[componentState.id].out = data.out[0];
+                    states[componentState.id].globalFrameID = -1;
                 }
 
                 await save(true);
 
-                await open("output", componentState.id);
+                open("output", componentState.id);
+                if (data.graphics_open) {
+                    open("turtle_graphics", componentState.id);
+                }
                 // noinspection JSIgnoredPromiseFromCall
                 saveState(true);
                 $("*").trigger("reset");

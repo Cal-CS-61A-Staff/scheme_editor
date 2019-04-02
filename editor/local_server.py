@@ -269,7 +269,8 @@ def instant(code, global_frame_id):
 
 def exit_handler(signal, frame):
     print(" - Ctrl+C pressed")
-    print("Shutting down server - all unsaved work will be lost")
+    print("Shutting down server - all unsaved work may be lost")
+    print("Remember that you should run python ok in a separate terminal window, to avoid stopping the editor process.")
     thread_state.cancel()
     sys.exit(0)
 

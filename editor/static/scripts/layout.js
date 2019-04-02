@@ -2,6 +2,7 @@ import * as substitution_tree from "./substitution_tree";
 import * as env_diagram from "./env_diagram";
 import * as editor from "./editor";
 import * as test_results from "./test_results";
+import * as turtle_graphics from "./turtle_graphics";
 import * as output from "./output";
 import * as event_handler from "./event_handler";
 import {states, saveState, make_new_state} from "./state_handler";
@@ -55,6 +56,15 @@ function open(type, index) {
         width: 20,
     };
 
+    let stackedConfig = {
+        type: "stack",
+        height: 40,
+        width: 20,
+        content: [
+            config,
+        ]
+    };
+
     if (states[index][open_prop.get(type)]) {
         let container = containers[type].get(index);
         container.parent.parent.setActiveContentItem(container.parent);
@@ -67,16 +77,28 @@ function open(type, index) {
     let pos;
     let friends;
 
+    let targetWidth;
+    let targetHeight;
+
     if (type === "editor" || type === "substitution_tree") {
         pos = "column";
         friends = [type, "editor", "substitution_tree"]
     } else if (type === "test_results") {
         pos = "row";
         friends = [];
+        targetWidth = 20;
+    } else if (type === "turtle_graphics") {
+        pos = "row";
+        friends = [];
+        targetWidth = 50;
+        if (containers["test_results"].has(0)) {
+                containers["test_results"].get(0).close();
+        }
     } else {
         // output, visualizations
         pos = "column";
         friends = [type, "env_diagram", "output"];
+        targetHeight = 30;
     }
 
     let ok = false;
@@ -92,20 +114,25 @@ function open(type, index) {
 
     if (!ok) {
         if (layout.root.contentItems[0].config.type !== pos) {
-            let curr_config = layout.toConfig();
-            curr_config.content[0] = {
-                content: [curr_config.content[0], config],
-                isClosable: true,
-                reorderEnabled: true,
-                title: "",
+            let oldRoot = layout.root.contentItems[0];
+            let newRoot = layout.createContentItem({
                 type: pos,
-            };
-            saveState(true, JSON.stringify(curr_config)).then(
-                window.location.reload.bind(window.location));
+                content: []});
+            layout.root.replaceChild(oldRoot, newRoot);
+            newRoot.addChild(oldRoot);
+            newRoot.addChild(stackedConfig);
         } else {
-            layout.root.contentItems[0].addChild(config);
+            layout.root.contentItems[0].addChild(stackedConfig);
         }
     }
+
+    if (targetHeight) {
+        stackedConfig.height = targetHeight;
+    }
+    if (targetWidth) {
+        stackedConfig.width = targetWidth;
+    }
+    layout.updateSize();
 
     request_update();
 }
@@ -152,6 +179,7 @@ function init() {
     editor.register(layout);
     test_results.register(layout);
     output.register(layout);
+    turtle_graphics.register(layout);
     event_handler.register(layout);
 
     layout.init();

@@ -20,6 +20,10 @@ class OperandDeduceError(SchemeError):
     pass
 
 
+class TurtleDrawingError(SchemeError):
+    pass
+
+
 class CallableResolutionError(SchemeError):
     pass
 

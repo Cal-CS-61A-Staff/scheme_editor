@@ -1,6 +1,7 @@
 import {saveState, states} from "./state_handler";
 import {make, request_update} from "./event_handler";
 import {terminable_command} from "./canceller";
+import {open} from "./layout";
 import {display_elem} from "./env_diagram_worker";
 import {go_to_end} from "./navigation";
 
@@ -60,9 +61,7 @@ function drawPair(i, id, outputDiv, componentState) {
 function register(myLayout) {
     myLayout.registerComponent('output', function (container, componentState) {
         container.getElement().html(`
-        <div class="output-warning">
-            This session may be out of date! Hit "Run" to refresh contents.
-        </div>
+        <div class="output-warning">This session may be out of date! Hit "Run" to refresh contents.</div>
         <div class="output-wrapper">
             <div class="output-holder">
                 <div class="output">[click Run to start!]</div>
@@ -88,6 +87,15 @@ function register(myLayout) {
         }
 
         myLayout.eventHub.on("update", function () {
+            if (editorDiv) {
+                if (states[componentState.id].globalFrameID === -1) {
+                    $(editorDiv).hide();
+                    editor.setValue("");
+                } else {
+                    $(editorDiv).show();
+                }
+            }
+
             container.getElement().find(".output").html(escapeHtml(states[componentState.id].out.trim()));
             let output = states[componentState.id].out.trim().split("\n");
             let outputDiv = container.getElement().find(".output");
@@ -202,6 +210,11 @@ function register(myLayout) {
                         states[componentState.id].roots.push(...data.roots);
                         $.extend(states[componentState.id].heap, data.heap);
                         states[componentState.id].frameUpdates.push(...data.frameUpdates);
+                        states[componentState.id].moves = data.graphics;
+
+                        if (data.graphics_open) {
+                            open("turtle_graphics", componentState.id);
+                        }
                     }
                     go_to_end(componentState.id);
                     request_update();
