@@ -1,0 +1,5 @@
+#!/bin/bash
+for file in *.py
+do
+  strip-hints "$file" > stripped/"$file"
+done
