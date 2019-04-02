@@ -1,0 +1,6 @@
+#!/bin/bash
+cp -r ./editor ./compiled
+for file in editor/*.py
+do
+  py-backwards -i "$file" -t 3.5 -o compiled -d
+done
