@@ -81,7 +81,7 @@ class Canvas:
 
 def make_color(expression: Expression) -> str:
     if not isinstance(expression, String) and not isinstance(expression, Symbol):
-        raise OperandDeduceError(f"Unable to convert {expression} to a color.")
+        raise OperandDeduceError("Unable to convert {expression} to a color.".format(expression=expression))
     return expression.value
 
 
@@ -91,7 +91,7 @@ def make_color(expression: Expression) -> str:
 class Backward(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
-            raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
+            raise OperandDeduceError("Expected operand to be Number, not {operand}.".format(operand=operand))
         canvas.forward(-operand.value)
         return Undefined
 
@@ -146,7 +146,7 @@ class EndFill(BuiltIn):
 class Forward(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
-            raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
+            raise OperandDeduceError("Expected operand to be Number, not {operand}.".format(operand=operand))
         canvas.forward(operand.value)
         return Undefined
 
@@ -156,7 +156,7 @@ class Forward(SingleOperandPrimitive):
 class Left(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
-            raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
+            raise OperandDeduceError("Expected operand to be Number, not {operand}".format(operand=operand))
         canvas.rotate(operand.value)
         return Undefined
 
@@ -186,7 +186,7 @@ class Pixel(BuiltIn):
         x, y, c, = operands
         for v in x, y:
             if not isinstance(v, Number):
-                raise OperandDeduceError(f"Expected operand to be Number, not {v}")
+                raise OperandDeduceError("Expected operand to be Number, not {v}".format(v=v))
         canvas.rect(x.value, y.value, make_color(c))
         return Undefined
 
@@ -195,7 +195,7 @@ class Pixel(BuiltIn):
 class PixelSize(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
-            raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
+            raise OperandDeduceError("Expected operand to be Number, not {operand}".format(operand=operand))
         canvas.size = operand.value
         return Undefined
 
@@ -206,9 +206,9 @@ class RGB(BuiltIn):
         verify_exact_callable_length(self, 3, len(operands))
         for operand in operands:
             if not isinstance(operand, Number):
-                raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
+                raise OperandDeduceError("Expected operand to be Number, not {operand}.".format(operand=operand))
             if not 0 <= operand.value <= 1:
-                raise OperandDeduceError(f"RGB values must be between 0 and 1, not {operand}")
+                raise OperandDeduceError("RGB values must be between 0 and 1, not {operand}.".format(operand=operand))
         return String("#" + "".join('{:02X}'.format(round(x.value * 255)) for x in operands))
 
 
@@ -217,7 +217,7 @@ class RGB(BuiltIn):
 class Right(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
-            raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
+            raise OperandDeduceError("Expected operand to be Number, not {operand}.".format(operand=operand))
         canvas.rotate(-operand.value)
         return Undefined
 
@@ -235,7 +235,7 @@ class ScreenSize(BuiltIn):
 class SetHeading(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Number):
-            raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
+            raise OperandDeduceError("Expected operand to be Number, not {operand}.".format(operand=operand))
         canvas.abs_rotate(-operand.value)
         return Undefined
 
@@ -248,7 +248,7 @@ class SetPosition(BuiltIn):
         verify_exact_callable_length(self, 2, len(operands))
         for operand in operands:
             if not isinstance(operand, Number):
-                raise OperandDeduceError(f"Expected operand to be Number, not {operand}")
+                raise OperandDeduceError("Expected operand to be Number, not {operand}.".format(operand=operand))
         canvas.move(operands[0].value, operands[1].value)
         return Undefined
 

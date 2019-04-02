@@ -36,7 +36,7 @@ class Frame:
             self.vars[varname.value] = varval
             log.logger.frame_store(self, varname.value, varval)
         elif self.parent is None:
-            raise SymbolLookupError(f"Variable not found in current environment: '{varname}'")
+            raise SymbolLookupError("Variable not found in current environment: '{varname}'.".format(varname=varname))
         else:
             self.parent.mutate(varname, varval)
 
@@ -44,7 +44,7 @@ class Frame:
         if varname.value in self.vars:
             return self.vars[varname.value]
         if self.parent is None:
-            raise SymbolLookupError(f"Variable not found in current environment: '{varname}'")
+            raise SymbolLookupError("Variable not found in current environment: '{varname}'.".format(varname=varname))
         return self.parent.lookup(varname)
 
     def __hash__(self):
@@ -110,7 +110,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
             visual_expression = gui_holder.expression
 
         if log_stack:
-            log.logger.eval_stack.append(f"{repr(expr)} [frame = {frame.id}]")
+            log.logger.eval_stack.append("{expr} [frame = {fid}]".format(expr=repr(expr), fid=frame.id))
             depth += 1
 
         holders.append(gui_holder)
@@ -168,9 +168,10 @@ def apply(operator: Expression, operands: List[Expression], frame: Frame, gui_ho
     if isinstance(operator, Callable):
         return operator.execute(operands, frame, gui_holder)
     elif isinstance(operator, Symbol):
-        raise CallableResolutionError(f"Unable to pass parameters into the Symbol '{operator}'")
+        raise CallableResolutionError("Unable to pass parameters into the Symbol '{operator}'."
+                                      .format(operator=operator))
     else:
-        raise CallableResolutionError(f"Unable to pass parameters into: '{operator}'")
+        raise CallableResolutionError("Unable to pass parameters into: '{operator}'.".format(operator=operator))
 
 
 class Callable(Expression):

@@ -45,7 +45,7 @@ class Pair(Expression):
         self.first = first
         if not log.logger.dotted and not isinstance(rest, (Pair, NilType, Promise)):
             raise TypeMismatchError(
-                f"Unable to construct a Pair with a cdr of {rest}, expected a Pair, Nil, or Promise.")
+                "Unable to construct a Pair with a cdr of {rest}, expected a Pair, Nil, or Promise.".format(rest=rest))
         self.rest = rest
 
     # def __str__(self):
@@ -73,11 +73,11 @@ class Pair(Expression):
 
     def __repr__(self):
         if isinstance(self.rest, Pair):
-            return f"({repr(self.first)} {repr(self.rest)[1:-1]})"
+            return "({first} {rest})".format(first=repr(self.first), rest=repr(self.rest)[1:-1])
         elif self.rest is Nil:
-            return f"({repr(self.first)})"
+            return "({first})".format(first=repr(self.first))
         else:
-            return f"({repr(self.first)} . {repr(self.rest)})"
+            return "({first} . {rest})".format(first=repr(self.first), rest=repr(self.rest))
 
 
 class NilType(Expression):

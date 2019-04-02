@@ -170,11 +170,8 @@ def process(output, success):
             break
     result = "\n".join(lines[start_idx:])
     if not success:
-        try:
-            expected_index = next(idx for idx, line in enumerate(lines) if "# Error: expected" in line)
-            but_got_idx = next(idx for idx, line in enumerate(lines) if "# but got" in line)
-        except StopIteration:
-            breakpoint()
+        expected_index = next(idx for idx, line in enumerate(lines) if "# Error: expected" in line)
+        but_got_idx = next(idx for idx, line in enumerate(lines) if "# but got" in line)
         expected = remove_comments_and_combine(lines[expected_index + 1:but_got_idx])
         actual = remove_comments_and_combine(lines[but_got_idx + 1:])
         actual = re.sub(r"Traceback.*\n\.\.\.\n(.*)", r"\1", actual)

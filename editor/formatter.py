@@ -139,8 +139,9 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                         body = []
                         for body_expr in expr.contents[2:]:
                             body.append(prettify_expr(body_expr, remaining - 2)[0])
-                        name_str = indent(prettify_expr(name, remaining - len(f"({operator} "))[0],
-                                          len(f"({operator} "))
+                        name_str = indent(prettify_expr(name,
+                                                        remaining - len("({operator} ".format(operator=operator)))[0],
+                                          len("({operator} ".format(operator=operator)))
                         body_str = indent("\n".join(body), INDENT // 2)
                         out_str = "(" + operator + " " + name_str.lstrip() + "\n" + body_str + ")"
                         return verify(make_comments(expr.comments, 0, True) + out_str, remaining)

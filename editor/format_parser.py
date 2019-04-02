@@ -56,7 +56,7 @@ def get_expression(buffer: TokenBuffer) -> Formatted:
             out = FormatAtom('"' + buffer.pop_next_token().value + '"')
             buffer.pop_next_token()
         else:
-            raise ParseError(f"Unexpected token: '{token}'")
+            raise ParseError("Unexpected token: '{token}'.".format(token=token))
 
     else:
         if token.value.lower() == "true":

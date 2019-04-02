@@ -17,7 +17,7 @@ class Append(BuiltIn):
         out = []
         for operand in operands[:-1]:
             if not isinstance(operand, Pair) and operand is not Nil:
-                raise OperandDeduceError(f"Expected operand to be valid list, not {operand}")
+                raise OperandDeduceError("Expected operand to be valid list, not {operand}.".format(operand=operand))
             out.extend(pair_to_list(operand))
         try:
             last = operands[-1]
@@ -37,7 +37,8 @@ class Car(SingleOperandPrimitive):
         if isinstance(operand, Pair):
             return operand.first
         else:
-            raise OperandDeduceError(f"Unable to extract first element, as {operand} is not a Pair.")
+            raise OperandDeduceError("Unable to extract first element, as {operand} is not a Pair."
+                                     .format(operand=operand))
 
 
 @global_attr("cdr")
@@ -46,7 +47,8 @@ class Cdr(SingleOperandPrimitive):
         if isinstance(operand, Pair):
             return operand.rest
         else:
-            raise OperandDeduceError(f"Unable to extract second element, as {operand} is not a Pair.")
+            raise OperandDeduceError("Unable to extract second element, as {operand} is not a Pair."
+                                     .format(operand=operand))
 
 
 @global_attr("cons")
@@ -60,7 +62,8 @@ class Cons(BuiltIn):
 class Length(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:
         if not isinstance(operand, Pair) and operand is not Nil:
-            raise OperandDeduceError(f"Unable to calculate length, as {operand} is not a valid list.")
+            raise OperandDeduceError("Unable to calculate length, as {operand} is not a valid list."
+                                     .format(operand=operand))
         return Number(len(pair_to_list(operand)))
 
 
@@ -97,7 +100,8 @@ class SetCar(BuiltIn):
             raise IrreversibleOperationError()
         pair, val = operands
         if not isinstance(pair, Pair):
-            raise OperandDeduceError(f"set-car! expected a Pair, received {pair}.")
+            raise OperandDeduceError("set-car! expected a Pair, received {pair}."
+                                     .format(pair=pair))
         pair.first = val
         log.logger.raw_out("WARNING: Mutation operations on pairs are not yet supported by the debugger.")
         return Undefined
@@ -111,9 +115,9 @@ class SetCdr(BuiltIn):
                 raise IrreversibleOperationError()
             pair, val = operands
             if not isinstance(pair, Pair):
-                raise OperandDeduceError(f"set-cdr! expected a Pair, received {pair}.")
+                raise OperandDeduceError("set-cdr! expected a Pair, received {pair}.".format(pair=pair))
             if not isinstance(val, (Pair, Promise, NilType)):
-                raise OperandDeduceError(f"Unable to assign {val} to cdr, expected a Pair, Nil, or Promise.")
+                raise OperandDeduceError("Unable to assign {val} to cdr, expected a Pair, Nil, or Promise.".format(val=val))
             pair.rest = val
             log.logger.raw_out("WARNING: Mutation operations on pairs are not yet supported by the debugger.")
             return Undefined

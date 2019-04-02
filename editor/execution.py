@@ -52,7 +52,7 @@ def string_exec(strings, out, global_frame=None):
                     log.logger.raw_out(str(j).ljust(3) + " " + expr + "\n")
                 truncated = len(log.logger.eval_stack) - MAX_TRACEBACK_LENGTH
                 if len(log.logger.eval_stack) > MAX_TRACEBACK_LENGTH:
-                    log.logger.raw_out(f"[{truncated} lines omitted from traceback]\n")
+                    log.logger.raw_out("[{truncated} lines omitted from traceback]\n".format(truncated=truncated))
                     log.logger.raw_out(
                         str(len(log.logger.eval_stack) - 1).ljust(3) + " " + log.logger.eval_stack[-1] + "\n"
                     )

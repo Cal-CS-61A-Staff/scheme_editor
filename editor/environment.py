@@ -10,7 +10,7 @@ from scheme_exceptions import MathError
 def make_frame_decorator(defdict):
     def global_builtin(name):
         def decorator(cls):
-            cls.__repr__ = lambda self: f"#[{name}]"
+            cls.__repr__ = lambda self: "#[{name}]".format(name=name)
             defdict[name] = cls
             return cls
 
@@ -38,7 +38,7 @@ class MathProcedure(SingleOperandPrimitive):
         return Number(self.func(operand.value), force_float=True)
 
     def __repr__(self):
-        return f"#[{self.name}]"
+        return "#[{name}]".format(name=self.name)
 
 
 def get_special_form(name: str):

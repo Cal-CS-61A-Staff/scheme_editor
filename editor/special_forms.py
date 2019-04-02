@@ -86,10 +86,12 @@ class ProcedureObject(Callable):
                 varparams = " " + varparams
         else:
             varparams = ""
-        return f"({self.name} {' '.join(map(repr, self.params))}{varparams}) [parent = {self.frame.id}]"
+        return "({name} {params}{varparams}) [parent = {frameid}]".format(name=self.name,
+                                                                          params=' '.join(map(repr, self.params)),
+                                                                          varparams=varparams, frameid=self.frame.id)
 
     def __str__(self):
-        return f"#[{self.name}]"
+        return "#[{name}]".format(name=self.name)
 
 
 class LambdaObject(ProcedureObject, Applicable):
@@ -117,19 +119,19 @@ class ProcedureBuilder(Callable):
         verify_min_callable_length(self, 2, len(operands))
         params = operands[0]
         if not logger.dotted and not isinstance(params, (Pair, NilType)):
-            raise OperandDeduceError(f"Expected Pair as parameter list, received ")
+            raise OperandDeduceError("Expected Pair as parameter list, received {params}".format(params=params))
         params, var_param = dotted_pair_to_list(params)
         for i, param in enumerate(params):
             if (logger.dotted or i != len(params) - 1) and not isinstance(param, Symbol):
-                raise OperandDeduceError(f"Expected Symbol in parameter list, received {param}.")
+                raise OperandDeduceError("Expected Symbol in parameter list, received {param}.".format(param=param))
             if isinstance(param, Pair):
                 param_vals = pair_to_list(param)
                 if len(param_vals) != 2 or \
                         not isinstance(param_vals[0], Symbol) or \
                         not isinstance(param_vals[1], Symbol) or \
                         param_vals[0].value != "variadic":
-                    raise OperandDeduceError(f"Each member of a parameter list must be a Symbol or a variadic "
-                                             f"parameter, not {param}.")
+                    raise OperandDeduceError("Each member of a parameter list must be a Symbol or a variadic "
+                                             "parameter, not {param}.".format(param=param))
                 var_param = param_vals[1]
                 params.pop()
 
@@ -156,11 +158,11 @@ class DefineMacro(Callable):
         verify_min_callable_length(self, 2, len(operands))
         params = operands[0]
         if not isinstance(params, Pair):
-            raise OperandDeduceError(f"Expected a Pair, not {params}, as the first operand of define-macro.")
+            raise OperandDeduceError("Expected a Pair, not {params}, as the first operand of define-macro.".format(params=params))
         name = params.first
         operands[0] = params.rest
         if not isinstance(name, Symbol):
-            raise OperandDeduceError(f"Expected a Symbol, not {name}.")
+            raise OperandDeduceError("Expected a Symbol, not {name}.".format(name=name))
         frame.assign(name, Macro().execute(operands, frame, gui_holder, name.value))
         return name
 
@@ -178,11 +180,12 @@ class Define(Callable):
             name = params.first
             operands[0] = params.rest
             if not isinstance(name, Symbol):
-                raise OperandDeduceError(f"Expected a Symbol, not {name}.")
+                raise OperandDeduceError("Expected a Symbol, not {name}.".format(name=name))
             frame.assign(name, Lambda().execute(operands, frame, gui_holder, name.value))
             return name
         else:
-            raise OperandDeduceError(f"Expected a Pair, not {params}, as the first operand of define-macro.")
+            raise OperandDeduceError(
+                "Expected a Pair, not {params}, as the first operand of define-macro".format(params=params))
 
 
 @special_form("set!")
@@ -191,7 +194,7 @@ class Set(Callable):
         verify_exact_callable_length(self, 2, len(operands))
         name = operands[0]
         if not isinstance(name, Symbol):
-            raise OperandDeduceError(f"Expected a Symbol, not {name}, as the first operand of set!")
+            raise OperandDeduceError("Expected a Symbol, not {name}, as the first operand of set!".format(name=name))
         frame.mutate(name, evaluate(operands[1], frame, gui_holder.expression.children[2]))
         return Undefined
 
@@ -249,7 +252,7 @@ class Apply(Applicable):
             operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
         func, args = operands
         if not isinstance(func, Applicable):
-            raise OperandDeduceError(f"Unable to apply {func}.")
+            raise OperandDeduceError("Unable to apply {func}.".format(func=func))
         gui_holder.expression.set_entries([VisualExpression(Pair(func, args), gui_holder.expression.display_value)])
         gui_holder.expression.children[0].expression.children = []
         gui_holder.apply()
@@ -263,7 +266,8 @@ class Cond(Callable):
         verify_min_callable_length(self, 1, len(operands))
         for cond_i, cond in enumerate(operands):
             if not isinstance(cond, Pair):
-                raise OperandDeduceError(f"Unable to evaluate clause of cond, as {cond} is not a Pair.")
+                raise OperandDeduceError(
+                    "Unable to evaluate clause of cond, as {cond} is not a Pair.".format(cond=cond))
             expanded = pair_to_list(cond)
             cond_holder = gui_holder.expression.children[cond_i + 1]
             cond_holder.link_visual(VisualExpression(cond))
@@ -307,7 +311,8 @@ class Let(Callable):
 
         bindings = operands[0]
         if not isinstance(bindings, Pair) and bindings is not Nil:
-            raise OperandDeduceError(f"Expected first argument of let to be a Pair, not {bindings}.")
+            raise OperandDeduceError(
+                "Expected first argument of let to be a Pair, not {bindings}.".format(bindings=bindings))
 
         new_frame = Frame("anonymous let", frame)
 
@@ -318,15 +323,17 @@ class Let(Callable):
 
         for i, binding in enumerate(bindings):
             if not isinstance(binding, Pair):
-                raise OperandDeduceError(f"Expected binding to be a Pair, not {binding}.")
+                raise OperandDeduceError("Expected binding to be a Pair, not {binding}.".format(binding=binding))
             binding_holder = bindings_holder.expression.children[i]
             binding_holder.link_visual(VisualExpression(binding))
             binding = pair_to_list(binding)
             if len(binding) != 2:
-                raise OperandDeduceError(f"Expected binding to be of length 2, not {len(binding)}.")
+                raise OperandDeduceError(
+                    "Expected binding to be of length 2, not {len_bindings}.".format(len_bindings=len(binding)))
             name, expr = binding
             if not isinstance(name, Symbol):
-                raise OperandDeduceError(f"Expected first element of binding to be a Symbol, not {name}.")
+                raise OperandDeduceError("Expected first element of binding to be a Symbol, not {name}."
+                                         .format(name=name))
             new_frame.assign(name, evaluate(expr, frame, binding_holder.expression.children[1]))
 
         value = None
@@ -410,11 +417,11 @@ class Load(Applicable):
         if eval_operands:
             operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
         if not isinstance(operands[0], Symbol):
-            raise OperandDeduceError(f"Load expected a Symbol, received {operands[0]}.")
+            raise OperandDeduceError("Load expected a Symbol, received {operand}.".format(operand=operands[0]))
         if logger.fragile:
             raise IrreversibleOperationError()
         try:
-            with open(f"{operands[0].value}.scm") as file:
+            with open("{filename}.scm".format(filename=operands[0].value)) as file:
                 code = "(begin" + "\n".join(file.readlines()) + ")"
                 buffer = TokenBuffer([code])
                 expr = get_expression(buffer)
@@ -441,7 +448,7 @@ class Force(Applicable):
         if eval_operands:
             operand = evaluate_all(operands, frame, gui_holder.expression.children[1:])[0]
         if not isinstance(operand, Promise):
-            raise OperandDeduceError(f"Force expected a Promise, received {operand}")
+            raise OperandDeduceError("Force expected a Promise, received {operand}.".format(operand=operand))
         if operand.forced:
             return operand.expr
         if logger.fragile:
@@ -451,8 +458,8 @@ class Force(Applicable):
         gui_holder.apply()
         operand.expr = evaluate(operand.expr, operand.frame, gui_holder.expression.children[0])
         if not logger.dotted and not isinstance(operand.expr, (Pair, NilType)):
-            raise TypeMismatchError(
-                f"Unable to force a Promise evaluating to {operand.expr}, expected another Pair or Nil")
+            raise TypeMismatchError("Unable to force a Promise evaluating to {evaluated}, expected another Pair or Nil"
+                                    .format(evaluated=operand.expr))
         operand.force()
         return operand.expr
 
