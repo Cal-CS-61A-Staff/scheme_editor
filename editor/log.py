@@ -100,13 +100,6 @@ class Root:
         cls.root = root
 
 
-def silence(*args): pass
-
-
-# def print_announce(message, local, root):
-#     print(f"{message:10}: {repr(local):50} {repr(root):20}")
-
-
 def limited(f):
     def g(*args, **kwargs):
         if not logger.log_op() and not kwargs.get("force", False):
