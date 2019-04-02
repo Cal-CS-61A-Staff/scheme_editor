@@ -17,13 +17,6 @@ FAILURE_SETUP_HEADER = '''; There was an error in running the setup code (probab
 
 FAILURE_SETUP_FOOTER = "; Raw ok output over"
 
-##############
-# OKPY IMPORTS
-# noinspection PyUnresolvedReferences
-from client.api import assignment
-
-import logging
-
 
 class PrintCapture:
     def __init__(self):
@@ -205,7 +198,21 @@ def process_case(case):
     return TestCaseResult(interpret_success_overall, interpret_out_overall, process(setup_out, True))
 
 
+def reload_tests():
+    for testname in filter(lambda x: x.lower().endswith(".py"), os.listdir(os.curdir + "/tests")):
+        testname = "tests." + testname[:-3]
+        if testname in sys.modules:
+            del sys.modules[testname]
+
+
 def run_tests():
+    reload_tests()
+
+    # noinspection PyUnresolvedReferences
+    from client.api import assignment
+
+    import logging
+
     LOGGING_FORMAT = '%(levelname)s  | %(filename)s:%(lineno)d | %(message)s'
     logging.basicConfig(format=LOGGING_FORMAT)
     log = logging.getLogger('client')  # Get top-level logger
