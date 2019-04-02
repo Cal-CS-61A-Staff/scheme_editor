@@ -62,13 +62,13 @@ def get_expression(buffer: TokenBuffer) -> Union[Expression, None]:
         return make_list([Symbol("quasiquote"), get_expression(buffer)])
     elif token == ".":
         if logger.dotted:
-            raise ParseError("Unexpected token: '{token}'.".format(token=token))
+            raise ParseError("Unexpected token: '{token}'".format(token=token))
         else:
             return make_list([Symbol("variadic"), get_expression(buffer)])
     elif token == "\"":
         return get_string(buffer)
     elif token in SPECIALS:
-        raise ParseError("Unexpected token: '{token}'.".format(token=token))
+        raise ParseError("Unexpected token: '{token}'".format(token=token))
     elif is_number(token.value):
         try:
             return Number(int(token.value))
@@ -83,7 +83,7 @@ def get_expression(buffer: TokenBuffer) -> Union[Expression, None]:
     elif is_str(token.value):
         return Symbol(token.value.lower())
     else:
-        raise ParseError("Unexpected token: '{token}'.".format(token=token))
+        raise ParseError("Unexpected token: '{token}'".format(token=token))
 
 
 def get_string(buffer: TokenBuffer) -> String:

@@ -36,7 +36,7 @@ class Frame:
             self.vars[varname.value] = varval
             log.logger.frame_store(self, varname.value, varval)
         elif self.parent is None:
-            raise SymbolLookupError("Variable not found in current environment: '{varname}'.".format(varname=varname))
+            raise SymbolLookupError("Variable not found in current environment: '{varname}'".format(varname=varname))
         else:
             self.parent.mutate(varname, varval)
 
@@ -44,7 +44,7 @@ class Frame:
         if varname.value in self.vars:
             return self.vars[varname.value]
         if self.parent is None:
-            raise SymbolLookupError("Variable not found in current environment: '{varname}'.".format(varname=varname))
+            raise SymbolLookupError("Variable not found in current environment: '{varname}'".format(varname=varname))
         return self.parent.lookup(varname)
 
     def __hash__(self):
@@ -168,10 +168,10 @@ def apply(operator: Expression, operands: List[Expression], frame: Frame, gui_ho
     if isinstance(operator, Callable):
         return operator.execute(operands, frame, gui_holder)
     elif isinstance(operator, Symbol):
-        raise CallableResolutionError("Unable to pass parameters into the Symbol '{operator}'."
+        raise CallableResolutionError("Unable to pass parameters into the Symbol '{operator}'"
                                       .format(operator=operator))
     else:
-        raise CallableResolutionError("Unable to pass parameters into: '{operator}'.".format(operator=operator))
+        raise CallableResolutionError("Unable to pass parameters into: '{operator}'".format(operator=operator))
 
 
 class Callable(Expression):
