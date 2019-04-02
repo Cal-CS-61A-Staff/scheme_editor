@@ -401,6 +401,8 @@ class Quasiquote(Callable):
                                 and sub_expr.first.value == "unquote-splicing"
                         evaluated = Quasiquote.quasiquote_evaluate(sub_expr, frame, holder, splicing)
                         if splicing:
+                            if not isinstance(evaluated, (Pair, NilType)):
+                                raise TypeMismatchError(f"Can only splice lists, not {evaluated}.")
                             out.extend(pair_to_list(evaluated))
                         else:
                             out.append(evaluated)
