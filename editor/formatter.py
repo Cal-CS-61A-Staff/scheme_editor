@@ -181,7 +181,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                                     or clause.last is not None \
                                     or len(clause.contents) < 1\
                                     or clause.prefix:
-                                log("screwed up clause")
+                                log("ill-formed cond clause")
                                 break
                         else:
                             # cond expr looks ok
