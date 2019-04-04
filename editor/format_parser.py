@@ -15,7 +15,7 @@ class FormatList:
         self.last = last
         self.comments = comments
         self.contains_comment = any(x.contains_comment or x.comments for x in contents)
-        self.open_paren = "(" if close_paren == ")" else "]"
+        self.open_paren = "(" if close_paren == ")" else "["
         self.close_paren = close_paren
         self.prefix = prefix
 
@@ -43,7 +43,7 @@ def get_expression(buffer: TokenBuffer) -> Formatted:
     if token in SPECIALS:
         comments = token.comments
         if token in ("(", "["):
-            out = get_rest_of_list(buffer, token.value)
+            out = get_rest_of_list(buffer, ")" if token == "(" else "]")
         elif token in ("'", "`"):
             out = get_expression(buffer)
             out.prefix = token.value
