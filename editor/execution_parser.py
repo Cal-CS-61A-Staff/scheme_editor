@@ -106,7 +106,7 @@ def get_string(buffer: TokenBuffer) -> String:
     return String("".join(out))
 
 
-def get_rest_of_list(buffer: TokenBuffer, end_paren) -> Expression:
+def get_rest_of_list(buffer: TokenBuffer, end_paren: str) -> Expression:
     out = []
     last = Nil
     while True:

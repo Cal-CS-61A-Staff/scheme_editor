@@ -16,6 +16,8 @@ MULTILINE_VALS = ["let", "cond"]
 
 FREE_TOKENS = ["if", "define", "define-macro", "mu", "lambda"]
 
+OPEN_PARENS = ["(", "["]
+CLOSE_PARENS = [")", "]"]
 
 CACHE_SIZE = 2 ** 8
 
@@ -50,9 +52,9 @@ def make_comments(comments: List[str], depth: int, newline: bool):
 
 
 def to_count(phrase):
-    while phrase and phrase[0] == "(":
+    while phrase and phrase[0] in OPEN_PARENS:
         phrase = phrase[1:]
-    while phrase and phrase[-1] == ")":
+    while phrase and phrase[-1] in CLOSE_PARENS:
         phrase = phrase[:-1]
     return bool(phrase and not phrase.isdigit() and phrase.lower() not in FREE_TOKENS)
 
@@ -76,11 +78,11 @@ def inline_format(expr: Formatted) -> str:
     if isinstance(expr, FormatAtom):
         return expr.prefix + expr.value
     else:
-        out = expr.prefix + "(" + " ".join(inline_format(elem) for elem in expr.contents)
+        out = expr.prefix + expr.open_paren + " ".join(inline_format(elem) for elem in expr.contents)
         if expr.last:
-            return out + " . " + inline_format(expr.last) + ")"
+            return out + " . " + inline_format(expr.last) + expr.close_paren
         else:
-            return out + ")"
+            return out + expr.close_paren
 
 
 def log(message: str):
@@ -112,22 +114,26 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
             comments, expr.comments = expr.comments, ""
             expr.prefix = ""
             if old_prefix == "`":
-                out = verify(make_comments(comments, 0, True) + old_prefix + indent(prettify_expr(expr, remaining - 1)[0], 1).strip(), remaining)
+                out = verify(
+                    make_comments(comments, 0, True) + old_prefix + indent(prettify_expr(expr, remaining - 1)[0],
+                                                                           1).strip(), remaining)
             else:
-                out = verify(make_comments(comments, 0, True) + old_prefix + indent(prettify_data(expr, remaining - 1, True)[0], 1).strip(), remaining)
+                out = verify(
+                    make_comments(comments, 0, True) + old_prefix + indent(prettify_data(expr, remaining - 1, True)[0],
+                                                                           1).strip(), remaining)
             expr.prefix = old_prefix
             expr.comments = comments
             return out
         elif not expr.contents:
             # nil expr
             if len(expr.comments) <= 1:
-                return verify("()" + make_comments(expr.comments, 2, False), remaining)
+                return verify(expr.open_paren + expr.close_paren + make_comments(expr.comments, 2, False), remaining)
             else:
-                return verify(make_comments(expr.comments, 2, True) + "()", remaining)
+                return verify(make_comments(expr.comments, 2, True) + expr.open_paren + expr.close_paren, remaining)
         else:
             # call expr
             if isinstance(expr.contents[0], FormatAtom) \
-                    and not expr.contents[0].comments\
+                    and not expr.contents[0].comments \
                     and not expr.contents[0].prefix:
 
                 operator = expr.contents[0].value
@@ -142,7 +148,8 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                         name_str = indent(prettify_expr(name, remaining - len(f"({operator} "))[0],
                                           len(f"({operator} "))
                         body_str = indent("\n".join(body), INDENT // 2)
-                        out_str = "(" + operator + " " + name_str.lstrip() + "\n" + body_str + ")"
+                        out_str = expr.open_paren + operator + " " + name_str.lstrip() + "\n" \
+                            + body_str + expr.close_paren
                         return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
 
                 if operator == "let":
@@ -165,10 +172,10 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                                 for body_expr in expr.contents[2:]:
                                     body.append(prettify_expr(body_expr, remaining - INDENT // 2)[0])
                                 body_string = indent(body, INDENT // 2)
-                                out_str = "(let " + binding_str.lstrip() + "\n" + body_string
+                                out_str = expr.open_paren + "let " + binding_str.lstrip() + "\n" + body_string
                                 if expr.contents[-1].comments:
                                     out_str += "\n"
-                                out_str += ")"
+                                out_str += expr.close_paren
                                 return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
 
                 if operator == "cond":
@@ -179,7 +186,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                         for clause in clauses:
                             if not isinstance(clause, FormatList) \
                                     or clause.last is not None \
-                                    or len(clause.contents) < 1\
+                                    or len(clause.contents) < 1 \
                                     or clause.prefix:
                                 log("screwed up clause")
                                 break
@@ -199,7 +206,8 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                                         break
                                     pred_str = pred_fmt
                                     val_str = inline_format(val)
-                                    clause_str = "(" + pred_str + " " * (max_pred - len(pred_str) + 1) + val_str + ")"
+                                    clause_str = clause.open_paren + pred_str + " " * (max_pred - len(pred_str) + 1) \
+                                        + val_str + clause.close_paren
 
                                     ok = False
                                     if len(clause.comments) > 1:
@@ -211,8 +219,8 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                                     formatted_clauses.append(clause_str)
                                 else:
                                     # success!
-                                    out_str = make_comments(expr.comments, 0, True) + \
-                                              "(cond\n" + indent("\n".join(formatted_clauses), 1) + ")"
+                                    out_str = make_comments(expr.comments, 0, True) + expr.open_paren + \
+                                              "cond\n" + indent("\n".join(formatted_clauses), 1) + expr.close_paren
                                     out = verify(out_str, remaining)
                                     if out[1]:
                                         return out
@@ -223,15 +231,16 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                                 val_strs = []
                                 for expr in clause.contents[1:]:
                                     val_strs.append(prettify_expr(expr, remaining - 1)[0])
-                                clause_str = "(" + pred_str + "\n" + \
-                                             indent("\n".join(val_strs), 1)
+                                clause_str = clause.open_paren + pred_str + "\n" + \
+                                    indent("\n".join(val_strs), 1)
                                 if len(clause.contents) > 1 and clause.contents[-1].comments:
                                     clause_str += "\n"
-                                clause_str += ")"
+                                clause_str += clause.close_paren
                                 clause_str = make_comments(clause.comments, 0, True) + clause_str
                                 formatted_clauses.append(clause_str)
 
-                            out_str = "(cond\n" + indent("\n".join(formatted_clauses), 1) + ")"
+                            out_str = expr.open_paren + "cond\n" + indent("\n".join(formatted_clauses), 1) \
+                                + expr.close_paren
                             return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
 
                 # assume no special forms
@@ -244,10 +253,10 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                     operands.append(ret[0])
                 else:
                     operand_string = indent(operands, len(operator) + 2)
-                    out_str = "(" + operator + " " + operand_string.lstrip()
+                    out_str = expr.open_paren + operator + " " + operand_string.lstrip()
                     if expr.contents[-1].comments:
                         out_str += "\n"
-                    out_str += ")"
+                    out_str += expr.close_paren
                     out = verify(make_comments(expr.comments, 0, True) + out_str, remaining)
                     if out[1]:
                         return out
@@ -258,7 +267,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
         return prettify_data(expr, remaining, False)
 
 
-def prettify_data(expr: Formatted, remaining: int, is_data: bool, force_multiline: bool=False) -> Tuple[str, bool]:
+def prettify_data(expr: Formatted, remaining: int, is_data: bool, force_multiline: bool = False) -> Tuple[str, bool]:
     if isinstance(expr, FormatAtom):
         if len(expr.comments) <= 1:
             return verify(inline_format(expr) + make_comments(expr.comments, len(expr.value), False), remaining)
@@ -293,10 +302,10 @@ def prettify_data(expr: Formatted, remaining: int, is_data: bool, force_multilin
         elems.append(ret[0])
 
     elem_string = indent("\n".join(elems), 1).strip()
-    out_str = "(" + elem_string
+    out_str = expr.open_paren + elem_string
     if expr.contents and expr.contents[-1].comments:
         out_str += "\n"
-    out_str += ")"
+    out_str += expr.close_paren
     return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
 
 
