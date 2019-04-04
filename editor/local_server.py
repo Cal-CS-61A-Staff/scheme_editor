@@ -277,11 +277,10 @@ def exit_handler(signal, frame):
      \___ \     | |    | |  | | |  ___/ 
      ____) |    | |    | |__| | | |     
     |_____/     |_|     \____/  |_|     
-
-                                        ''')
-    print("\033[91m" + "\033[1m" + "\033[4m")
+''')
+    print("\033[91m" + "\033[1m" + "\033[4m", end="")
     print("Remember that you should run python ok in a separate terminal window, to avoid stopping the editor process.")
-    print("\033[0m" * 3)
+    print("\033[0m" * 3, end="")
     thread_state.cancel()
     sys.exit(0)
 
