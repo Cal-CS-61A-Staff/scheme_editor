@@ -8,7 +8,10 @@ function init() {
     });
     $('#settingsModal').on('hide.bs.modal', function (e) {
         saveState();
-    })
+    });
+    $("#stop-editor-btn").on("click", () => {
+        $.post("/kill");
+    });
 }
 
 function hide_return_frames() {

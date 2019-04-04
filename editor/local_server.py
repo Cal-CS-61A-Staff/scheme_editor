@@ -96,6 +96,14 @@ class Handler(server.BaseHTTPRequestHandler):
         path = urllib.parse.unquote(self.path)
         if path == "/cancel":
             thread_state.cancel()
+
+        elif path == "/kill":
+            self.send_response(HTTPStatus.OK, 'test')
+            self.send_header("Content-type", "application/JSON")
+            self.end_headers()
+
+            exit_handler(None, None)
+
         else:
             thread_state.run(self.handle_post_thread, data, path)
 
@@ -317,9 +325,24 @@ def start(file_args, port, open_browser):
     main_files = file_args
     global PORT
     PORT = port
-    print(f"http://localhost:{PORT}")
+    url = f"http://localhost:{PORT}"
     socketserver.TCPServer.allow_reuse_address = True
-    httpd = ThreadedHTTPServer(("localhost", PORT), Handler)
+    try:
+        httpd = ThreadedHTTPServer(("localhost", PORT), Handler)
+    except OSError:
+        if supports_color():
+            print("\033[91m", end="")
+        print(f"Port {PORT} is already in use, likely for another instance of the editor.")
+        print("To open a second instance of the editor, specify a different port using --port.")
+        print(f"To replace the previous editor instance with a new one:\n"
+              f"    1. Go to {url}\n"
+              f"    2. Click \"Settings\" at the top\n"
+              f"    3. Press \"End Current Session\"\n"
+              f"    4. Run `python3 editor` again")
+        if supports_color():
+            print("\033[0m", end="")
+        return
+    print(url)
     if open_browser:
         webbrowser.open(f"http://localhost:{PORT}", new=0, autoraise=True)
     httpd.serve_forever()
