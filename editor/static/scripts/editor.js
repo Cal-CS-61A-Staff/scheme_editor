@@ -107,11 +107,11 @@ function register(layout) {
                 let nextVal = editor.getValue()[index];
                 let prevVal = editor.getValue()[index - 1];
 
-                if (prevVal === ")") {
-                    return editor.getSession().findMatchingBracket(cursor, ")");
-                } else if (nextVal === "(") {
+                if (prevVal === ")" || prevVal === "]") {
+                    return editor.getSession().findMatchingBracket(cursor, prevVal);
+                } else if (nextVal === "(" || nextVal === "[") {
                     cursor.column += 1;
-                    let out = editor.getSession().findMatchingBracket(cursor, "(");
+                    let out = editor.getSession().findMatchingBracket(cursor, nextVal);
                     if (out !== null) {
                         out.column += 1;
                     }
