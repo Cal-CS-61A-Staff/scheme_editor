@@ -270,8 +270,9 @@ def instant(code, global_frame_id):
 def exit_handler(signal, frame):
     print(" - Ctrl+C pressed")
     print("Shutting down server - all unsaved work may be lost")
-    print('''
-          _____   _______    ____    _____  
+    print(
+'''
+      _____   _______    ____    _____  
      / ____| |__   __|  / __ \  |  __ \ 
     | (___      | |    | |  | | | |__) |
      \___ \     | |    | |  | | |  ___/ 
