@@ -9,6 +9,7 @@ class Token:
     def __init__(self, value: str):
         self.value = value
         self.comments: List[str] = []
+        self.comments_inline = True
 
     def __eq__(self, other):
         return other == self.value
@@ -93,11 +94,11 @@ def tokenize(string, do_comments) -> List[Token]:
         if first_in_line:
             if len(tokens) not in comments:
                 comments[len(tokens)] = []
-            comments[len(tokens)].append(curr)
+            comments[len(tokens)].append((False, curr))
         else:
             if len(tokens) - 1 not in comments:
                 comments[len(tokens) - 1] = []
-            comments[len(tokens) - 1].append(curr)
+            comments[len(tokens) - 1].append((True, curr))
 
     def _get_string():
         """Starts just after an opening quotation mark"""
@@ -133,6 +134,7 @@ def tokenize(string, do_comments) -> List[Token]:
 
     if do_comments:
         for key, val in comments.items():
-            tokens[min(key, len(tokens) - 1)].comments.extend(val)
+            tokens[min(key, len(tokens) - 1)].comments.extend(x[1] for x in val)
+            tokens[min(key, len(tokens) - 1)].comments_inline = all(x[0] for x in val)
 
     return tokens

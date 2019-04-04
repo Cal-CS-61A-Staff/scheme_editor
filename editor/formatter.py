@@ -91,7 +91,7 @@ def log(message: str):
 
 def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
     if isinstance(expr, FormatAtom):
-        if len(expr.comments) <= 1:
+        if len(expr.comments) <= 1 and expr.allow_inline:
             return verify(inline_format(expr) + make_comments(expr.comments, len(expr.value), False), remaining)
         else:
             return verify(make_comments(expr.comments, len(expr.value), True) + inline_format(expr), remaining)
@@ -101,7 +101,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
         if verify(expr_str, remaining)[1]:
             out1 = expr_str + make_comments(expr.comments, len(expr_str), False)
             out2 = make_comments(expr.comments, len(expr_str), True) + expr_str
-            if len(expr.comments) <= 1 and verify(out1, remaining)[1]:
+            if len(expr.comments) <= 1 and expr.allow_inline and verify(out1, remaining)[1]:
                 return verify(out1, remaining)
             elif verify(out2, remaining)[1]:
                 return verify(out2, remaining)
@@ -126,7 +126,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
             return out
         elif not expr.contents:
             # nil expr
-            if len(expr.comments) <= 1:
+            if len(expr.comments) <= 1 and expr.allow_inline:
                 return verify(expr.open_paren + expr.close_paren + make_comments(expr.comments, 2, False), remaining)
             else:
                 return verify(make_comments(expr.comments, 2, True) + expr.open_paren + expr.close_paren, remaining)
@@ -150,6 +150,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                         body_str = indent("\n".join(body), INDENT // 2)
                         out_str = expr.open_paren + operator + " " + name_str.lstrip() + "\n" \
                             + body_str + expr.close_paren
+                        print("name_str=",name_str)
                         return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
 
                 if operator == "let":
@@ -210,7 +211,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                                         + val_str + clause.close_paren
 
                                     ok = False
-                                    if len(clause.comments) > 1:
+                                    if len(clause.comments) > 1 or not clause.allow_inline:
                                         clause_str = make_comments(clause.comments, 0, True) + clause_str
                                         ok = verify(clause_str, remaining - 1)[1]
                                     if not ok:
@@ -229,8 +230,8 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                             for clause in clauses:
                                 pred_str = prettify_expr(clause.contents[0], remaining - 1)[0]
                                 val_strs = []
-                                for expr in clause.contents[1:]:
-                                    val_strs.append(prettify_expr(expr, remaining - 1)[0])
+                                for clause_expr in clause.contents[1:]:
+                                    val_strs.append(prettify_expr(clause_expr, remaining - 1)[0])
                                 clause_str = clause.open_paren + pred_str + "\n" + \
                                     indent("\n".join(val_strs), 1)
                                 if len(clause.contents) > 1 and clause.contents[-1].comments:
@@ -258,8 +259,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                         out_str += "\n"
                     out_str += expr.close_paren
                     out = verify(make_comments(expr.comments, 0, True) + out_str, remaining)
-                    if out[1]:
-                        return out
+                    return out
             # but may have to go here anyway, if inlining takes up too much space
             return prettify_data(expr, remaining, False)
     else:
@@ -269,7 +269,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
 
 def prettify_data(expr: Formatted, remaining: int, is_data: bool, force_multiline: bool = False) -> Tuple[str, bool]:
     if isinstance(expr, FormatAtom):
-        if len(expr.comments) <= 1:
+        if len(expr.comments) <= 1 and expr.allow_inline:
             return verify(inline_format(expr) + make_comments(expr.comments, len(expr.value), False), remaining)
         else:
             return verify(make_comments(expr.comments, len(expr.value), True) + inline_format(expr), remaining)
@@ -291,7 +291,7 @@ def prettify_data(expr: Formatted, remaining: int, is_data: bool, force_multilin
         if verify(expr_str, remaining)[1]:
             out1 = expr_str + make_comments(expr.comments, len(expr_str), False)
             out2 = make_comments(expr.comments, len(expr_str), True) + expr_str
-            if len(expr.comments) <= 1 and verify(out1, remaining)[1]:
+            if len(expr.comments) <= 1 and expr.allow_inline and verify(out1, remaining)[1]:
                 return verify(out1, remaining)
             else:
                 return verify(out2, remaining)
