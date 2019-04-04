@@ -259,7 +259,6 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
 
 
 def prettify_data(expr: Formatted, remaining: int, is_data: bool, force_multiline: bool=False) -> Tuple[str, bool]:
-    print("Here", inline_format(expr))
     if isinstance(expr, FormatAtom):
         if len(expr.comments) <= 1:
             return verify(inline_format(expr) + make_comments(expr.comments, len(expr.value), False), remaining)

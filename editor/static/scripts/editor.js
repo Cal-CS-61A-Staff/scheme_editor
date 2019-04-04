@@ -98,6 +98,47 @@ function register(layout) {
                 container.getElement().find(".save-btn > .text").text("Save");
                 changed = true;
             });
+
+            let selectMarker;
+
+            function getMatchingBracket() {
+                let cursor = editor.getCursorPosition();
+                let index = editor.getSession().getDocument().positionToIndex(cursor);
+                let nextVal = editor.getValue()[index];
+                let prevVal = editor.getValue()[index - 1];
+
+                if (prevVal === ")") {
+                    return editor.getSession().findMatchingBracket(cursor, ")");
+                } else if (nextVal === "(") {
+                    cursor.column += 1;
+                    let out = editor.getSession().findMatchingBracket(cursor, "(");
+                    if (out !== null) {
+                        out.column += 1;
+                    }
+                    return out;
+                }
+                return null;
+            }
+
+            editor.getSelection().on("changeCursor", function () {
+                let matchingBracket = getMatchingBracket();
+                if (selectMarker !== undefined) {
+                    editor.getSession().removeMarker(selectMarker);
+                }
+                if (matchingBracket !== null) {
+                    let currentPos = editor.getCursorPosition();
+
+                    if (currentPos.row > matchingBracket.row ||
+                        currentPos.row === matchingBracket.row && currentPos.column > matchingBracket.column) {
+                        let temp = currentPos;
+                        currentPos = matchingBracket;
+                        matchingBracket = temp;
+                    }
+
+                    let range = new ace.Range(currentPos.row, currentPos.column, matchingBracket.row, matchingBracket.column);
+                    selectMarker = editor.getSession().addMarker(range, "ace_selection match_parens", editor.getSelectionStyle());
+                }
+            });
         });
 
         layout.eventHub.on("update", () => {
@@ -250,7 +291,7 @@ function register(layout) {
             }).done(function (data) {
                 if (data) {
                     data = $.parseJSON(data);
-                    editor.setValue(data["formatted"]);
+                    editor.setValue(data["formatted"] + "\n");
                 } else {
                     $("#formatFailModal").modal("show");
                 }

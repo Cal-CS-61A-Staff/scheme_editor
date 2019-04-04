@@ -1,3 +1,4 @@
+import os
 from http import server
 import json
 import signal
@@ -267,10 +268,39 @@ def instant(code, global_frame_id):
     return json.dumps({"success": True, "content": log.logger.export()["out"]})
 
 
+# Source: https://stackoverflow.com/questions/7445658/how-to-detect-if-the-console-does-support-ansi-escape-codes-in-python
+def supports_color():
+    """
+    Returns True if the running system's terminal supports color, and False
+    otherwise.
+    """
+    plat = sys.platform
+    supported_platform = plat != 'Pocket PC' and (plat != 'win32' or
+                                                  'ANSICON' in os.environ)
+    # isatty is not always implemented, #6223.
+    is_a_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
+    if not supported_platform or not is_a_tty:
+        return False
+    return True
+
+
 def exit_handler(signal, frame):
     print(" - Ctrl+C pressed")
     print("Shutting down server - all unsaved work may be lost")
+    print(
+'''
+      _____   _______    ____    _____  
+     / ____| |__   __|  / __ \  |  __ \ 
+    | (___      | |    | |  | | | |__) |
+     \___ \     | |    | |  | | |  ___/ 
+     ____) |    | |    | |__| | | |     
+    |_____/     |_|     \____/  |_|     
+''')
+    if supports_color():
+        print("\033[91m" + "\033[1m" + "\033[4m", end="")
     print("Remember that you should run python ok in a separate terminal window, to avoid stopping the editor process.")
+    if supports_color():
+        print("\033[0m" * 3, end="")
     thread_state.cancel()
     sys.exit(0)
 
