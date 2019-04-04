@@ -141,18 +141,18 @@ function register(layout) {
             });
         });
 
-        layout.eventHub.on("update",() => {
+        layout.eventHub.on("update", () => {
             if (states[componentState.id].environments.length === 0) {
                 // program has never been run
                 container.getElement().find(".env-btn")//.prop("disabled", true)
-                .attr('data-original-title', "To use the environment diagram, press Run first.");
+                    .attr('data-original-title', "To use the environment diagram, press Run first.");
                 container.getElement().find(".sub-btn")//.prop("disabled", true)
-                .attr('data-original-title', "To use the debugger, press Run first.");
+                    .attr('data-original-title', "To use the debugger, press Run first.");
             } else {
                 container.getElement().find(".env-btn")//.prop("disabled", false)
-                .attr('data-original-title', "View environment diagram.");
+                    .attr('data-original-title', "View environment diagram.");
                 container.getElement().find(".sub-btn")//.prop("disabled", false)
-                .attr('data-original-title', "Step through the program's execution.");
+                    .attr('data-original-title', "Step through the program's execution.");
             }
         });
 
@@ -239,6 +239,7 @@ function register(layout) {
 
         async function run() {
             let code = [editor.getValue()];
+
             async function run_done(data) {
                 data = $.parseJSON(data);
                 if (data.success) {
@@ -273,6 +274,7 @@ function register(layout) {
                 $("*").trigger("reset");
                 request_update();
             }
+
             let aj = $.post("./process2", {
                 code: code,
                 globalFrameID: -1,
@@ -287,11 +289,11 @@ function register(layout) {
             $.post("./reformat", {
                 code: code,
             }).done(function (data) {
-                data = $.parseJSON(data);
-                if (data["result"] === "success") {
+                if (data) {
+                    data = $.parseJSON(data);
                     editor.setValue(data["formatted"] + "\n");
                 } else {
-                    alert("An error occurred!");
+                    $("#formatFailModal").modal("show");
                 }
             });
         }
@@ -302,6 +304,7 @@ function register(layout) {
             }
             await save();
             let ajax = $.post("./test");
+
             async function done_fn(data) {
                 data = $.parseJSON(data);
                 states[0].test_results = data;
@@ -309,6 +312,7 @@ function register(layout) {
                 notify_changed();
                 open("test_results", 0);
             }
+
             terminable_command("test cases", ajax, done_fn);
         }
     });
