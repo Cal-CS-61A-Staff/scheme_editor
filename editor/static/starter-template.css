@@ -113,3 +113,10 @@ button {
     color: buttontext;
 }
 
+.ace_editor .ace_marker-layer .ace_bracket {
+    display: none;
+}
+
+.ace_editor .ace_marker-layer .match_parens {
+    background: #76ffb6;
+}
