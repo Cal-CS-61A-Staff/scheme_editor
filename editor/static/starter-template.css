@@ -118,5 +118,5 @@ button {
 }
 
 .ace_editor .ace_marker-layer .match_parens {
-    background: #76ffb6;
+    background: #76ffb6; !important /* I hate CSS */
 }
