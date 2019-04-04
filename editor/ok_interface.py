@@ -107,7 +107,7 @@ class TestCaseResult(namedtuple('TestCaseResult', ['cases_passed', 'cases_out', 
             result += self.setup_out.representation()
         result += "\n\n"
         result += "\n\n".join(x.representation() for x in self.cases_out)
-        return formatter.prettify([result])
+        return formatter.prettify([result]) + "\n"
 
     @property
     def dictionary(self):

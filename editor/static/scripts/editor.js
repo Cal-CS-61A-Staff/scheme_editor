@@ -289,7 +289,7 @@ function register(layout) {
             }).done(function (data) {
                 data = $.parseJSON(data);
                 if (data["result"] === "success") {
-                    editor.setValue(data["formatted"]);
+                    editor.setValue(data["formatted"] + "\n");
                 } else {
                     alert("An error occurred!");
                 }

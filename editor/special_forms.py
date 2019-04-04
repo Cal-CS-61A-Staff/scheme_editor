@@ -409,6 +409,8 @@ class Quasiquote(Callable):
                             out.append(evaluated)
                     out = make_list(out)
                 else:
+                    if not logger.dotted:
+                        raise OperandDeduceError(f"{expr} is an ill-formed quasiquotation.")
                     out = Pair(Quasiquote.quasiquote_evaluate(expr.first, frame, visual_expression.children[0]),
                                Quasiquote.quasiquote_evaluate(expr.rest, frame, visual_expression.children[1]))
                 visual_expression.value = out
