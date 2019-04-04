@@ -33,7 +33,6 @@ def receive():
     skip_tree = request.form.get("skip_tree") == "true"
     skip_envs = request.form.get("skip_envs") == "true"
     hide_return_frames = request.form.get("hide_return_frames") == "true"
-    print(request.form.get("hide_return_frames"))
     return handle(code, skip_tree, skip_envs, hide_return_frames)
 
 
