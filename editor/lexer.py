@@ -2,7 +2,7 @@ from typing import Union, List
 
 from scheme_exceptions import ParseError
 
-SPECIALS = ["(", ")", "'", "`", ",", "@", "\"", ";"]
+SPECIALS = ["(", ")", "[", "]", "'", "`", ",", "@", "\"", ";"]
 
 
 class Token:

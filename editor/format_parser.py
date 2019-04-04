@@ -9,11 +9,14 @@ class FormatList:
                  contents: List['Formatted'],
                  last: 'Formatted',
                  comments: List[str],
+                 close_paren,
                  prefix: str=""):
         self.contents = contents
         self.last = last
         self.comments = comments
         self.contains_comment = any(x.contains_comment or x.comments for x in contents)
+        self.open_paren = "(" if close_paren == ")" else "["
+        self.close_paren = close_paren
         self.prefix = prefix
 
     def __repr__(self):
@@ -39,8 +42,8 @@ def get_expression(buffer: TokenBuffer) -> Formatted:
     comments = []
     if token in SPECIALS:
         comments = token.comments
-        if token == "(":
-            out = get_rest_of_list(buffer)
+        if token in ("(", "["):
+            out = get_rest_of_list(buffer, ")" if token == "(" else "]")
         elif token in ("'", "`"):
             out = get_expression(buffer)
             out.prefix = token.value
@@ -69,15 +72,15 @@ def get_expression(buffer: TokenBuffer) -> Formatted:
     return out
 
 
-def get_rest_of_list(buffer: TokenBuffer):
+def get_rest_of_list(buffer: TokenBuffer, end_paren: str):
     out = []
     last = None
-    while buffer.get_next_token() != ")" and buffer.get_next_token() != ".":
+    while buffer.get_next_token() != end_paren and buffer.get_next_token() != ".":
         out.append(get_expression(buffer))
     if buffer.get_next_token() == ".":
         buffer.pop_next_token()
         last = get_expression(buffer)
-    if buffer.get_next_token() != ")":
+    if buffer.get_next_token() != end_paren:
         raise ParseError("Only one expression may follow a dot in a dotted list.")
     buffer.pop_next_token()
-    return FormatList(out, last, [])
+    return FormatList(out, last, [], end_paren)

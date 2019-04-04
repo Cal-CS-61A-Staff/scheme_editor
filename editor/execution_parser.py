@@ -48,8 +48,8 @@ def get_expression(buffer: TokenBuffer) -> Union[Expression, None]:
     token = buffer.pop_next_token()
     if token is None:
         return None
-    elif token == "(":
-        return get_rest_of_list(buffer)
+    elif token in ("(", "["):
+        return get_rest_of_list(buffer, ")" if token == "(" else "]")
     elif token == "'":
         return make_list([Symbol("quote"), get_expression(buffer)])
     elif token == ",":
@@ -106,18 +106,18 @@ def get_string(buffer: TokenBuffer) -> String:
     return String("".join(out))
 
 
-def get_rest_of_list(buffer: TokenBuffer) -> Expression:
+def get_rest_of_list(buffer: TokenBuffer, end_paren: str) -> Expression:
     out = []
     last = Nil
     while True:
         next = buffer.get_next_token()
-        if next == ")":
+        if next == end_paren:
             buffer.pop_next_token()
             break
         elif logger.dotted and next == ".":
             buffer.pop_next_token()
             last = get_expression(buffer)
-            if buffer.pop_next_token() != ")":
+            if buffer.pop_next_token() != end_paren:
                 raise ParseError(f"Only one expression may follow a dot in a dotted list.")
             break
         expr = get_expression(buffer)
