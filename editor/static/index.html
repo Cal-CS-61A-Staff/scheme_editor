@@ -206,6 +206,33 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="formatFailModal" tabindex="-1" role="dialog"
+     aria-labelledby="disconnectedModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="formatFailModalLabel">Auto-formatting Failed!</h5>
+            </div>
+            <div class="modal-body">
+                <p>
+                    The auto-formatter was unable to parse your code.
+                <p>
+                    Verify that all your parentheses are matched, and that you do not have a prefix (like <code>'</code> or <code>,</code>) unattached to an expression.
+                </p>
+                <p>
+                    If you're sure your code is correct, please let a member of course staff know, or report a bug to the maintainer of this tool.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-toggle="tooltip"
+                            title="Dismiss modal"
+                            class="btn btn-secondary"
+                            data-dismiss="modal">Dismiss</button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Bootstrap core JavaScript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
