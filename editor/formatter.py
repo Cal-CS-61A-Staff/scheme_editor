@@ -52,7 +52,11 @@ def make_comments(comments: List[str], depth: int, newline: bool):
 
 
 def to_count(phrase):
-    return True
+    while phrase and phrase[0] in OPEN_PARENS:
+        phrase = phrase[1:]
+    while phrase and phrase[-1] in CLOSE_PARENS:
+        phrase = phrase[:-1]
+    return bool(phrase and not phrase.isdigit() and phrase.lower() not in FREE_TOKENS)
 
 
 def verify(out: str, remaining: int) -> Tuple[str, bool]:
