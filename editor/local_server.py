@@ -54,6 +54,7 @@ class thread_state:
         self.post_lock = threading.Lock()
         self.modify_current_thread_lock = threading.Lock()
         self.current_thread = None
+        self.terminated = False
 
     def cancel(self):
         with self.modify_current_thread_lock:
@@ -61,8 +62,14 @@ class thread_state:
                 terminate_thread(self.current_thread)
                 self.current_thread = None
 
+    def terminate(self):
+        self.terminated = True
+        self.cancel()
+
     def run(self, target, *args):
         with self.post_lock:
+            if self.terminated:
+                return
             with self.modify_current_thread_lock:
                 assert self.current_thread is None
                 thread = self.current_thread = threading.Thread(target=target, args=args)
@@ -301,7 +308,7 @@ def exit_handler(signal, frame):
     print("Remember that you should run python ok in a separate terminal window, to avoid stopping the editor process.")
     if supports_color():
         print("\033[0m" * 3, end="")
-    thread_state.cancel()
+    thread_state.terminate()
     sys.exit(0)
 
 
