@@ -52,11 +52,7 @@ def make_comments(comments: List[str], depth: int, newline: bool):
 
 
 def to_count(phrase):
-    while phrase and phrase[0] in OPEN_PARENS:
-        phrase = phrase[1:]
-    while phrase and phrase[-1] in CLOSE_PARENS:
-        phrase = phrase[:-1]
-    return bool(phrase and not phrase.isdigit() and phrase.lower() not in FREE_TOKENS)
+    return True
 
 
 def verify(out: str, remaining: int) -> Tuple[str, bool]:
@@ -137,7 +133,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                     and not expr.contents[0].prefix:
 
                 operator = expr.contents[0].value
-                if operator in DEFINE_VALS:
+                if operator in DEFINE_VALS + DECLARE_VALS:
                     if len(expr.contents) < 3:
                         log("define statement with too few arguments")
                     else:
