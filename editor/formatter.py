@@ -6,7 +6,7 @@ from format_parser import get_expression, Formatted, FormatAtom, FormatList
 
 LINE_LENGTH = 80
 MAX_EXPR_COUNT = 10
-MAX_EXPR_LEN = 50
+MAX_EXPR_LEN = 30
 INDENT = 4
 
 DEFINE_VALS = ["define", "define-macro"]
