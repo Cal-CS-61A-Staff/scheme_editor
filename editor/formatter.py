@@ -12,7 +12,7 @@ INDENT = 4
 DEFINE_VALS = ["define", "define-macro"]
 DECLARE_VALS = ["lambda", "mu"]
 SHORTHAND = {"quote": "'", "quasiquote": "`", "unquote": ",", "unquote-splicing": ",@", "variadic": "."}
-MULTILINE_VALS = ["let", "cond"]
+MULTILINE_VALS = ["let", "cond", "if"]
 
 FREE_TOKENS = ["if", "define", "define-macro", "mu", "lambda"]
 
