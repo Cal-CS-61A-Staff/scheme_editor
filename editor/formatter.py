@@ -150,7 +150,6 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                         body_str = indent("\n".join(body), INDENT // 2)
                         out_str = expr.open_paren + operator + " " + name_str.lstrip() + "\n" \
                             + body_str + expr.close_paren
-                        print("name_str=",name_str)
                         return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
 
                 if operator == "let":
