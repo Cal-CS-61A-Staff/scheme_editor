@@ -22,7 +22,7 @@ function init() {
                 $("#newFileModal").modal("hide");
                 open_file(fileName + ".scm");
             } else {
-                $("#fileNameInput").show().text(fileName + ".scm already exists.")
+                $("#file_already_exists").show().text(fileName + ".scm already exists.")
             }
         });
 
