@@ -60,7 +60,7 @@ def to_count(phrase):
 
 
 def verify(out: str, remaining: int) -> Tuple[str, bool]:
-    total_length = max(map(len, out.split("\n"))) <= min(MAX_EXPR_LEN, remaining)
+    total_length = max(len(x.strip()) for x in out.split("\n")) <= min(MAX_EXPR_LEN, remaining)
     expr_count = max(sum(to_count(y) for y in x.split()) for x in out.split("\n"))
 
     expr_length = expr_count <= MAX_EXPR_COUNT
