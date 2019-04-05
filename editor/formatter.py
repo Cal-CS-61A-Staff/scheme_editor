@@ -6,13 +6,13 @@ from format_parser import get_expression, Formatted, FormatAtom, FormatList
 
 LINE_LENGTH = 80
 MAX_EXPR_COUNT = 10
-MAX_EXPR_LEN = 50
+MAX_EXPR_LEN = 30
 INDENT = 4
 
 DEFINE_VALS = ["define", "define-macro"]
 DECLARE_VALS = ["lambda", "mu"]
 SHORTHAND = {"quote": "'", "quasiquote": "`", "unquote": ",", "unquote-splicing": ",@", "variadic": "."}
-MULTILINE_VALS = ["let", "cond"]
+MULTILINE_VALS = ["let", "cond", "if"]
 
 FREE_TOKENS = ["if", "define", "define-macro", "mu", "lambda"]
 
@@ -60,7 +60,7 @@ def to_count(phrase):
 
 
 def verify(out: str, remaining: int) -> Tuple[str, bool]:
-    total_length = max(map(len, out.split("\n"))) <= min(MAX_EXPR_LEN, remaining)
+    total_length = max(len(x.strip()) for x in out.split("\n")) <= min(MAX_EXPR_LEN, remaining)
     expr_count = max(sum(to_count(y) for y in x.split()) for x in out.split("\n"))
 
     expr_length = expr_count <= MAX_EXPR_COUNT
@@ -137,7 +137,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                     and not expr.contents[0].prefix:
 
                 operator = expr.contents[0].value
-                if operator in DEFINE_VALS:
+                if operator in DEFINE_VALS + DECLARE_VALS:
                     if len(expr.contents) < 3:
                         log("define statement with too few arguments")
                     else:
@@ -229,8 +229,8 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                             for clause in clauses:
                                 pred_str = prettify_expr(clause.contents[0], remaining - 1)[0]
                                 val_strs = []
-                                for expr in clause.contents[1:]:
-                                    val_strs.append(prettify_expr(expr, remaining - 1)[0])
+                                for inner_expr in clause.contents[1:]:
+                                    val_strs.append(prettify_expr(inner_expr, remaining - 1)[0])
                                 clause_str = clause.open_paren + pred_str + "\n" + \
                                     indent("\n".join(val_strs), 1)
                                 if len(clause.contents) > 1 and clause.contents[-1].comments:

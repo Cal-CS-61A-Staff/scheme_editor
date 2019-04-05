@@ -468,10 +468,11 @@ class Force(Applicable):
         # noinspection PyTypeChecker
         gui_holder.expression.set_entries([VisualExpression(operand.expr, gui_holder.expression.display_value)])
         gui_holder.apply()
-        operand.expr = evaluate(operand.expr, operand.frame, gui_holder.expression.children[0])
-        if not logger.dotted and not isinstance(operand.expr, (Pair, NilType)):
+        evaluated = evaluate(operand.expr, operand.frame, gui_holder.expression.children[0])
+        if not logger.dotted and not isinstance(evaluated, (Pair, NilType)):
             raise TypeMismatchError(
                 f"Unable to force a Promise evaluating to {operand.expr}, expected another Pair or Nil")
+        operand.expr = evaluated
         operand.force()
         return operand.expr
 
