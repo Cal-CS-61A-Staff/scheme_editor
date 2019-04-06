@@ -26,8 +26,6 @@ main_files = []
 
 state = {}
 
-import ctypes
-
 class Handler(server.BaseHTTPRequestHandler):
     cancellation_event = threading.Event()  # Shared across all instances, because the threading mixin creates a new instance every time...
 
@@ -82,10 +80,11 @@ class Handler(server.BaseHTTPRequestHandler):
 
         elif path == "/reformat":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
+            javastyle = data[b"javastyle"][0] == b"true"
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
-            self.wfile.write(bytes(json.dumps({"result": "success", "formatted": prettify(code)}), "utf-8"))
+            self.wfile.write(bytes(json.dumps({"result": "success", "formatted": prettify(code, javastyle)}), "utf-8"))
 
         elif path == "/test":
             self.cancellation_event.clear()  # Make sure we don't have lingering cancellation requests from before
@@ -125,6 +124,9 @@ class Handler(server.BaseHTTPRequestHandler):
                         merge(state["states"], val)
                 else:
                     state[key] = val
+            if "settings" in state:
+                with open("editor_settings.config", "w+") as file:
+                    file.write(json.dumps(state["settings"]))
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
@@ -133,10 +135,27 @@ class Handler(server.BaseHTTPRequestHandler):
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
+
             if "states" not in state:
                 self.wfile.write(b"fail")
             else:
                 self.wfile.write(bytes(json.dumps(state), "utf-8"))
+
+        elif path == "/load_settings":
+            try:
+                with open("editor_settings.config", "r") as file:
+                    if "settings" not in state:
+                        state["settings"] = {}
+                    for key, val in json.loads(file.read()).items():
+                        state["settings"][key] = val
+            except FileNotFoundError:
+                pass
+
+            self.send_response(HTTPStatus.OK, 'test')
+            self.send_header("Content-type", "application/JSON")
+            self.end_headers()
+            self.wfile.write(bytes(json.dumps(state["settings"]), "utf-8"))
+
 
         elif path == "/documentation":
             self.send_response(HTTPStatus.OK, 'test')
@@ -259,8 +278,10 @@ def supports_color():
         return False
     return True
 
+
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, server.HTTPServer):
     daemon_threads = True
+
 
 def start(file_args, port, open_browser):
     global main_files

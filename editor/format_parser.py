@@ -43,7 +43,11 @@ Formatted = Union[FormatList, FormatAtom]
 def get_expression(buffer: TokenBuffer) -> Formatted:
     token = buffer.pop_next_token()
     comments = []
-    if token in SPECIALS:
+    if token == "#" and not buffer.done and buffer.get_next_token() == "[":
+        buffer.pop_next_token()
+        out = FormatAtom("#[" + buffer.pop_next_token().value + "]")
+        buffer.pop_next_token()
+    elif token in SPECIALS:
         comments = token.comments
         if token in ("(", "["):
             out = get_rest_of_list(buffer, ")" if token == "(" else "]")
