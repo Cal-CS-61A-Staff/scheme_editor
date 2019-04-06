@@ -10,11 +10,13 @@ class FormatList:
                  last: 'Formatted',
                  comments: List[str],
                  close_paren,
+                 allow_inline,
                  prefix: str=""):
         self.contents = contents
         self.last = last
         self.comments = comments
         self.contains_comment = any(x.contains_comment or x.comments for x in contents)
+        self.allow_inline = allow_inline and len(comments) <= 1
         self.open_paren = "(" if close_paren == ")" else "["
         self.close_paren = close_paren
         self.prefix = prefix
@@ -24,10 +26,11 @@ class FormatList:
 
 
 class FormatAtom:
-    def __init__(self, value: str, comments: List[str]=None):
+    def __init__(self, value: str, comments: List[str]=None, allow_inline=True):
         self.value = value
         self.comments = comments if comments else []
         self.contains_comment = False
+        self.allow_inline = allow_inline and (not comments or len(comments) <= 1)
         self.prefix = ""
 
     def __repr__(self):
@@ -69,6 +72,7 @@ def get_expression(buffer: TokenBuffer) -> Formatted:
         out = FormatAtom(token.value)
 
     out.comments = comments + buffer.tokens[buffer.i - 1].comments
+    out.allow_inline = token.comments_inline and buffer.tokens[buffer.i - 1].comments_inline
     return out
 
 
@@ -83,4 +87,4 @@ def get_rest_of_list(buffer: TokenBuffer, end_paren: str):
     if buffer.get_next_token() != end_paren:
         raise ParseError("Only one expression may follow a dot in a dotted list.")
     buffer.pop_next_token()
-    return FormatList(out, last, [], end_paren)
+    return FormatList(out, last, [], end_paren, True)
