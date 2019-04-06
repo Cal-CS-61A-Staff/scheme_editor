@@ -35,9 +35,11 @@ def prettify(strings: List[str], javastyle: bool=False) -> str:
 
 @lru_cache(CACHE_SIZE)
 def prettify_single(string: str, javastyle: bool) -> List[str]:
+    global java_newline
     if javastyle:
-        global java_newline
         java_newline = "\n"
+    else:
+        java_newline = ""
     out = []
     buff = lexer.TokenBuffer([string], True)
     while not buff.done:
