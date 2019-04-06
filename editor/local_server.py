@@ -17,6 +17,7 @@ from documentation import search
 from execution_parser import strip_comments
 from file_manager import get_scm_files, save, read_file, new_file
 from formatter import prettify
+from persistence import save_config, load_config
 from runtime_limiter import TimeLimitException, OperationCanceledException, scheme_limiter
 from scheme_exceptions import SchemeError, ParseError, TerminatedError
 
@@ -125,8 +126,7 @@ class Handler(server.BaseHTTPRequestHandler):
                 else:
                     state[key] = val
             if "settings" in state:
-                with open("editor_settings.config", "w+") as file:
-                    file.write(json.dumps(state["settings"]))
+                save_config("settings", state["settings"])
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
@@ -142,19 +142,19 @@ class Handler(server.BaseHTTPRequestHandler):
                 self.wfile.write(bytes(json.dumps(state), "utf-8"))
 
         elif path == "/load_settings":
-            try:
-                with open("editor_settings.config", "r") as file:
-                    if "settings" not in state:
-                        state["settings"] = {}
-                    for key, val in json.loads(file.read()).items():
-                        state["settings"][key] = val
-            except FileNotFoundError:
-                pass
-
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
-            self.wfile.write(bytes(json.dumps(state["settings"]), "utf-8"))
+
+            try:
+                if "settings" not in state:
+                    state["settings"] = {}
+                for key, val in load_config("settings").items():
+                    state["settings"][key] = val
+            except FileNotFoundError:
+                self.wfile.write(b"fail")
+            else:
+                self.wfile.write(bytes(json.dumps(state["settings"]), "utf-8"))
 
 
         elif path == "/documentation":
