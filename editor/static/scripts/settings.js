@@ -11,6 +11,8 @@ function init() {
     });
     $("#stop-editor-btn").on("click", () => {
         $.post("/kill");
+        $("#disconnectedModal").modal("show");
+        $("#reconnect-button").hide();
     });
 }
 

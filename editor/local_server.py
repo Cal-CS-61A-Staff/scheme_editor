@@ -147,8 +147,9 @@ class Handler(server.BaseHTTPRequestHandler):
             self.wfile.write(bytes(json.dumps(search(query)), "utf-8"))
 
         elif path == "/kill":
-            sys.exit(0)
-
+            # This is (only) fine because we're in a different thread than the actual server
+            self.server.shutdown()
+            self.server.socket.close()
 
     def do_GET(self):
         self.send_response(HTTPStatus.OK, 'test')
