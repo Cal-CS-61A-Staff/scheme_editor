@@ -91,9 +91,14 @@ def tokenize(string, do_comments) -> List[Token]:
         while i != len(string) and string[i] != "\n":
             curr += string[i]
             i += 1
-        if len(tokens) not in comments:
-            comments[len(tokens)] = []
-        comments[len(tokens)].append((not first_in_line, curr))
+        if first_in_line:
+            if len(tokens) not in comments:
+                comments[len(tokens)] = []
+            comments[len(tokens)].append((not first_in_line, curr))
+        else:
+            if len(tokens) - 1 not in comments:
+                comments[len(tokens) - 1] = []
+            comments[len(tokens) - 1].append((not first_in_line, curr))
 
     def _get_string():
         """Starts just after an opening quotation mark"""
