@@ -8,7 +8,10 @@ function init() {
     });
     $('#settingsModal').on('hide.bs.modal', function (e) {
         saveState();
-    })
+    });
+    $.post("./load_settings").done((data) => {
+        setAllSettings($.parseJSON(data));
+    });
 }
 
 function hide_return_frames() {
