@@ -15,6 +15,13 @@ function init() {
         $("#reconnect-button").hide();
     });
 
+    $("#javastyleWrapper").on("mouseover", function() {
+        $(this).css({
+            left: (Math.random() * 200) + "px",
+            top: (Math.random() * 200) + "px",
+        });
+    });
+
     $.post("./load_settings").done((data) => {
         if (data === "fail") {
             return;
