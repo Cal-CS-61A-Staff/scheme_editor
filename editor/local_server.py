@@ -17,7 +17,7 @@ from documentation import search
 from execution_parser import strip_comments
 from file_manager import get_scm_files, save, read_file, new_file
 from formatter import prettify
-from runtime_limiter import TimeLimitException, OperationCanceledException, limiter
+from runtime_limiter import TimeLimitException, OperationCanceledException, scheme_limiter
 from scheme_exceptions import SchemeError, ParseError, TerminatedError
 
 PORT = 8012
@@ -213,7 +213,7 @@ def handle(code, curr_i, curr_f, global_frame_id, cancellation_event):
     try:
         global_frame = log.logger.frame_lookup.get(global_frame_id, None)
         log.logger.new_query(global_frame, curr_i, curr_f)
-        limiter(cancellation_event, execution.string_exec, code, log.logger.out, global_frame.base if global_frame_id != -1 else None)
+        scheme_limiter(cancellation_event, execution.string_exec, code, log.logger.out, global_frame.base if global_frame_id != -1 else None)
     except OperationCanceledException:
         return json.dumps({"success": False, "out": [str("operation was canceled")]})
     except ParseError as e:
@@ -228,7 +228,7 @@ def instant(code, global_frame_id):
     log.logger.new_query(global_frame)
     try:
         log.logger.preview_mode(True)
-        limiter(0.3, execution.string_exec, code, log.logger.out, global_frame.base)
+        scheme_limiter(0.3, execution.string_exec, code, log.logger.out, global_frame.base)
     except (SchemeError, ZeroDivisionError) as e:
         log.logger.out(e)
     except TimeLimitException:
