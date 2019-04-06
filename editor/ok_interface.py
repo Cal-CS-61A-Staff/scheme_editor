@@ -4,11 +4,9 @@ import re
 import sys
 from collections import namedtuple
 from abc import ABCMeta, abstractmethod
+from contextlib import contextmanager
 
 from scheme_exceptions import TerminatedError
-
-newdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/ok"
-sys.path.append(newdir)
 
 # CODE TAKEN FROM OK-CLIENT : https://github.com/okpy/ok-client/blob/master/client/cli/ok.py
 
@@ -205,6 +203,17 @@ def reload_tests():
             del sys.modules[testname]
 
 
+@contextmanager
+def redirect_descriptor(from_, to):  # https://stackoverflow.com/a/22434262
+    fd = from_.fileno()
+    with os.fdopen(os.dup(fd), 'wb') as copied: 
+        from_.flush()
+        os.dup2(to.fileno(), fd)
+        try: yield from_
+        finally:
+            from_.flush()
+            os.dup2(copied.fileno(), fd)
+
 def run_tests():
     reload_tests()
 
@@ -242,3 +251,15 @@ def run_tests():
         return result
     except TerminatedError:
         return [{'problem': "Tests Terminated by User", 'suites': [], 'passed': False}]
+
+if __name__ == '__main__':
+    output = None
+    with open(os.devnull, 'wb') as null:
+        with redirect_descriptor(sys.stdout, null):
+            sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ok"))
+            try:
+                output = run_tests()
+            finally:
+                sys.path.pop(0)
+    import json
+    json.dump(output, sys.stdout)
