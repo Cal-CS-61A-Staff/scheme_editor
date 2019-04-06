@@ -126,6 +126,9 @@ class Handler(server.BaseHTTPRequestHandler):
                         merge(state["states"], val)
                 else:
                     state[key] = val
+            if "settings" in state:
+                with open("editor_settings.config", "w+") as file:
+                    file.write(json.dumps(state["settings"]))
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
@@ -134,10 +137,27 @@ class Handler(server.BaseHTTPRequestHandler):
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
+
             if "states" not in state:
                 self.wfile.write(b"fail")
             else:
                 self.wfile.write(bytes(json.dumps(state), "utf-8"))
+
+        elif path == "/load_settings":
+            try:
+                with open("editor_settings.config", "r") as file:
+                    if "settings" not in state:
+                        state["settings"] = {}
+                    for key, val in json.loads(file.read()).items():
+                        state["settings"][key] = val
+            except FileNotFoundError:
+                pass
+
+            self.send_response(HTTPStatus.OK, 'test')
+            self.send_header("Content-type", "application/JSON")
+            self.end_headers()
+            self.wfile.write(bytes(json.dumps(state["settings"]), "utf-8"))
+
 
         elif path == "/documentation":
             self.send_response(HTTPStatus.OK, 'test')
