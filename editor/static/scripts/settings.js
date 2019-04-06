@@ -10,6 +10,9 @@ function init() {
         saveState();
     });
     $.post("./load_settings").done((data) => {
+        if (data === "fail") {
+            return;
+        }
         setAllSettings($.parseJSON(data));
     });
 }
