@@ -1,8 +1,9 @@
 import os
 from http import server
+import io
 import json
-import signal
 import socketserver
+import subprocess
 import sys
 import urllib.parse
 import webbrowser
@@ -10,12 +11,13 @@ import threading
 from http import HTTPStatus
 
 import execution
+import ok_interface
 import log
 from documentation import search
 from execution_parser import strip_comments
 from file_manager import get_scm_files, save, read_file, new_file
 from formatter import prettify
-from runtime_limiter import TimeLimitException, limiter
+from runtime_limiter import TimeLimitException, OperationCanceledException, limiter
 from scheme_exceptions import SchemeError, ParseError, TerminatedError
 
 PORT = 8012
@@ -26,85 +28,31 @@ state = {}
 
 import ctypes
 
-
-def terminate_thread(thread):
-    """Terminates a python thread from another thread.
-
-    :param thread: a threading.Thread instance
-
-    From https://stackoverflow.com/a/15274929/1549476 but I replaced SystemExit with KeyboardInterrupt
-    """
-    if not thread.isAlive():
-        return
-
-    exc = ctypes.py_object(TerminatedError)
-    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
-        ctypes.c_long(thread.ident), exc)
-    if res == 0:
-        raise ValueError("nonexistent thread id")
-    elif res > 1:
-        # """if it returns a number greater than one, you're in trouble,
-        # and you should call it again with exc=NULL to revert the effect"""
-        ctypes.pythonapi.PyThreadState_SetAsyncExc(thread.ident, None)
-        raise SystemError("PyThreadState_SetAsyncExc failed")
-
-
-class thread_state:
-    def __init__(self):
-        self.post_lock = threading.Lock()
-        self.modify_current_thread_lock = threading.Lock()
-        self.current_thread = None
-
-    def cancel(self):
-        with self.modify_current_thread_lock:
-            if self.current_thread is not None:
-                terminate_thread(self.current_thread)
-                self.current_thread = None
-
-    def run(self, target, *args):
-        with self.post_lock:
-            with self.modify_current_thread_lock:
-                assert self.current_thread is None
-                thread = self.current_thread = threading.Thread(target=target, args=args)
-                thread.daemon = True
-                thread.start()
-            thread.join()
-            with self.modify_current_thread_lock:
-                assert self.current_thread is thread or self.current_thread is None
-                self.current_thread = None
-
-
-# singleton
-thread_state = thread_state()
-
-
 class Handler(server.BaseHTTPRequestHandler):
+    cancellation_event = threading.Event()  # Shared across all instances, because the threading mixin creates a new instance every time...
+
     def do_POST(self):
-        """
-        Only one non-/cancel POST can happen at a time, the only reason this is threaded is to
-            allow the /cancel command to work
-
-        The state is represented as such:
-            current_thread --> None if no thread is running, otherwise the thread handling the
-                current POST command
-
-        and any time we wish to modify the state, we use the lock post_lock
-        """
         content_length = int(self.headers['Content-Length'])
         raw_data = self.rfile.read(content_length)
         data = urllib.parse.parse_qs(raw_data)
         path = urllib.parse.unquote(self.path)
-        if path == "/cancel":
-            thread_state.cancel()
-        else:
-            thread_state.run(self.handle_post_thread, data, path)
+        result = self.handle_post_thread(data, path)
+        return result
 
     def handle_post_thread(self, data, path):
 
         if b"code[]" not in data:
             data[b"code[]"] = [b""]
 
+
+        if path == "/cancel":
+            self.cancellation_event.set()
+            self.send_response(HTTPStatus.OK, 'test')
+            self.send_header("Content-type", "application/JSON")
+            self.end_headers()
+
         if path == "/process2":
+            self.cancellation_event.clear()  # Make sure we don't have lingering cancellation requests from before
             code = [x.decode("utf-8") for x in data[b"code[]"]]
             curr_i = int(data[b"curr_i"][0])
             curr_f = int(data[b"curr_f"][0])
@@ -112,7 +60,7 @@ class Handler(server.BaseHTTPRequestHandler):
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
-            self.wfile.write(bytes(handle(code, curr_i, curr_f, global_frame_id), "utf-8"))
+            self.wfile.write(bytes(handle(code, curr_i, curr_f, global_frame_id, cancellation_event=self.cancellation_event), "utf-8"))
 
         elif path == "/save":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
@@ -141,11 +89,12 @@ class Handler(server.BaseHTTPRequestHandler):
             self.wfile.write(bytes(json.dumps({"result": "success", "formatted": prettify(code)}), "utf-8"))
 
         elif path == "/test":
-            from ok_interface import run_tests
+            self.cancellation_event.clear()  # Make sure we don't have lingering cancellation requests from before
+            output = cancelable_subprocess_call(self.cancellation_event, (sys.argv[0], os.path.splitext(ok_interface.__file__)[0] + ".py"), -1, sys.executable, subprocess.PIPE, subprocess.PIPE, None)
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
-            self.wfile.write(bytes(json.dumps(run_tests()), "utf-8"))
+            self.wfile.write(output)
 
         elif path == "/list_files":
             self.send_response(HTTPStatus.OK, 'test')
@@ -235,15 +184,38 @@ def merge(states, new_states):
                 states[i][key] = val
 
 
-def handle(code, curr_i, curr_f, global_frame_id):
+def cancelable_subprocess_call(cancellation_event, *args, **kwargs):
+    buffered = io.BytesIO()
+    with subprocess.Popen(*args, **kwargs) as proc:
+        proc.stdin.close()
+        def pipeline(source, *sinks):  # We need this extra thread because there's no cross-platform way to poll a process's stdout
+            while True:
+                s = source.readline()
+                if not s: break
+                for sink in sinks:
+                    sink.write(s)
+        reader_thread = threading.Thread(target=pipeline, args=(proc.stdout, buffered))
+        reader_thread.daemon = True
+        reader_thread.start()
+        try:
+          poll_interval = socketserver.BaseServer.serve_forever.__defaults__[0] / 8
+          while proc.poll() is None:
+              if cancellation_event.wait(poll_interval):
+                  proc.terminate()
+                  break
+        finally:
+            proc.terminate()  # Make sure subprocess is terminated no matter what (although it shouldn't be alive at this point)
+            reader_thread.join()
+    return buffered.getvalue()
+
+
+def handle(code, curr_i, curr_f, global_frame_id, cancellation_event):
     try:
         global_frame = log.logger.frame_lookup.get(global_frame_id, None)
         log.logger.new_query(global_frame, curr_i, curr_f)
-        if global_frame_id == -1:
-            execution.string_exec(code, log.logger.out)
-        else:
-            execution.string_exec(code, log.logger.out, global_frame.base)
-        # limiter(3, execution.string_exec, code, gui.logger.out)
+        limiter(cancellation_event, execution.string_exec, code, log.logger.out, global_frame.base if global_frame_id != -1 else None)
+    except OperationCanceledException:
+        return json.dumps({"success": False, "out": [str("operation was canceled")]})
     except ParseError as e:
         return json.dumps({"success": False, "out": [str(e)]})
 
@@ -283,34 +255,8 @@ def supports_color():
         return False
     return True
 
-
-def exit_handler(signal, frame):
-    print(" - Ctrl+C pressed")
-    print("Shutting down server - all unsaved work may be lost")
-    print(
-'''
-      _____   _______    ____    _____  
-     / ____| |__   __|  / __ \  |  __ \ 
-    | (___      | |    | |  | | | |__) |
-     \___ \     | |    | |  | | |  ___/ 
-     ____) |    | |    | |__| | | |     
-    |_____/     |_|     \____/  |_|     
-''')
-    if supports_color():
-        print("\033[91m" + "\033[1m" + "\033[4m", end="")
-    print("Remember that you should run python ok in a separate terminal window, to avoid stopping the editor process.")
-    if supports_color():
-        print("\033[0m" * 3, end="")
-    thread_state.cancel()
-    sys.exit(0)
-
-
-signal.signal(signal.SIGINT, exit_handler)
-
-
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, server.HTTPServer):
-    pass
-
+    daemon_threads = True
 
 def start(file_args, port, open_browser):
     global main_files
@@ -322,4 +268,22 @@ def start(file_args, port, open_browser):
     httpd = ThreadedHTTPServer(("localhost", PORT), Handler)
     if open_browser:
         webbrowser.open(f"http://localhost:{PORT}", new=0, autoraise=True)
-    httpd.serve_forever()
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print(" - Ctrl+C pressed")
+        print("Shutting down server - all unsaved work may be lost")
+        print(
+'''
+      _____   _______    ____    _____  
+     / ____| |__   __|  / __ \  |  __ \ 
+    | (___      | |    | |  | | | |__) |
+     \___ \     | |    | |  | | |  ___/ 
+     ____) |    | |    | |__| | | |     
+    |_____/     |_|     \____/  |_|     
+''')
+        if supports_color():
+            print("\033[91m" + "\033[1m" + "\033[4m", end="")
+        print("Remember that you should run python ok in a separate terminal window, to avoid stopping the editor process.")
+        if supports_color():
+            print("\033[0m" * 3, end="")
