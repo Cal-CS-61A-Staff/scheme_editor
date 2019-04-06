@@ -231,7 +231,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                                 val_strs = []
                                 for inner_expr in clause.contents[1:]:
                                     val_strs.append(prettify_expr(inner_expr, remaining - 1)[0])
-                                clause_str = clause.open_paren + pred_str + "\n" + \
+                                clause_str = clause.open_paren + indent(pred_str, 1).strip() + "\n" + \
                                     indent("\n".join(val_strs), 1)
                                 if len(clause.contents) > 1 and clause.contents[-1].comments:
                                     clause_str += "\n"

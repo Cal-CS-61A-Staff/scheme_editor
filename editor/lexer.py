@@ -25,9 +25,9 @@ class Token:
 
 
 class TokenBuffer:
-    def __init__(self, lines, do_comments=False):
+    def __init__(self, lines, do_comments=False, ignore_brackets=False):
         self.string = "\n".join(lines)
-        self.tokens = tokenize(self.string, do_comments)
+        self.tokens = tokenize(self.string, do_comments, ignore_brackets)
         self.done = not self.tokens
         self.i = 0
 
@@ -44,7 +44,7 @@ class TokenBuffer:
         return out
 
 
-def tokenize(string, do_comments) -> List[Token]:
+def tokenize(string, do_comments, ignore_brackets) -> List[Token]:
     string = string.strip()
     tokens = []
     comments = {}
@@ -69,7 +69,7 @@ def tokenize(string, do_comments) -> List[Token]:
             i += 1
             _get_comment()
 
-        elif string[i] in SPECIALS:
+        elif string[i] in SPECIALS and not (ignore_brackets and string[i] in ["[", "]"]):
             first_in_line = False
             prev_newline = False
             tokens.append(Token(string[i]))
