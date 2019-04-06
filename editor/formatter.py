@@ -24,20 +24,20 @@ CACHE_SIZE = 2 ** 8
 java_newline = ""
 
 def prettify(strings: List[str], javastyle: bool=False) -> str:
-    if javastyle:
-        global java_newline
-        java_newline = "\n"
     out = []
     for i, string in enumerate(strings):
         if not string.strip():
             continue
-        out.extend(prettify_single(string))
+        out.extend(prettify_single(string, javastyle))
 
     return "\n\n".join(out)
 
 
 @lru_cache(CACHE_SIZE)
-def prettify_single(string: str) -> List[str]:
+def prettify_single(string: str, javastyle: bool) -> List[str]:
+    if javastyle:
+        global java_newline
+        java_newline = "\n"
     out = []
     buff = lexer.TokenBuffer([string], True)
     while not buff.done:
