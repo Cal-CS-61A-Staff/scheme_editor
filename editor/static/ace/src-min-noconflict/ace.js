@@ -2988,7 +2988,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     "use strict";
     var r = e("../../lib/oop"), i = e("../behaviour").Behaviour, s = e("../../token_iterator").TokenIterator,
         o = e("../../lib/lang"), u = ["text", "paren.rparen", "punctuation.operator"],
-        a = ["text", "paren.rparen", "punctuation.operator", "comment"], f, l = {}, c = {'"': '"', "'": "'"},
+        a = ["text", "paren.rparen", "punctuation.operator", "comment"], f, l = {}, c = {'"': '"'},
         h = function (e) {
             var t = -1;
             e.multiSelect && (t = e.selection.index, l.rangeCount != e.multiSelect.rangeCount && (l = {rangeCount: e.multiSelect.rangeCount}));
