@@ -42,7 +42,6 @@ class Handler(server.BaseHTTPRequestHandler):
         if b"code[]" not in data:
             data[b"code[]"] = [b""]
 
-
         if path == "/cancel":
             self.cancellation_event.set()
             self.send_response(HTTPStatus.OK, 'test')
@@ -166,6 +165,11 @@ class Handler(server.BaseHTTPRequestHandler):
             query = data.get(b"query", [b""])[0].decode("utf-8")
             self.wfile.write(bytes(json.dumps(search(query)), "utf-8"))
 
+        elif path == "/kill":
+            # This is (only) fine because we're in a different thread than the actual server
+            self.server.shutdown()
+            self.server.socket.close()
+
     def do_GET(self):
         self.send_response(HTTPStatus.OK, 'test')
         path = "editor/static/" + urllib.parse.unquote(self.path)[1:]
@@ -284,9 +288,23 @@ def start(file_args, port, open_browser):
     main_files = file_args
     global PORT
     PORT = port
-    print(f"http://localhost:{PORT}")
+    url = f"http://localhost:{PORT}"
     socketserver.TCPServer.allow_reuse_address = True
-    httpd = ThreadedHTTPServer(("localhost", PORT), Handler)
+    try:
+        httpd = ThreadedHTTPServer(("localhost", PORT), Handler)
+    except OSError:
+        if supports_color():
+            print("\033[91m", end="")
+        print(f"Port {PORT} is already in use, likely for another instance of the editor.")
+        print("To open a second instance of the editor, specify a different port using --port.")
+        print(f"To replace the previous editor instance with a new one:\n"
+              f"    1. Go to {url}\n"
+              f"    2. Press \"Stop Editor\" at the top\n"
+              f"    3. Run `python3 editor` again")
+        if supports_color():
+            print("\033[0m", end="")
+        return
+    print(url)
     if open_browser:
         webbrowser.open(f"http://localhost:{PORT}", new=0, autoraise=True)
     try:
