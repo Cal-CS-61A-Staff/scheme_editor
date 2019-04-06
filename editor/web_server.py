@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, jsonify
 import database
 import execution
 import log
-from runtime_limiter import limiter, TimeLimitException
+from runtime_limiter import scheme_limiter, TimeLimitException
 from scheme_exceptions import SchemeError
 
 app = Flask(__name__)
@@ -41,7 +41,7 @@ def handle(code, skip_tree, skip_envs, hide_return_frames):
     log.logger.new_query(skip_tree, skip_envs, hide_return_frames)
     try:
         # execution.string_exec(code, gui.logger.out)
-        limiter(3, execution.string_exec, code, log.logger.out)
+        scheme_limiter(3, execution.string_exec, code, log.logger.out)
     except SchemeError as e:
         log.logger.out(e)
     except TimeLimitException:
