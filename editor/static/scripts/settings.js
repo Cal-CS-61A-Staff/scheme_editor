@@ -13,6 +13,8 @@ function init() {
         $.post("/kill");
         $("#disconnectedModal").modal("show");
         $("#reconnect-button").hide();
+    });
+
     $.post("./load_settings").done((data) => {
         setAllSettings($.parseJSON(data));
     });
