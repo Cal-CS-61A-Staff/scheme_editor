@@ -26,8 +26,6 @@ main_files = []
 
 state = {}
 
-import ctypes
-
 class Handler(server.BaseHTTPRequestHandler):
     cancellation_event = threading.Event()  # Shared across all instances, because the threading mixin creates a new instance every time...
 
@@ -83,10 +81,11 @@ class Handler(server.BaseHTTPRequestHandler):
 
         elif path == "/reformat":
             code = [x.decode("utf-8") for x in data[b"code[]"]]
+            javastyle = data[b"javastyle"][0] == b"true"
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()
-            self.wfile.write(bytes(json.dumps({"result": "success", "formatted": prettify(code)}), "utf-8"))
+            self.wfile.write(bytes(json.dumps({"result": "success", "formatted": prettify(code, javastyle)}), "utf-8"))
 
         elif path == "/test":
             self.cancellation_event.clear()  # Make sure we don't have lingering cancellation requests from before
@@ -255,8 +254,10 @@ def supports_color():
         return False
     return True
 
+
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, server.HTTPServer):
     daemon_threads = True
+
 
 def start(file_args, port, open_browser):
     global main_files

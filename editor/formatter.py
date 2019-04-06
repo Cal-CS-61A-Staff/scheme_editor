@@ -21,8 +21,12 @@ CLOSE_PARENS = [")", "]"]
 
 CACHE_SIZE = 2 ** 8
 
+java_newline = ""
 
-def prettify(strings: List[str]) -> str:
+def prettify(strings: List[str], javastyle: bool=False) -> str:
+    if javastyle:
+        global java_newline
+        java_newline = "\n"
     out = []
     for i, string in enumerate(strings):
         if not string.strip():
@@ -149,7 +153,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                                           len(f"({operator} "))
                         body_str = indent("\n".join(body), INDENT // 2)
                         out_str = expr.open_paren + operator + " " + name_str.lstrip() + "\n" \
-                            + body_str + expr.close_paren
+                            + body_str + java_newline + expr.close_paren
                         return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
 
                 if operator == "let":
@@ -175,7 +179,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                                 out_str = expr.open_paren + "let " + binding_str.lstrip() + "\n" + body_string
                                 if expr.contents[-1].comments:
                                     out_str += "\n"
-                                out_str += expr.close_paren
+                                out_str += java_newline + expr.close_paren
                                 return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
 
                 if operator == "cond":
@@ -220,7 +224,8 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                                 else:
                                     # success!
                                     out_str = make_comments(expr.comments, 0, True) + expr.open_paren + \
-                                              "cond\n" + indent("\n".join(formatted_clauses), 1) + expr.close_paren
+                                              "cond\n" + indent("\n".join(formatted_clauses), 1) + \
+                                              java_newline + expr.close_paren
                                     out = verify(out_str, remaining)
                                     if out[1]:
                                         return out
@@ -240,7 +245,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                                 formatted_clauses.append(clause_str)
 
                             out_str = expr.open_paren + "cond\n" + indent("\n".join(formatted_clauses), 1) \
-                                + expr.close_paren
+                                + java_newline + expr.close_paren
                             return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
 
                 # assume no special forms
@@ -256,7 +261,7 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                     out_str = expr.open_paren + operator + " " + operand_string.lstrip()
                     if expr.contents[-1].comments:
                         out_str += "\n"
-                    out_str += expr.close_paren
+                    out_str += java_newline + expr.close_paren
                     out = verify(make_comments(expr.comments, 0, True) + out_str, remaining)
                     if out[1]:
                         return out
@@ -305,7 +310,7 @@ def prettify_data(expr: Formatted, remaining: int, is_data: bool, force_multilin
     out_str = expr.open_paren + elem_string
     if expr.contents and expr.contents[-1].comments:
         out_str += "\n"
-    out_str += expr.close_paren
+    out_str += java_newline + expr.close_paren
     return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
 
 
