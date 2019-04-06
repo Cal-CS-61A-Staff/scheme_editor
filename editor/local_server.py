@@ -146,6 +146,10 @@ class Handler(server.BaseHTTPRequestHandler):
             query = data.get(b"query", [b""])[0].decode("utf-8")
             self.wfile.write(bytes(json.dumps(search(query)), "utf-8"))
 
+        elif path == "/kill":
+            sys.exit(0)
+
+
     def do_GET(self):
         self.send_response(HTTPStatus.OK, 'test')
         path = "editor/static/" + urllib.parse.unquote(self.path)[1:]
