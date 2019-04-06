@@ -7,21 +7,24 @@ function init() {
     $("#new-btn").click(function () {
         $("#fileNameInput").val("");
         $("#newFileModal").modal();
+        $("#file_already_exists").hide();
     });
 
-    $("#newFileButton").click(async function () {
-        let fileName = $("#fileNameInput").val();
-        let success;
-        await $.post("./new_file", {filename: $("#fileNameInput").val()}).done(function (data) {
-            data = $.parseJSON(data);
-            success = data["success"];
+    $("#newFileButton").click(
+        async function () {
+            let fileName = $("#fileNameInput").val();
+            let success;
+            await $.post("./new_file", {filename: $("#fileNameInput").val()}).done(function (data) {
+                data = $.parseJSON(data);
+                success = data["success"];
+            });
+            if (success) {
+                $("#newFileModal").modal("hide");
+                open_file(fileName + ".scm");
+            } else {
+                $("#file_already_exists").show().text(fileName + ".scm already exists.")
+            }
         });
-        if (success) {
-            open_file(fileName + ".scm");
-        } else {
-
-        }
-    });
 
     $("#open-btn").click(function () {
         $.post("./list_files").done(function (data) {
