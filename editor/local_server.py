@@ -278,9 +278,8 @@ def start(file_args, port, open_browser):
         print("To open a second instance of the editor, specify a different port using --port.")
         print(f"To replace the previous editor instance with a new one:\n"
               f"    1. Go to {url}\n"
-              f"    2. Click \"Settings\" at the top\n"
-              f"    3. Press \"End Current Session\"\n"
-              f"    4. Run `python3 editor` again")
+              f"    2. Press \"Stop Editor\" at the top\n"
+              f"    3. Run `python3 editor` again")
         if supports_color():
             print("\033[0m", end="")
         return
