@@ -4,6 +4,7 @@ import {open} from "./layout";
 import {make, request_update} from "./event_handler";
 import {terminable_command} from "./canceller";
 import {registerEditor, removeEditor, notify_changed} from "./test_results";
+import {javastyle} from "./settings";
 
 export {register};
 
@@ -288,6 +289,7 @@ function register(layout) {
             let code = [editor.getValue()];
             $.post("./reformat", {
                 code: code,
+                javastyle: javastyle(),
             }).done(function (data) {
                 if (data) {
                     data = $.parseJSON(data);

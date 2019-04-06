@@ -9,6 +9,8 @@ import {
 } from "./measure";
 import {get_active_node} from "./navigation";
 
+import {javastyle} from "./settings";
+
 export {
     display_tree,
     get_i
@@ -40,7 +42,10 @@ function display_str(elem) {
 
 async function locate(data) {
     await $.post("./reformat",
-        {code: [display_str(data)]}).done(
+        {
+            code: [display_str(data)],
+            javastyle: javastyle()
+        }).done(
         (response) => {
             response = $.parseJSON(response);
             data["str"] = response["formatted"];
