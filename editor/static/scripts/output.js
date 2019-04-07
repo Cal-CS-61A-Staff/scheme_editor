@@ -127,7 +127,7 @@ function register(myLayout) {
                     window.getSelection().getRangeAt(0).collapsed) {
                     editor.focus();
                 }
-            }, 100);
+            }, 0);
         });
 
         container.on("open", function () {
