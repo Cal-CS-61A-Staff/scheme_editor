@@ -123,7 +123,7 @@ function register(myLayout) {
 
         container.getElement().on("click", function () {
             setTimeout(() => {
-                if (window.getSelection().rangeCount == 0 ||
+                if (window.getSelection().rangeCount === 0 ||
                     window.getSelection().getRangeAt(0).collapsed) {
                     editor.focus();
                 }
