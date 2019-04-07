@@ -1,54 +1,43 @@
 from typing import Union, List
 
-from lexer import TokenBuffer, SPECIALS
+from lexer import TokenBuffer, SPECIALS, Comment
 from scheme_exceptions import ParseError
 
 
 class FormatList:
     def __init__(self,
                  contents: List['Formatted'],
-                 last: 'Formatted',
-                 comments: List[str],
                  close_paren,
-                 allow_inline,
                  prefix: str=""):
         self.contents = contents
-        self.last = last
-        self.comments = comments
-        self.contains_comment = any(x.contains_comment or x.comments for x in contents)
-        self.allow_inline = allow_inline and len(comments) <= 1
         self.open_paren = "(" if close_paren == ")" else "["
         self.close_paren = close_paren
         self.prefix = prefix
 
-    def __repr__(self):
-        return str(self.__dict__)
-
 
 class FormatAtom:
-    def __init__(self, value: str, comments: List[str]=None, allow_inline=True):
+    def __init__(self, value: str):
         self.value = value
-        self.comments = comments if comments else []
-        self.contains_comment = False
-        self.allow_inline = allow_inline and (not comments or len(comments) <= 1)
         self.prefix = ""
 
-    def __repr__(self):
-        return str(self.__dict__)
+
+class FormatComment:
+    def __init__(self, value: str):
+        self.value = value
 
 
-Formatted = Union[FormatList, FormatAtom]
+Formatted = Union[FormatList, FormatAtom, FormatComment]
 
 
 def get_expression(buffer: TokenBuffer) -> Formatted:
     token = buffer.pop_next_token()
-    comments = []
-    if token == "#" and not buffer.done and buffer.get_next_token() == "[":
+    if isinstance(token, Comment):
+
+    elif token == "#" and not buffer.done and buffer.get_next_token() == "[":
         buffer.pop_next_token()
         out = FormatAtom("#[" + buffer.pop_next_token().value + "]")
         buffer.pop_next_token()
     elif token in SPECIALS:
-        comments = token.comments
         if token in ("(", "["):
             out = get_rest_of_list(buffer, ")" if token == "(" else "]")
         elif token in ("'", "`"):
@@ -75,20 +64,12 @@ def get_expression(buffer: TokenBuffer) -> Formatted:
             token.value = "#f"
         out = FormatAtom(token.value)
 
-    out.comments = comments + buffer.tokens[buffer.i - 1].comments
-    out.allow_inline = token.comments_inline and buffer.tokens[buffer.i - 1].comments_inline
     return out
 
 
 def get_rest_of_list(buffer: TokenBuffer, end_paren: str):
     out = []
-    last = None
-    while buffer.get_next_token() != end_paren and buffer.get_next_token() != ".":
+    while buffer.get_next_token() != end_paren:
         out.append(get_expression(buffer))
-    if buffer.get_next_token() == ".":
-        buffer.pop_next_token()
-        last = get_expression(buffer)
-    if buffer.get_next_token() != end_paren:
-        raise ParseError("Only one expression may follow a dot in a dotted list.")
     buffer.pop_next_token()
-    return FormatList(out, last, [], end_paren, True)
+    return FormatList(out, end_paren)

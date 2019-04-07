@@ -1,8 +1,9 @@
+from abc import ABC
 from functools import lru_cache
-from typing import List, Tuple, Union, Sequence, Iterator
+from typing import List, Tuple, Union, Sequence, Iterator, Type
 
 import lexer as lexer
-from format_parser import get_expression, Formatted, FormatAtom, FormatList
+from format_parser import get_expression, Formatted, FormatAtom, FormatList, FormatComment
 
 LINE_LENGTH = 80
 MAX_EXPR_COUNT = 10
@@ -21,7 +22,6 @@ CLOSE_PARENS = [")", "]"]
 
 CACHE_SIZE = 2 ** 8
 
-java_newline = ""
 
 def prettify(strings: List[str], javastyle: bool=False) -> str:
     out = []
@@ -44,277 +44,141 @@ def prettify_single(string: str, javastyle: bool) -> List[str]:
     buff = lexer.TokenBuffer([string], True)
     while not buff.done:
         expr = get_expression(buff)
-        out.append(prettify_expr(expr, LINE_LENGTH)[0])
+        out.append(ExpressionFormatter.format(expr, LINE_LENGTH))
     return out
 
 
-def make_comments(comments: List[str], depth: int, newline: bool):
-    if not comments:
-        return ""
-    if newline or len(comments) > 1:
-        return "\n".join(";" + x for x in comments) + "\n"
-    else:
-        return " " + indent("\n".join(";" + x for x in comments), depth + 1).lstrip()
+class OptimalFormattingReached(Exception):
+    pass
 
 
-def to_count(phrase):
-    while phrase and phrase[0] in OPEN_PARENS:
-        phrase = phrase[1:]
-    while phrase and phrase[-1] in CLOSE_PARENS:
-        phrase = phrase[:-1]
-    return bool(phrase and not phrase.isdigit() and phrase.lower() not in FREE_TOKENS)
+class MatchFailure(Exception):
+    pass
 
 
-def verify(out: str, remaining: int) -> Tuple[str, bool]:
-    total_length = max(len(x.strip()) for x in out.split("\n")) <= min(MAX_EXPR_LEN, remaining)
-    expr_count = max(sum(to_count(y) for y in x.split()) for x in out.split("\n"))
-
-    expr_length = expr_count <= MAX_EXPR_COUNT
-
-    return out, total_length and expr_length
+class WeakMatchFailure(MatchFailure):
+    pass
 
 
-def is_multiline(expr: Formatted):
-    if isinstance(expr, FormatList):
-        return any(map(is_multiline, expr.contents))
-    return expr.value in MULTILINE_VALS
+class StrongMatchFailure(MatchFailure):
+    ...
 
 
-def inline_format(expr: Formatted) -> str:
-    if isinstance(expr, FormatAtom):
+class Formatter(ABC):
+    @staticmethod
+    def format(expr: Formatted, remaining: int) -> str:
+        raise NotImplementedError()
+
+
+class SpecialFormFormatter(Formatter, ABC):
+    @staticmethod
+    def match_form(expr: Formatted, form: str):
+        if not isinstance(expr, FormatList):
+            raise WeakMatchFailure("Special form must be list, not atom.")
+        if not expr.contents:
+            raise WeakMatchFailure("Special form must be list, not nil.")
+        if not isinstance(expr.contents[0], FormatAtom):
+            raise WeakMatchFailure("Special form must begin with a Symbol.")
+        if not expr.contents[0] == form:
+            raise WeakMatchFailure("Call expression does not match desired special form.")
+        # if expr.last:
+        #     raise StrongMatchFailure("Special form must not be dotted.")
+
+
+# class CondFormatter(SpecialFormFormatter):
+#     class MultilineCondClause(Formatter):
+#         ...
+#
+#     class AlignedCondClause(Formatter):
+#         ...
+#
+#     @classmethod
+#     def format(cls, expr: Formatted) -> str:
+#         cls.match_form(expr, "cond")
+#         for clause in expr.contents[1:]:
+
+
+class AtomFormatter(Formatter):
+    @staticmethod
+    def format(expr: Formatted, remaining: int=None) -> str:
+        if not isinstance(expr, FormatAtom):
+            raise WeakMatchFailure("expr is not atomic")
         return expr.prefix + expr.value
-    else:
-        out = expr.prefix + expr.open_paren + " ".join(inline_format(elem) for elem in expr.contents)
-        if expr.last:
-            return out + " . " + inline_format(expr.last) + expr.close_paren
+
+
+class InlineFormatter(Formatter):
+    @staticmethod
+    def format(expr: Formatted, remaining: int=None) -> str:
+        if isinstance(expr, FormatComment):
+            raise WeakMatchFailure("Cannot inline-format a comment")
+        elif isinstance(expr, FormatAtom):
+            return AtomFormatter.format(expr, remaining)
         else:
-            return out + expr.close_paren
+            formatted_exprs = []
+            for expr in expr.contents:
+                formatted_exprs.append(InlineFormatter.format(expr))
+            return expr.open_paren + " ".join(formatted_exprs) + expr.close_paren
 
 
-def log(message: str):
-    print(message)
+class ListFormatter(Formatter):
+    @staticmethod
+    def format(expr: Formatted, remaining: int) -> str:
+        if not isinstance(expr, FormatList):
+            raise WeakMatchFailure("expr is not a list")
 
 
-def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
-    if isinstance(expr, FormatAtom):
-        if len(expr.comments) <= 1 and expr.allow_inline:
-            return verify(inline_format(expr) + make_comments(expr.comments, len(expr.value), False), remaining)
-        else:
-            return verify(make_comments(expr.comments, len(expr.value), True) + inline_format(expr), remaining)
-
-    if expr.contents and not expr.contains_comment and not is_multiline(expr):
-        expr_str = inline_format(expr)
-        if verify(expr_str, remaining)[1]:
-            out1 = expr_str + make_comments(expr.comments, len(expr_str), False)
-            out2 = make_comments(expr.comments, len(expr_str), True) + expr_str
-            if len(expr.comments) <= 1 and expr.allow_inline and verify(out1, remaining)[1]:
-                return verify(out1, remaining)
-            elif verify(out2, remaining)[1]:
-                return verify(out2, remaining)
-
-    if expr.last is None:
-        # well formed
-        if expr.prefix:
-            # quoted or something
-            old_prefix = expr.prefix
-            comments, expr.comments = expr.comments, ""
-            expr.prefix = ""
-            if old_prefix == "`":
-                out = verify(
-                    make_comments(comments, 0, True) + old_prefix + indent(prettify_expr(expr, remaining - 1)[0],
-                                                                           1).strip(), remaining)
-            else:
-                out = verify(
-                    make_comments(comments, 0, True) + old_prefix + indent(prettify_data(expr, remaining - 1, True)[0],
-                                                                           1).strip(), remaining)
-            expr.prefix = old_prefix
-            expr.comments = comments
-            return out
-        elif not expr.contents:
-            # nil expr
-            if len(expr.comments) <= 1 and expr.allow_inline:
-                return verify(expr.open_paren + expr.close_paren + make_comments(expr.comments, 2, False), remaining)
-            else:
-                return verify(make_comments(expr.comments, 2, True) + expr.open_paren + expr.close_paren, remaining)
-        else:
-            # call expr
-            if isinstance(expr.contents[0], FormatAtom) \
-                    and not expr.contents[0].comments \
-                    and not expr.contents[0].prefix:
-
-                operator = expr.contents[0].value
-                if operator in DEFINE_VALS + DECLARE_VALS:
-                    if len(expr.contents) < 3:
-                        log("define statement with too few arguments")
-                    else:
-                        name = expr.contents[1]
-                        body = []
-                        for body_expr in expr.contents[2:]:
-                            body.append(prettify_expr(body_expr, remaining - 2)[0])
-                        name_str = indent(prettify_expr(name, remaining - len(f"({operator} "))[0],
-                                          len(f"({operator} "))
-                        body_str = indent("\n".join(body), INDENT // 2)
-                        out_str = expr.open_paren + operator + " " + name_str.lstrip() + "\n" \
-                            + body_str + java_newline + expr.close_paren
-                        return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
-
-                if operator == "let":
-                    if len(expr.contents) < 3:
-                        log("let statement with too few arguments")
-                    else:
-                        bindings = expr.contents[1]
-                        if not isinstance(bindings, FormatList) or bindings.prefix:
-                            log("let bindings incorrectly formatted")
-                        else:
-                            for binding in bindings.contents:
-                                if isinstance(binding, FormatAtom) or len(binding.contents) != 2 or binding.prefix:
-                                    log("binding with incorrect number of elements")
-                                    break
-                            else:
-                                # let is well-formed (bearing in mind unquotes can change things)
-                                binding_str = prettify_data(bindings, remaining - len("(let "), False, True)[0]
-                                binding_str = indent(binding_str, len("(let "))
-                                body = []
-                                for body_expr in expr.contents[2:]:
-                                    body.append(prettify_expr(body_expr, remaining - INDENT // 2)[0])
-                                body_string = indent(body, INDENT // 2)
-                                out_str = expr.open_paren + "let " + binding_str.lstrip() + "\n" + body_string
-                                if expr.contents[-1].comments:
-                                    out_str += "\n"
-                                out_str += java_newline + expr.close_paren
-                                return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
-
-                if operator == "cond":
-                    if len(expr.contents) < 2:
-                        log("cond statement with too few arguments")
-                    else:
-                        clauses = expr.contents[1:]
-                        for clause in clauses:
-                            if not isinstance(clause, FormatList) \
-                                    or clause.last is not None \
-                                    or len(clause.contents) < 1 \
-                                    or clause.prefix:
-                                log("ill-formed cond clause")
-                                break
-                        else:
-                            # cond expr looks ok
-                            if all(len(clause.contents) == 2 for clause in clauses):
-                                # fancy cond fmt
-                                formatted_clauses = []
-                                preds = []
-                                for clause in clauses:
-                                    preds.append(inline_format(clause.contents[0]))
-                                max_pred = max(len(pred) for pred in preds)
-
-                                for pred_fmt, clause in zip(preds, clauses):
-                                    pred, val = clause.contents
-                                    if pred.comments or pred.contains_comment or val.comments or val.contains_comment:
-                                        break
-                                    pred_str = pred_fmt
-                                    val_str = inline_format(val)
-                                    clause_str = clause.open_paren + pred_str + " " * (max_pred - len(pred_str) + 1) \
-                                        + val_str + clause.close_paren
-
-                                    ok = False
-                                    if len(clause.comments) > 1 or not clause.allow_inline:
-                                        clause_str = make_comments(clause.comments, 0, True) + clause_str
-                                        ok = verify(clause_str, remaining - 1)[1]
-                                    if not ok:
-                                        clause_str = clause_str + make_comments(clause.comments, 0, False)
-
-                                    formatted_clauses.append(clause_str)
-                                else:
-                                    # success!
-                                    out_str = make_comments(expr.comments, 0, True) + expr.open_paren + \
-                                              "cond\n" + indent("\n".join(formatted_clauses), 1) + \
-                                              java_newline + expr.close_paren
-                                    out = verify(out_str, remaining)
-                                    if out[1]:
-                                        return out
-
-                            formatted_clauses = []
-                            for clause in clauses:
-                                pred_str = prettify_expr(clause.contents[0], remaining - 1)[0]
-                                val_strs = []
-                                for inner_expr in clause.contents[1:]:
-                                    val_strs.append(prettify_expr(inner_expr, remaining - 1)[0])
-                                clause_str = clause.open_paren + indent(pred_str, 1).strip() + "\n" + \
-                                    indent("\n".join(val_strs), 1)
-                                if len(clause.contents) > 1 and clause.contents[-1].comments:
-                                    clause_str += "\n"
-                                clause_str += clause.close_paren
-                                clause_str = make_comments(clause.comments, 0, True) + clause_str
-                                formatted_clauses.append(clause_str)
-
-                            out_str = expr.open_paren + "cond\n" + indent("\n".join(formatted_clauses), 1) \
-                                + java_newline + expr.close_paren
-                            return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
-
-                # assume no special forms
-                # we can inline the first two elements
-                operands = []
-                for operand in expr.contents[1:]:
-                    ret = prettify_expr(operand, remaining - len(operator) - 2)
-                    # if not ret[1]:
-                    #     break
-                    operands.append(ret[0])
-                else:
-                    operand_string = indent(operands, len(operator) + 2)
-                    out_str = expr.open_paren + operator + " " + operand_string.lstrip()
-                    if expr.contents[-1].comments:
-                        out_str += "\n"
-                    if len(expr.contents) > 2:
-                        out_str += java_newline
-                    out_str += expr.close_paren
-                    out = verify(make_comments(expr.comments, 0, True) + out_str, remaining)
-                    return out
-            # but may have to go here anyway, if inlining takes up too much space
-            return prettify_data(expr, remaining, False)
-    else:
-        # poorly formed
-        return prettify_data(expr, remaining, False)
+class CommentFormatter(Formatter):
+    @staticmethod
+    def format(expr: Formatted, remaining: int=None) -> str:
+        if not isinstance(expr, FormatComment):
+            raise WeakMatchFailure("expr is not a comment")
+        return ";" + expr.value
 
 
-def prettify_data(expr: Formatted, remaining: int, is_data: bool, force_multiline: bool = False) -> Tuple[str, bool]:
-    if isinstance(expr, FormatAtom):
-        if len(expr.comments) <= 1 and expr.allow_inline:
-            return verify(inline_format(expr) + make_comments(expr.comments, len(expr.value), False), remaining)
-        else:
-            return verify(make_comments(expr.comments, len(expr.value), True) + inline_format(expr), remaining)
+class ExpressionFormatter(Formatter):
+    @staticmethod
+    def format(expr: Formatted, remaining: int) -> str:
+        candidates = [AtomFormatter, ListFormatter, CommentFormatter]
+        return find_best(expr, candidates, remaining)
 
-    if is_data:
-        callback = lambda *args: prettify_data(*args, is_data=True)
-    else:
-        callback = prettify_expr
 
-    if expr.prefix:
-        old_prefix = expr.prefix
-        expr.prefix = ""
-        out = verify(old_prefix + indent(callback(expr, remaining - 1)[0], 1).strip(), remaining)
-        expr.prefix = old_prefix
-        return out
+class Best:
+    def __init__(self, remaining):
+        self.curr_best = None
+        self.curr_cost = None
+        self.remaining = remaining
 
-    if not force_multiline and expr.contents and not expr.contains_comment:
-        expr_str = inline_format(expr)
-        if verify(expr_str, remaining)[1]:
-            out1 = expr_str + make_comments(expr.comments, len(expr_str), False)
-            out2 = make_comments(expr.comments, len(expr_str), True) + expr_str
-            if len(expr.comments) <= 1 and expr.allow_inline and verify(out1, remaining)[1]:
-                return verify(out1, remaining)
-            else:
-                return verify(out2, remaining)
+    @staticmethod
+    def heuristic(string: str) -> int:
+        return 5  # TODO: ACTUALLY IMPLEMENT
 
-    elems = []
-    for elem in expr.contents:
-        ret = callback(elem, remaining - 1)
-        elems.append(ret[0])
+    def add(self, formatted: str):
+        cost = self.heuristic(formatted)
+        if self.curr_cost is None or cost < self.curr_cost:
+            self.curr_best = formatted
+            self.curr_cost = 0
+            if cost == 0:
+                raise OptimalFormattingReached()
 
-    elem_string = indent("\n".join(elems), 1).strip()
-    out_str = expr.open_paren + elem_string
-    if expr.contents and expr.contents[-1].comments:
-        out_str += "\n"
-    out_str += java_newline + expr.close_paren
-    return verify(make_comments(expr.comments, 0, True) + out_str, remaining)
+    def get_best(self):
+        if self.curr_best is None:
+            raise Exception("Error!!!")
+        return self.curr_best
+
+
+def find_best(raw: Formatted, candidates: List[Type[Formatter]], remaining):
+    best = Best(remaining)
+    for candidate in candidates:
+        try:
+            best.add(candidate.format(raw, remaining))
+        except WeakMatchFailure:
+            continue
+        except StrongMatchFailure:
+            # TODO: Warn about potentially invalid special form
+            continue
+        except OptimalFormattingReached:
+            return best.get_best()
+    return best.get_best()
 
 
 def indent(lines: Union[Iterator, str], depth) -> str:
