@@ -263,7 +263,9 @@ def prettify_expr(expr: Formatted, remaining: int) -> Tuple[str, bool]:
                     out_str = expr.open_paren + operator + " " + operand_string.lstrip()
                     if expr.contents[-1].comments:
                         out_str += "\n"
-                    out_str += java_newline + expr.close_paren
+                    if len(expr.contents) > 2:
+                        out_str += java_newline
+                    out_str += expr.close_paren
                     out = verify(make_comments(expr.comments, 0, True) + out_str, remaining)
                     return out
             # but may have to go here anyway, if inlining takes up too much space
