@@ -14,6 +14,21 @@ class FormatList:
         self.close_paren = close_paren
         self.prefix = prefix
 
+    class PrefixManager:
+        def __init__(self, lst):
+            self.lst = lst
+
+        def __enter__(self):
+            self.prefix = self.lst.prefix
+            self.lst.prefix = ""
+            return self.prefix
+
+        def __exit__(self, *_):
+            self.lst.prefix = self.prefix
+
+    def hold_prefix(self):
+        return self.PrefixManager(self)
+
 
 class FormatAtom:
     def __init__(self, value: str):
@@ -32,7 +47,7 @@ Formatted = Union[FormatList, FormatAtom, FormatComment]
 def get_expression(buffer: TokenBuffer) -> Formatted:
     token = buffer.pop_next_token()
     if isinstance(token, Comment):
-
+        return FormatComment(token.value)
     elif token == "#" and not buffer.done and buffer.get_next_token() == "[":
         buffer.pop_next_token()
         out = FormatAtom("#[" + buffer.pop_next_token().value + "]")
