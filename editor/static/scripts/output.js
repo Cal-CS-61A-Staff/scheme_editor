@@ -122,7 +122,12 @@ function register(myLayout) {
         });
 
         container.getElement().on("click", function () {
-            editor.focus();
+            setTimeout(() => {
+                if (window.getSelection().rangeCount === 0 ||
+                    window.getSelection().getRangeAt(0).collapsed) {
+                    editor.focus();
+                }
+            }, 0);
         });
 
         container.on("open", function () {
