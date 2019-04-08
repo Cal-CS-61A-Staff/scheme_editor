@@ -1,6 +1,7 @@
 (f a ; a
    b ; x
-   c)
+   c
+)
 
 cat
 
@@ -18,14 +19,17 @@ dog
   (; comment
    (let 1
         2
-        4) ; comment
+        4
+   ) ; comment
   ) ; comment
   (c
-   d) ; comment
+   d
+  ) ; comment
 )
 
 (let ((pi 3.14)
-      (r 120)) ; comment
+      (r 120)
+     ) ; comment
   (* pi r r) ; comment
 )
 
@@ -34,47 +38,63 @@ dog
             (+ 1 2 4) ; comment
            ) ; comment
            (c
-            d) ; comment
-         ))
-      (r 120)) ; comment
+            d
+           ) ; comment
+         )
+      )
+      (r 120)
+     ) ; comment
   (* pi r r) ; comment
 )
 
 (let ((pi (cond 
             ((+ 1 2 4) 6)
-            (c         d)))
-      (r 120))
-  (* pi r r))
+            (c         d)
+          )
+      )
+      (r 120)
+     )
+  (* pi r r)
+)
 
-(define (catdog x)
-  (+ 1 x))
+(define (catdog x) (+ 1 x))
 
-(define (f a b . c)
-  (+ a b c))
+(define (f a b . c) (+ a b c))
 
 ((if 1
      2
-     3)
- 4)
+     3
+ )
+ 4
+)
 
 (f ; comment
    a
-   b)
+   b
+)
 
 (define ; comment
         (f a b c) ; formals
-  (+ a b c))
+  (+ a b c)
+)
 
 (cond 
   ((good? x)
-   (handle-good x))
+   (handle-good x)
+  )
   ((bad? x)
    (handle-bad (if (really-bad? x)
                    (really-bad->bad x)
-                   x)))
+                   x
+               )
+   )
+  )
   ((ugly? x)
-   (handle-ugly x))
+   (handle-ugly x)
+  )
   (else
-   (handle-default x)))
+   (handle-default x)
+  )
+)
 
 (+ 1 (foo 3.5 a) bar baz)

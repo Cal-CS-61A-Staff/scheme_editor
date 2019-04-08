@@ -30,7 +30,19 @@ def prettify(strings: List[str], javastyle: bool = False) -> str:
             continue
         out.extend(prettify_single(string, javastyle))
 
-    return "\n\n".join(out)
+    raw_out = []
+    for expr in out:
+        if expr.startswith(";"):
+            raw_out.append(expr)
+        else:
+            raw_out.append(expr)
+            raw_out.append("\n")
+        raw_out.append("\n")
+
+    while raw_out and raw_out[-1] == "\n":
+        raw_out.pop()
+
+    return "".join(raw_out)
 
 
 @lru_cache(CACHE_SIZE)
