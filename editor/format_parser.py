@@ -39,6 +39,7 @@ class FormatAtom:
 class FormatComment:
     def __init__(self, value: str):
         self.value = value
+        self.prefix = ""
 
 
 Formatted = Union[FormatList, FormatAtom, FormatComment]
