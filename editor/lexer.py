@@ -23,7 +23,9 @@ class Token:
 
 
 class Comment(Token):
-    pass
+    def __init__(self, value: str, first_in_line: bool):
+        super().__init__(value)
+        self.first_in_line = first_in_line
 
 
 class TokenBuffer:
@@ -50,6 +52,7 @@ def tokenize(string, do_comments, ignore_brackets) -> List[Token]:
     string = string.strip()
     tokens = []
     i = 0
+    first_in_line = True
 
     def _get_token():
         """Always starts at a non-space character"""
@@ -85,7 +88,7 @@ def tokenize(string, do_comments, ignore_brackets) -> List[Token]:
             curr += string[i]
             i += 1
         if do_comments:
-            tokens.append(Comment(curr))
+            tokens.append(Comment(curr, first_in_line))
 
     def _get_string():
         """Starts just after an opening quotation mark"""
@@ -112,7 +115,10 @@ def tokenize(string, do_comments, ignore_brackets) -> List[Token]:
 
     while i != len(string):
         _get_token()
+        first_in_line = False
         while i != len(string) and string[i].isspace():
+            if string[i] == "\n":
+                first_in_line = True
             i += 1
 
     return tokens

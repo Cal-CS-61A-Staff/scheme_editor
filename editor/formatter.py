@@ -13,7 +13,7 @@ INDENT = 4
 DEFINE_VALS = ["define", "define-macro"]
 DECLARE_VALS = ["lambda", "mu"]
 SHORTHAND = {"quote": "'", "quasiquote": "`", "unquote": ",", "unquote-splicing": ",@", "variadic": "."}
-MULTILINE_VALS = ["let", "cond", "if"] + DEFINE_VALS + DECLARE_VALS
+MULTILINE_VALS = ["let", "cond", "if"]
 
 FREE_TOKENS = ["if", "define", "define-macro", "mu", "lambda"]
 
@@ -35,11 +35,7 @@ def prettify(strings: List[str], javastyle: bool = False) -> str:
 
 @lru_cache(CACHE_SIZE)
 def prettify_single(string: str, javastyle: bool) -> List[str]:
-    global java_newline
-    if javastyle:
-        java_newline = "\n"
-    else:
-        java_newline = ""
+    Formatter.set_javastyle(javastyle)
     out = []
     buff = lexer.TokenBuffer([string], True)
     while not buff.done:
@@ -92,7 +88,7 @@ class FormatSeq:
         self.left = other.left
         self.line_lengths[0] += other.line_lengths.pop()
         self.line_lengths = other.line_lengths + self.line_lengths
-        self.max_line_len = max(self.line_lengths)
+        self.max_line_len = max(self.max_line_len, other.max_line_len, *self.line_lengths)
         if len(self.line_lengths) > 1:
             self.line_lengths = [self.line_lengths[0], self.line_lengths[-1]]
         return self
@@ -161,9 +157,15 @@ class Space(Token):
 
 
 class Formatter(ABC):
+    javastyle = False
+
     @staticmethod
     def format(expr: Formatted, remaining: int) -> FormatSeq:
         raise NotImplementedError()
+
+    @staticmethod
+    def set_javastyle(javastyle: bool):
+        Formatter.javastyle = javastyle
 
 
 class SpecialFormFormatter(Formatter, ABC):
@@ -207,7 +209,7 @@ class SpecialFormFormatter(Formatter, ABC):
 class AlignedCondFormatter(SpecialFormFormatter):
     class Clause(Formatter):
         @staticmethod
-        def format(expr: Formatted, remaining: int, max_pred_len: int=0) -> FormatSeq:
+        def format(expr: Formatted, remaining: int, max_pred_len: int = 0) -> FormatSeq:
             if isinstance(expr, FormatComment):
                 return CommentFormatter.format(expr)
             else:
@@ -242,14 +244,9 @@ class AlignedCondFormatter(SpecialFormFormatter):
 
         out = Token(expr.open_paren) + Token("cond") + Space() + ChangeIndent(2) + Newline()
 
-        rest, trailing_paren_safe = rest_format(expr.contents[1:], -1, max_pred_len, formatter=cls.Clause)
+        out += rest_format(expr.contents[1:], -1, max_pred_len,
+                           formatter=cls.Clause, indent_level=2, close_paren=expr.close_paren)
 
-        out += rest
-        out += ChangeIndent(-2)
-        if not trailing_paren_safe:
-            out += Newline()
-
-        out += Token(expr.close_paren)
         return out
 
 
@@ -268,16 +265,9 @@ class MultilineCondFormatter(SpecialFormFormatter):
 
         out = Token(expr.open_paren) + Token("cond") + Space() + ChangeIndent(2) + Newline()
 
-        rest, trailing_paren_safe = rest_format(expr.contents[1:],
-                                                remaining - 2,
-                                                formatter=cls.Clause)
+        out += rest_format(expr.contents[1:], remaining - 2,
+                           formatter=cls.Clause, indent_level=2, close_paren=expr.close_paren)
 
-        out += rest
-        out += ChangeIndent(-2)
-        if not trailing_paren_safe:
-            out += Newline()
-
-        out += Token(expr.close_paren)
         return out
 
 
@@ -301,16 +291,11 @@ class LetFormatter(SpecialFormFormatter):
         out = Token(expr.open_paren) + Token("let") + Space() + ChangeIndent(5)
 
         let_handler = cls.LetHandler()
-        rest, trailing_paren_safe = rest_format(expr.contents[1:], remaining - 6, formatter=let_handler)
+        out += rest_format(expr.contents[1:], remaining - 6,
+                           formatter=let_handler, indent_level=2, close_paren=expr.close_paren)
 
         if let_handler.bindings_next:
             raise WeakMatchFailure("Let statement with too few arguments")
-
-        out += rest
-        out += ChangeIndent(-2)
-        if not trailing_paren_safe:
-            out += Newline()
-        out += Token(expr.close_paren)
 
         return out
 
@@ -336,19 +321,12 @@ class ProcedureFormatter(SpecialFormFormatter):
         out = Token(expr.open_paren) + Token(expr.contents[0].value) + Space() + ChangeIndent(indent_level)
 
         procedure_handler = cls.ProcedureHandler(indent_level)
-        rest, trailing_paren_safe = rest_format(expr.contents[1:],
-                                                remaining - indent_level,
-                                                formatter=procedure_handler)
+        out += rest_format(expr.contents[1:], remaining - indent_level,
+                           formatter=procedure_handler, indent_level=2, close_paren=expr.close_paren)
 
         if procedure_handler.formals_next:
             raise WeakMatchFailure("Formals not specified")
 
-        out += rest + ChangeIndent(-2)
-
-        if not trailing_paren_safe:
-            out += Newline()
-
-        out += Token(expr.close_paren)
         return out
 
 
@@ -434,13 +412,8 @@ class DefaultCallExprFormatter(Formatter):
         out += AtomFormatter.format(operator)
         out += ChangeIndent(indent_level) + Space()
 
-        rest, trailing_paren_safe = rest_format(expr.contents[1:], remaining - indent_level)
-
-        out += rest
-        if not trailing_paren_safe:
-            out += Newline()
-        out += ChangeIndent(-indent_level)
-        out += Token(expr.close_paren)
+        out += rest_format(expr.contents[1:], remaining - indent_level,
+                           indent_level=indent_level, close_paren=expr.close_paren)
 
         return out
 
@@ -458,18 +431,14 @@ class DataFormatter(Formatter):
 
 class NoHangingListFormatter(Formatter):
     @staticmethod
-    def format(expr: Formatted, remaining: int, callback: Type[Formatter]=None) -> FormatSeq:
+    def format(expr: Formatted, remaining: int, callback: Type[Formatter] = None) -> FormatSeq:
         if callback is None:
             callback = ExpressionFormatter
         if expr.prefix:
             raise WeakMatchFailure("Cannot format prefixed datalist")
         out = Token(expr.open_paren) + ChangeIndent(1)
-        rest, trailing_paren_safe = rest_format(expr.contents, remaining - 1, formatter=callback)
-        out += rest
-        out += ChangeIndent(-1)
-        if not trailing_paren_safe:
-            out += Newline()
-        out += Token(expr.close_paren)
+        out += rest_format(expr.contents, remaining - 1,
+                           formatter=callback, indent_level=1, close_paren=expr.close_paren)
         return out
 
 
@@ -478,7 +447,8 @@ class CommentFormatter(Formatter):
     def format(expr: Formatted, remaining: int = None) -> FormatSeq:
         if not isinstance(expr, FormatComment):
             raise WeakMatchFailure("Expr is not a comment")
-        return Token(expr.prefix + ";" + expr.value)
+        leading_space = "" if expr.value.startswith(" ") else " "
+        return Token(expr.prefix + ";" + leading_space + expr.value)
 
 
 class ExpressionFormatter(Formatter):
@@ -527,7 +497,9 @@ def find_best(raw: Formatted, candidates: List[Type[Formatter]], remaining) -> F
 
 def rest_format(exprs: List[Formatted],
                 *args,
-                formatter: Union[Formatter, Type[Formatter]]=ExpressionFormatter) -> Tuple[FormatSeq, bool]:
+                formatter: Union[Formatter, Type[Formatter]] = ExpressionFormatter,
+                indent_level: int,
+                close_paren: str) -> Tuple[FormatSeq, bool]:
     out = None
     i = 0
 
@@ -537,10 +509,18 @@ def rest_format(exprs: List[Formatted],
         formatted_expr = formatter.format(curr_expr, *args)
         if "not formatted_expr.contains_newline()" and i != len(exprs) \
                 and not isinstance(curr_expr, FormatComment) \
-                and isinstance(exprs[i], FormatComment):
+                and isinstance(exprs[i], FormatComment) \
+                and exprs[i].allow_inline:
             inline_comment = exprs[i]
             formatted_expr += Space() + CommentFormatter.format(inline_comment)
             i += 1
         out += formatted_expr if i == len(exprs) else formatted_expr + Newline()
     ends_with_comment = exprs and isinstance(exprs[-1], FormatComment)
-    return out, not ends_with_comment
+
+    out += ChangeIndent(-indent_level)
+    if ends_with_comment or Formatter.javastyle:
+        out += Newline()
+
+    out += Token(close_paren)
+
+    return out

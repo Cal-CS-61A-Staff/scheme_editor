@@ -37,9 +37,10 @@ class FormatAtom:
 
 
 class FormatComment:
-    def __init__(self, value: str):
+    def __init__(self, value: str, allow_inline: bool):
         self.value = value
         self.prefix = ""
+        self.allow_inline = allow_inline
 
 
 Formatted = Union[FormatList, FormatAtom, FormatComment]
@@ -48,7 +49,7 @@ Formatted = Union[FormatList, FormatAtom, FormatComment]
 def get_expression(buffer: TokenBuffer) -> Formatted:
     token = buffer.pop_next_token()
     if isinstance(token, Comment):
-        return FormatComment(token.value)
+        return FormatComment(token.value, not token.first_in_line)
     elif token == "#" and not buffer.done and buffer.get_next_token() == "[":
         buffer.pop_next_token()
         out = FormatAtom("#[" + buffer.pop_next_token().value + "]")
