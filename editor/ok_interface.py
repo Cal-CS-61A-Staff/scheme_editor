@@ -230,6 +230,8 @@ def run_tests():
     from client.cli.ok import parse_input
     # noinspection PyUnresolvedReferences
     from client.sources.ok_test.scheme import SchemeSuite
+    # noinspection PyUnresolvedReferences
+    from client.sources.doctest.models import Doctest
     log.setLevel(logging.ERROR)
 
     args = parse_input(["--all", "--verbose"])
@@ -239,10 +241,17 @@ def run_tests():
     try:
         result = []
         for test in assign.specified_tests:
+            if isinstance(test, Doctest):
+                # doctests are python
+                continue
             suites = []
             for suite in test.suites:
-                assert isinstance(suite, SchemeSuite)
+                if not isinstance(suite, SchemeSuite):
+                    # python ok test
+                    continue
                 suites.append([process_case(case).dictionary for case in suite.cases])
+            if not suites:
+                continue
             result.append({
                 "problem": test.name.replace("-", " ").title(),
                 "suites": suites,
