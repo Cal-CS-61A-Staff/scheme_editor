@@ -1,9 +1,9 @@
 from abc import ABC
 from functools import lru_cache
-from typing import List, Tuple, Union, Sequence, Iterator, Type
+from typing import List, Tuple, Type, Union
 
 import lexer as lexer
-from format_parser import get_expression, Formatted, FormatAtom, FormatList, FormatComment
+from format_parser import FormatAtom, FormatComment, FormatList, Formatted, get_expression
 
 LINE_LENGTH = 50
 MAX_EXPR_COUNT = 10
@@ -336,7 +336,9 @@ class ProcedureFormatter(SpecialFormFormatter):
         out = Token(expr.open_paren) + Token(expr.contents[0].value) + Space() + ChangeIndent(indent_level)
 
         procedure_handler = cls.ProcedureHandler(indent_level)
-        rest, trailing_paren_safe = rest_format(expr.contents[1:], remaining - indent_level, formatter=procedure_handler)
+        rest, trailing_paren_safe = rest_format(expr.contents[1:],
+                                                remaining - indent_level,
+                                                formatter=procedure_handler)
 
         if procedure_handler.formals_next:
             raise WeakMatchFailure("Formals not specified")
@@ -348,7 +350,6 @@ class ProcedureFormatter(SpecialFormFormatter):
 
         out += Token(expr.close_paren)
         return out
-
 
 
 class AtomFormatter(Formatter):
@@ -425,7 +426,6 @@ class DefaultCallExprFormatter(Formatter):
     @staticmethod
     def format(expr: FormatList, remaining: int) -> FormatSeq:
         operator = expr.contents[0]
-        firstarg = expr.contents[1]
 
         assert isinstance(operator, FormatAtom)
 
