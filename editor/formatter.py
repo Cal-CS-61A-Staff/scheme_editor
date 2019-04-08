@@ -5,7 +5,7 @@ from typing import List, Tuple, Union, Sequence, Iterator, Type
 import lexer as lexer
 from format_parser import get_expression, Formatted, FormatAtom, FormatList, FormatComment
 
-LINE_LENGTH = 80
+LINE_LENGTH = 50
 MAX_EXPR_COUNT = 10
 MAX_EXPR_LEN = 30
 INDENT = 4
@@ -13,7 +13,7 @@ INDENT = 4
 DEFINE_VALS = ["define", "define-macro"]
 DECLARE_VALS = ["lambda", "mu"]
 SHORTHAND = {"quote": "'", "quasiquote": "`", "unquote": ",", "unquote-splicing": ",@", "variadic": "."}
-MULTILINE_VALS = ["let", "cond", "if"]
+MULTILINE_VALS = ["let", "cond", "if"] + DEFINE_VALS + DECLARE_VALS
 
 FREE_TOKENS = ["if", "define", "define-macro", "mu", "lambda"]
 
@@ -71,6 +71,7 @@ class FormatSeq:
         self.active = True
         self.line_lengths = [0]
         self.max_line_len = 0
+        self.cost = 0
 
     def __add__(self, other):
         if other is None:
@@ -239,13 +240,12 @@ class AlignedCondFormatter(SpecialFormFormatter):
         for clause in expr.contents[1:]:
             max_pred_len = max(max_pred_len, cls.Clause.pred_len(clause))
 
-        indent_depth = len("(cond ")
-        out = Token(expr.open_paren) + Token("cond") + Space() + ChangeIndent(indent_depth)
+        out = Token(expr.open_paren) + Token("cond") + Space() + ChangeIndent(2) + Newline()
 
         rest, trailing_paren_safe = rest_format(expr.contents[1:], -1, max_pred_len, formatter=cls.Clause)
 
         out += rest
-        out += ChangeIndent(-indent_depth)
+        out += ChangeIndent(-2)
         if not trailing_paren_safe:
             out += Newline()
 
@@ -266,15 +266,14 @@ class MultilineCondFormatter(SpecialFormFormatter):
     def format(cls, expr: Formatted, remaining) -> FormatSeq:
         cls.assert_form(expr, "cond")
 
-        indent_depth = len("(cond ")
-        out = Token(expr.open_paren) + Token("cond") + Space() + ChangeIndent(indent_depth)
+        out = Token(expr.open_paren) + Token("cond") + Space() + ChangeIndent(2) + Newline()
 
         rest, trailing_paren_safe = rest_format(expr.contents[1:],
-                                                remaining - indent_depth,
+                                                remaining - 2,
                                                 formatter=cls.Clause)
 
         out += rest
-        out += ChangeIndent(-indent_depth)
+        out += ChangeIndent(-2)
         if not trailing_paren_safe:
             out += Newline()
 
@@ -495,9 +494,8 @@ class Best:
         self.curr_cost = None
         self.remaining = remaining
 
-    @staticmethod
-    def heuristic(chain: FormatSeq) -> int:
-        return max(0, chain.max_line_len - 80)
+    def heuristic(self, chain: FormatSeq) -> int:
+        return max(0, chain.max_line_len - 50) + chain.cost
 
     def add(self, formatted: FormatSeq):
         cost = self.heuristic(formatted)
@@ -516,14 +514,10 @@ def find_best(raw: Formatted, candidates: List[Type[Formatter]], remaining) -> F
     best = Best(remaining)
     for candidate in candidates:
         try:
-            print(" " * (80 - remaining), "candidate", candidate, raw)
             best.add(candidate.format(raw, remaining))
-            print(" " * (80 - remaining), "success", candidate)
         except WeakMatchFailure as e:
-            print(" " * (80 - remaining), str(e), candidate)
             continue
         except StrongMatchFailure:
-            print("err")
             # TODO: Warn about potentially invalid special form
             continue
         except OptimalFormattingReached:
