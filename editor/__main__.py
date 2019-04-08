@@ -7,37 +7,44 @@ import log
 from formatter import prettify
 
 parser = argparse.ArgumentParser(description="CS61A Scheme Editor - Spring 2019")
-group = parser.add_mutually_exclusive_group()
-group.add_argument("-f", "--files",
-                   type=argparse.FileType('r+'),
-                   help="Scheme files to test",
-                   metavar="FILE",
-                   nargs='*')
-group.add_argument("-nb", "--nobrowser",
-                   help="Do not open a new browser window.",
-                   action="store_true")
-group.add_argument("-d", "--dotted",
-                   help="Enable dotted lists",
-                   action="store_true")
-group.add_argument("-p", "--port",
-                   type=int,
-                   default=31415,
-                   help="Choose the port to access the editor")
-group = parser.add_mutually_exclusive_group()
-group.add_argument("-r", "--reformat",
-                   type=argparse.FileType('a+'),
-                   help="Reformat input files",
-                   nargs=2,
-                   metavar=('SOURCE', 'DEST'))
+
+parser.add_argument("-f", "--files",
+                    type=argparse.FileType('r+'),
+                    help="Scheme files to test",
+                    metavar="FILE",
+                    nargs='*')
+parser.add_argument("-nb", "--nobrowser",
+                    help="Do not open a new browser window.",
+                    action="store_true")
+parser.add_argument("-d", "--dotted",
+                    help="Enable dotted lists",
+                    action="store_true")
+parser.add_argument("-p", "--port",
+                    type=int,
+                    default=31415,
+                    help="Choose the port to access the editor")
+parser.add_argument("-r", "--reformat",
+                    type=argparse.FileType('a+'),
+                    help="File to be reformatted.",
+                    metavar='FILE')
+parser.add_argument("-o", "--out",
+                    type=argparse.FileType('w+'),
+                    help="Write to separate output file")
 args = parser.parse_args()
 
 if args.reformat is not None:
-    source, dest = args.reformat
+    source = args.reformat
+    if args.out is not None:
+        dest = args.out
+    else:
+        dest = source
     source.seek(0)
+    prettified = prettify([source.read()])
     dest.truncate(0)
-    dest.write(prettify([source.read()]))
+    dest.write(prettified)
     source.close()
-    dest.close()
+    if args.out is not None:
+        dest.close()
     exit()
 
 log.logger.dotted = args.dotted
