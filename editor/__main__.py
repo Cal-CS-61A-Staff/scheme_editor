@@ -36,5 +36,5 @@ else:
         parser.error("Multiple okpy configs detected, files to be tested must be specified explicitly.")
     elif len(configs) > 0:
         with open(configs[0]) as f:
-            file_names = json.loads(f.read())["src"]
+            file_names = [name for name in json.loads(f.read())["src"] if name.endswith(".scm")]
 local_server.start(file_names, args.port, not args.nobrowser)
