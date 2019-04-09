@@ -4,7 +4,7 @@ import {open} from "./layout";
 import {make, request_update} from "./event_handler";
 import {terminable_command} from "./canceller";
 import {registerEditor, removeEditor, notify_changed} from "./test_results";
-import {javastyle} from "./settings";
+import {doTailViz, javastyle} from "./settings";
 
 export {register};
 
@@ -281,6 +281,7 @@ function register(layout) {
                 globalFrameID: -1,
                 curr_i: 0,
                 curr_f: 0,
+                tailViz: doTailViz()
             });
             terminable_command("executing code", aj, run_done);
         }

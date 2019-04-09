@@ -12,8 +12,10 @@ from scheme_exceptions import SchemeError, ParseError
 MAX_TRACEBACK_LENGTH = 20
 
 
-def string_exec(strings, out, global_frame=None):
+def string_exec(strings, out, visualize_tail_calls, global_frame=None):
     import log
+
+    log.logger.visualize_tail_calls(visualize_tail_calls)
 
     empty = False
 
