@@ -35,11 +35,8 @@ parser.add_argument("-p", "--port",
 parser.add_argument("-r", "--reformat",
                     type=str,
                     nargs="*",
-                    help="File to be reformatted.",
+                    help="Reformats file and writes to second argument, if exists, or in-place, otherwise..",
                     metavar='FILE')
-parser.add_argument("-o", "--out",
-                    type=str,
-                    help="Write to separate output file")
 args = parser.parse_args()
 
 if args.reformat is not None:
