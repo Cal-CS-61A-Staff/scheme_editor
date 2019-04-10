@@ -232,10 +232,7 @@ function register(layout) {
                 } else {
                     alert("Save error - try copying code from editor to a file manually");
                 }
-            }).fail(() => {
-                    $("#disconnectedModal").modal("show");
-                }
-            );
+            })
         }
 
         async function run() {
