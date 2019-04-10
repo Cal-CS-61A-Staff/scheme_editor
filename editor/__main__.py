@@ -6,6 +6,15 @@ import local_server
 import log
 from formatter import prettify
 
+def reformat_files(src, dest=None):
+    if dest is None:
+        dest = src
+    with open(src) as src:
+        formatted = prettify([src.read()])
+    with open(dest, "w+") as dest:
+        dest.write(formatted)
+    exit()
+
 parser = argparse.ArgumentParser(description="CS61A Scheme Editor - Spring 2019")
 
 parser.add_argument("-f", "--files",
@@ -24,28 +33,18 @@ parser.add_argument("-p", "--port",
                     default=31415,
                     help="Choose the port to access the editor")
 parser.add_argument("-r", "--reformat",
-                    type=argparse.FileType('a+'),
+                    type=str,
+                    nargs=*,
                     help="File to be reformatted.",
                     metavar='FILE')
 parser.add_argument("-o", "--out",
-                    type=argparse.FileType('w+'),
+                    type=str,
                     help="Write to separate output file")
 args = parser.parse_args()
 
 if args.reformat is not None:
-    source = args.reformat
-    if args.out is not None:
-        dest = args.out
-    else:
-        dest = source
-    source.seek(0)
-    prettified = prettify([source.read()])
-    dest.truncate(0)
-    dest.write(prettified)
-    source.close()
-    if args.out is not None:
-        dest.close()
-    exit()
+    reformat_files(*args.reformat)
+
 
 log.logger.dotted = args.dotted
 
