@@ -191,8 +191,6 @@ def process_case(case):
         interpret_success_overall = interpret_success_overall and interpret_success
         interpret_out_overall.append(process(interpret_out, interpret_success))
 
-    # if "Traceback" in setup_out:
-    #     return TestCaseResult(False, interpret_out_overall, process(setup_out, True))
     return TestCaseResult(interpret_success_overall, interpret_out_overall, process(setup_out, True))
 
 
