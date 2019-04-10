@@ -122,6 +122,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
                 if isinstance(out, Thunk):
                     expr, frame = out.expr, out.frame
                     thunks.append(out)
+                    out.gui_holder.evaluate()
                     if log.logger.show_thunks:
                         gui_holder = out.gui_holder
                     else:
