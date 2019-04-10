@@ -500,8 +500,7 @@ def find_best(raw: Formatted, candidates: List[Type[Formatter]], remaining) -> F
         except WeakMatchFailure as e:
             continue
         except StrongMatchFailure:
-            # TODO
-            #  : Warn about potentially invalid special form
+            # TODO: Warn about potentially invalid special form
             continue
         except OptimalFormattingReached:
             return best.get_best()
