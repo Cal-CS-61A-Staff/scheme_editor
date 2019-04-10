@@ -132,7 +132,7 @@ class Handler(server.BaseHTTPRequestHandler):
             self.server.socket.close()
 
     def do_GET(self):
-        self.send_response(HTTPStatus.OK, 'test')
+        self.send_response(HTTPStatus.OK)
         path = "editor/static/" + urllib.parse.unquote(self.path)[1:]
 
         if "scripts" in path and not path.endswith(".js"):
