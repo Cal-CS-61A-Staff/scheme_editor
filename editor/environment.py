@@ -72,6 +72,6 @@ def build_global_frame():
         frame.assign(Symbol(name), MathProcedure(getattr(math, name), name))
 
     with open("editor/builtins.scm") as file:
-        execution.string_exec([" ".join(file.readlines())], lambda *x, **y: None, frame)
+        execution.string_exec([" ".join(file.readlines())], lambda *x, **y: None, False, frame)
 
     return Frame("Global", frame)

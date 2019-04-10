@@ -23,7 +23,7 @@ function register_cancel_button(btn) {
 }
 
 function refresh_button() {
-    if (button == undefined) {
+    if (button === undefined) {
         console.log("No button!");
         return;
     }
