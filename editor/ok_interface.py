@@ -94,7 +94,7 @@ class TestCaseResult(namedtuple('TestCaseResult', ['cases_passed', 'cases_out', 
 
     @property
     def success(self):
-        return self.setup_out.success() and self.cases_passed
+        return self.cases_passed
 
     @property
     def output(self):
@@ -191,8 +191,8 @@ def process_case(case):
         interpret_success_overall = interpret_success_overall and interpret_success
         interpret_out_overall.append(process(interpret_out, interpret_success))
 
-    if "Traceback" in setup_out:
-        return TestCaseResult(False, interpret_out_overall, process(setup_out, True))
+    # if "Traceback" in setup_out:
+    #     return TestCaseResult(False, interpret_out_overall, process(setup_out, True))
     return TestCaseResult(interpret_success_overall, interpret_out_overall, process(setup_out, True))
 
 
