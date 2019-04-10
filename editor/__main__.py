@@ -12,7 +12,7 @@ def reformat_files(src, dest=None):
         dest = src
     with open(src) as src:
         formatted = prettify([src.read()])
-    with open(dest, "w+") as dest:
+    with open(dest, "w") as dest:
         dest.write(formatted + "\n")
     exit()
 
