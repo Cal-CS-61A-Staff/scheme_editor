@@ -34,7 +34,7 @@ parser.add_argument("-p", "--port",
                     help="Choose the port to access the editor")
 parser.add_argument("-r", "--reformat",
                     type=str,
-                    nargs=*,
+                    nargs="*",
                     help="File to be reformatted.",
                     metavar='FILE')
 parser.add_argument("-o", "--out",
