@@ -6,14 +6,16 @@ import local_server
 import log
 from formatter import prettify
 
+
 def reformat_files(src, dest=None):
     if dest is None:
         dest = src
     with open(src) as src:
         formatted = prettify([src.read()])
     with open(dest, "w+") as dest:
-        dest.write(formatted)
+        dest.write(formatted + "\n")
     exit()
+
 
 parser = argparse.ArgumentParser(description="CS61A Scheme Editor - Spring 2019")
 
