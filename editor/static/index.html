@@ -153,10 +153,18 @@
                           Hide frames after return. Note that frames that continue to be referenced from closures <strong> will also be hidden. </strong>
                       </label>
                     </div>
+                    <br>
                     <div class="custom-control custom-checkbox">
                       <input type="checkbox" class="custom-control-input" id="javastyleCheckbox">
                       <label class="custom-control-label" for="javastyleCheckbox">
                           Enable Java-style formatting, where close parens appear on their own line, rather than being grouped with the previous line
+                      </label>
+                    </div>
+                    <br>
+                    <div class="custom-control custom-checkbox">
+                      <input type="checkbox" class="custom-control-input" id="tailVizCheckbox">
+                      <label class="custom-control-label" for="tailVizCheckbox">
+                          Visualize tail recursion explicitly in environment diagrams and the debugger, rather than hiding it. Note that you will have to rerun your code after modifying this setting.
                       </label>
                     </div>
                 </div>

@@ -107,7 +107,7 @@ function register(myLayout) {
             ready = true;
         });
 
-        container.getElement().find(".tree").on("reset", function () {
+        myLayout.eventHub.on("reset", function () {
             svgPanZoom(rawSVG).reset();
         });
 

@@ -129,6 +129,8 @@ class Logger:
 
         self.autodraw = True
 
+        self.show_thunks = True
+
         self.node_cache: Dict[str, Union[StaticNode, FatNode]] = {}  # a cache of visual expressions
         self.export_states = []  # all the nodes generated in the current evaluation, in exported form
         self.roots = []  # the root node of each expr we are currently evaluating
@@ -172,6 +174,9 @@ class Logger:
 
     def preview_mode(self, val):
         self.fragile = val
+
+    def visualize_tail_calls(self, val):
+        self.show_thunks = not val
 
     @limited
     def log(self, message: str, local: Holder, root: Holder):

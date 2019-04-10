@@ -75,26 +75,6 @@ class Thunk:
 
 def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
              tail_context: bool = False, *, log_stack: bool=True) -> Union[Expression, Thunk]:
-    """
-    >>> global_frame = __import__("special_forms").build_global_frame()
-    >>> gui_holder = __import__("gui").Holder(None)
-    >>> __import__("gui").Root.setroot(gui_holder)
-    >>> __import__("gui").silent = True
-
-    >>> buff = __import__("lexer").TokenBuffer(["(+ 1 2)"])
-    >>> expr = __import__("parser").get_expression(buff)
-    >>> result = evaluate(expr, global_frame, gui_holder)
-    >>> print(result)
-    3
-    >>> evaluate(__import__("parser").get_expression(__import__("lexer").TokenBuffer(["(+ 3 4 5)"])), global_frame, gui_holder)
-    12
-    >>> evaluate(__import__("parser").get_expression(__import__("lexer").TokenBuffer(["(* 3 4 5)"])), global_frame, gui_holder)
-    60
-    >>> evaluate(__import__("parser").get_expression(__import__("lexer").TokenBuffer(["(* (+ 1 2) 4 5)"])), global_frame, gui_holder)
-    60
-    >>> __import__("gui").silent = False
-    """
-
     depth = 0
     thunks = []
     holders = []
@@ -141,8 +121,14 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
                 out = apply(operator, operands, frame, gui_holder)
                 if isinstance(out, Thunk):
                     expr, frame = out.expr, out.frame
-                    gui_holder = out.gui_holder
                     thunks.append(out)
+                    out.gui_holder.evaluate()
+                    if log.logger.show_thunks:
+                        gui_holder = out.gui_holder
+                    else:
+                        gui_holder.expression.display_value = out.gui_holder.expression.display_value
+                        gui_holder.expression.base_expr = out.gui_holder.expression.base_expr
+                        gui_holder.expression.set_entries(list(x.expression for x in out.gui_holder.expression.children))
                     continue
                 ret = out
         elif expr is Nil or expr is Undefined:

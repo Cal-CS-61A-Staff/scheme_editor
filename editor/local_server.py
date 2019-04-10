@@ -55,7 +55,10 @@ class Handler(server.BaseHTTPRequestHandler):
             curr_i = int(data["curr_i"][0])
             curr_f = int(data["curr_f"][0])
             global_frame_id = int(data["globalFrameID"][0])
-            self.wfile.write(bytes(handle(code, curr_i, curr_f, global_frame_id, cancellation_event=self.cancellation_event), "utf-8"))
+            visualize_tail_calls = data["tailViz"][0] == "true"
+            self.wfile.write(bytes(handle(code, curr_i, curr_f, global_frame_id, visualize_tail_calls,
+                                          cancellation_event=self.cancellation_event),
+                                   "utf-8"))
 
         elif path == "/save":
             code = data["code[]"]
@@ -193,11 +196,16 @@ def cancelable_subprocess_call(cancellation_event, *args, **kwargs):
     return buffered.getvalue()
 
 
-def handle(code, curr_i, curr_f, global_frame_id, cancellation_event):
+def handle(code, curr_i, curr_f, global_frame_id, visualize_tail_calls, cancellation_event):
+
     try:
         global_frame = log.logger.frame_lookup.get(global_frame_id, None)
         log.logger.new_query(global_frame, curr_i, curr_f)
-        scheme_limiter(cancellation_event, execution.string_exec, code, log.logger.out, global_frame.base if global_frame_id != -1 else None)
+        scheme_limiter(cancellation_event,
+                       execution.string_exec,
+                       code, log.logger.out,
+                       visualize_tail_calls,
+                       global_frame.base if global_frame_id != -1 else None)
     except OperationCanceledException:
         return json.dumps({"success": False, "out": [str("operation was canceled")]})
     except ParseError as e:
@@ -212,7 +220,7 @@ def instant(code, global_frame_id):
     log.logger.new_query(global_frame)
     try:
         log.logger.preview_mode(True)
-        scheme_limiter(0.3, execution.string_exec, code, log.logger.out, global_frame.base)
+        scheme_limiter(0.3, execution.string_exec, code, log.logger.out, False, global_frame.base)
     except (SchemeError, ZeroDivisionError) as e:
         log.logger.out(e)
     except TimeLimitException:
