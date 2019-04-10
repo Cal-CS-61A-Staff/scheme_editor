@@ -46,5 +46,5 @@ function getAllSettings() {
 function setAllSettings(data) {
     $("#hideReturnFramesCheckbox").prop('checked', data["return_frames"]);
     $("#javastyleCheckbox").prop('checked', data["javastyle"]);
-    $("#tailVizCheckbox").prop('checked', data["tailRecursion"]);
+    $("#tailVizCheckbox").prop('checked', data["tailViz"]);
 }

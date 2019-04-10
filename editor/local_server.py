@@ -56,6 +56,7 @@ class Handler(server.BaseHTTPRequestHandler):
             curr_f = int(data[b"curr_f"][0])
             global_frame_id = int(data[b"globalFrameID"][0])
             visualize_tail_calls = data[b"tailViz"] == b"true"
+            print(visualize_tail_calls)
             self.send_response(HTTPStatus.OK, 'test')
             self.send_header("Content-type", "application/JSON")
             self.end_headers()

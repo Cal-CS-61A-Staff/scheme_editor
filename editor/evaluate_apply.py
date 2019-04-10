@@ -121,10 +121,11 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
                 out = apply(operator, operands, frame, gui_holder)
                 if isinstance(out, Thunk):
                     expr, frame = out.expr, out.frame
-                    if True or log.logger.show_thunks:
+                    if log.logger.show_thunks:
                         gui_holder = out.gui_holder
                         thunks.append(out)
                     else:
+                        print("thnuk")
                         gui_holder.expression = out.gui_holder.expression
                     continue
                 ret = out
