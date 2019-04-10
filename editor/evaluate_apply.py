@@ -125,7 +125,6 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
                         gui_holder = out.gui_holder
                         thunks.append(out)
                     else:
-                        print("thnuk")
                         gui_holder.expression = out.gui_holder.expression
                     continue
                 ret = out
