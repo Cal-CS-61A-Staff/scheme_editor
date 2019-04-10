@@ -55,8 +55,10 @@ class Handler(server.BaseHTTPRequestHandler):
             curr_i = int(data["curr_i"][0])
             curr_f = int(data["curr_f"][0])
             global_frame_id = int(data["globalFrameID"][0])
-            visualize_tail_calls = data["tailViz"] == "true"
-            self.wfile.write(bytes(handle(code, curr_i, curr_f, global_frame_id, visualize_tail_calls, cancellation_event=self.cancellation_event), "utf-8"))
+            visualize_tail_calls = data["tailViz"][0] == "true"
+            self.wfile.write(bytes(handle(code, curr_i, curr_f, global_frame_id, visualize_tail_calls,
+                                          cancellation_event=self.cancellation_event),
+                                   "utf-8"))
 
         elif path == "/save":
             code = data["code[]"]

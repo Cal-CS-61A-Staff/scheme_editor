@@ -1,7 +1,7 @@
 import {saveState, states, temp_file} from "./state_handler";
 
 import {open} from "./layout";
-import {make, request_update} from "./event_handler";
+import {make, request_reset, request_update} from "./event_handler";
 import {terminable_command} from "./canceller";
 import {registerEditor, removeEditor, notify_changed} from "./test_results";
 import {doTailViz, javastyle} from "./settings";
@@ -272,7 +272,7 @@ function register(layout) {
                 }
                 // noinspection JSIgnoredPromiseFromCall
                 saveState(true);
-                $("*").trigger("reset");
+                request_reset();
                 request_update();
             }
 

@@ -102,7 +102,7 @@ function register(myLayout) {
             }
         });
 
-        container.getElement().find(".envs").on("reset", function () {
+        myLayout.eventHub.on("reset", function () {
             svgPanZoom(rawSVG).reset();
         });
 
