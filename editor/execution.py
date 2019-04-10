@@ -15,7 +15,6 @@ MAX_TRACEBACK_LENGTH = 20
 def string_exec(strings, out, visualize_tail_calls, global_frame=None):
     import log
 
-    log.logger.visualize_tail_calls(visualize_tail_calls)
 
     empty = False
 
@@ -33,6 +32,7 @@ def string_exec(strings, out, visualize_tail_calls, global_frame=None):
     log.logger.roots = []
     log.logger.frame_updates = []
     log.logger._out = []
+    log.logger.visualize_tail_calls(visualize_tail_calls)
 
     for i, string in enumerate(strings):
         try:

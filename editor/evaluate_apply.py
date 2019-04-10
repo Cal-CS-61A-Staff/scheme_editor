@@ -121,11 +121,12 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
                 out = apply(operator, operands, frame, gui_holder)
                 if isinstance(out, Thunk):
                     expr, frame = out.expr, out.frame
+                    thunks.append(out)
                     if log.logger.show_thunks:
                         gui_holder = out.gui_holder
-                        thunks.append(out)
                     else:
-                        gui_holder.expression = out.gui_holder.expression
+                        gui_holder.expression.value = out.gui_holder.expression.value
+                        gui_holder.expression.set_entries(list(x.expression for x in out.gui_holder.expression.children))
                     continue
                 ret = out
         elif expr is Nil or expr is Undefined:
