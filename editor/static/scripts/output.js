@@ -4,6 +4,7 @@ import {terminable_command} from "./canceller";
 import {open} from "./layout";
 import {display_elem} from "./env_diagram_worker";
 import {go_to_end} from "./navigation";
+import {doTailViz} from "./settings";
 
 export {register};
 
@@ -229,7 +230,8 @@ function register(myLayout) {
                     code: [val],
                     globalFrameID: states[componentState.id].globalFrameID,
                     curr_i: states[componentState.id].states.slice(-1)[0][1],
-                    curr_f: states[componentState.id].environments.length
+                    curr_f: states[componentState.id].environments.length,
+                    tailViz: doTailViz(),
                 });
                 terminable_command("executing code", aj, run_done);
             }
