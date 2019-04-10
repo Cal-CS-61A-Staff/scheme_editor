@@ -444,6 +444,7 @@ class Load(Applicable):
         except OSError as e:
             raise LoadError(e)
 
+
 @special_form("begin-noexcept")
 class BeginNoExcept(Callable):
     def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
@@ -454,8 +455,6 @@ class BeginNoExcept(Callable):
             except (SchemeError, RecursionError, ValueError, ZeroDivisionError) as e:
                 logger.raw_out("LoadError: " + str(e) + "\n")
         return out
-
-
 
 
 @special_form("delay")
