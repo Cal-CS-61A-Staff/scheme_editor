@@ -46,7 +46,7 @@ function register(myLayout) {
             }
         });
 
-        container.getElement().find(".drawing").on("reset", function () {
+        myLayout.eventHub.on("reset", function () {
             svgPanZoom(rawSVG).reset();
         });
 

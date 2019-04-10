@@ -60,7 +60,7 @@ class SchemeTestCase(TestCase):
                 code = [code]
             else:
                 code = ["\n".join(code)]
-            execution.string_exec(code, log.logger.out, global_frame)
+            execution.string_exec(code, log.logger.out, False, global_frame)
         except ParseError as e:
             return {"success": False, "out": [str(e)]}
 
