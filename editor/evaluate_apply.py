@@ -125,7 +125,8 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
                     if log.logger.show_thunks:
                         gui_holder = out.gui_holder
                     else:
-                        gui_holder.expression.value = out.gui_holder.expression.value
+                        gui_holder.expression.display_value = out.gui_holder.expression.display_value
+                        gui_holder.expression.base_expr = out.gui_holder.expression.base_expr
                         gui_holder.expression.set_entries(list(x.expression for x in out.gui_holder.expression.children))
                     continue
                 ret = out
