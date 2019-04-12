@@ -8,8 +8,6 @@ SPECIALS = ["(", ")", "[", "]", "'", "`", ",", "@", "\"", ";"]
 class Token:
     def __init__(self, value: str):
         self.value = value
-        self.comments: List[str] = []
-        self.comments_inline = True
 
     def __eq__(self, other):
         return other == self.value
@@ -22,6 +20,12 @@ class Token:
 
     def __str__(self):
         return str(self.value)
+
+
+class Comment(Token):
+    def __init__(self, value: str, first_in_line: bool):
+        super().__init__(value)
+        self.first_in_line = first_in_line
 
 
 class TokenBuffer:
@@ -47,19 +51,15 @@ class TokenBuffer:
 def tokenize(string, do_comments, ignore_brackets) -> List[Token]:
     string = string.strip()
     tokens = []
-    comments = {}
     i = 0
     first_in_line = True
-    prev_newline = True
 
     def _get_token():
         """Always starts at a non-space character"""
-        nonlocal i, first_in_line, prev_newline
+        nonlocal i
         if i == len(string):
             return
         if string[i] == "\"":
-            first_in_line = False
-            prev_newline = False
             tokens.append(Token(string[i]))
             i += 1
             _get_string()
@@ -70,8 +70,6 @@ def tokenize(string, do_comments, ignore_brackets) -> List[Token]:
             _get_comment()
 
         elif string[i] in SPECIALS and not (ignore_brackets and string[i] in ["[", "]"]):
-            first_in_line = False
-            prev_newline = False
             tokens.append(Token(string[i]))
             i += 1
 
@@ -81,8 +79,6 @@ def tokenize(string, do_comments, ignore_brackets) -> List[Token]:
                 curr += string[i]
                 i += 1
             if curr:
-                first_in_line = False
-                prev_newline = False
                 tokens.append(Token(curr))
 
     def _get_comment():
@@ -91,14 +87,8 @@ def tokenize(string, do_comments, ignore_brackets) -> List[Token]:
         while i != len(string) and string[i] != "\n":
             curr += string[i]
             i += 1
-        if first_in_line:
-            if len(tokens) not in comments:
-                comments[len(tokens)] = []
-            comments[len(tokens)].append((not first_in_line, curr))
-        else:
-            if len(tokens) - 1 not in comments:
-                comments[len(tokens) - 1] = []
-            comments[len(tokens) - 1].append((not first_in_line, curr))
+        if do_comments:
+            tokens.append(Comment(curr, first_in_line))
 
     def _get_string():
         """Starts just after an opening quotation mark"""
@@ -125,16 +115,10 @@ def tokenize(string, do_comments, ignore_brackets) -> List[Token]:
 
     while i != len(string):
         _get_token()
+        first_in_line = False
         while i != len(string) and string[i].isspace():
-            if string[i] == "\n" and i and prev_newline:
+            if string[i] == "\n":
                 first_in_line = True
-            elif string[i] == "\n":
-                prev_newline = True
             i += 1
-
-    if do_comments:
-        for key, val in comments.items():
-            tokens[min(key, len(tokens) - 1)].comments.extend(x[1] for x in val)
-            tokens[min(key, len(tokens) - 1)].comments_inline = all(x[0] for x in val)
 
     return tokens

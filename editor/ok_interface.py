@@ -94,7 +94,7 @@ class TestCaseResult(namedtuple('TestCaseResult', ['cases_passed', 'cases_out', 
 
     @property
     def success(self):
-        return self.setup_out.success() and self.cases_passed
+        return self.cases_passed
 
     @property
     def output(self):
@@ -191,8 +191,6 @@ def process_case(case):
         interpret_success_overall = interpret_success_overall and interpret_success
         interpret_out_overall.append(process(interpret_out, interpret_success))
 
-    if "Traceback" in setup_out:
-        return TestCaseResult(False, interpret_out_overall, process(setup_out, True))
     return TestCaseResult(interpret_success_overall, interpret_out_overall, process(setup_out, True))
 
 
@@ -230,6 +228,8 @@ def run_tests():
     from client.cli.ok import parse_input
     # noinspection PyUnresolvedReferences
     from client.sources.ok_test.scheme import SchemeSuite
+    # noinspection PyUnresolvedReferences
+    from client.sources.doctest.models import Doctest
     log.setLevel(logging.ERROR)
 
     args = parse_input(["--all", "--verbose"])
@@ -239,10 +239,17 @@ def run_tests():
     try:
         result = []
         for test in assign.specified_tests:
+            if isinstance(test, Doctest):
+                # doctests are python
+                continue
             suites = []
             for suite in test.suites:
-                assert isinstance(suite, SchemeSuite)
+                if not isinstance(suite, SchemeSuite):
+                    # python ok test
+                    continue
                 suites.append([process_case(case).dictionary for case in suite.cases])
+            if not suites:
+                continue
             result.append({
                 "problem": test.name.replace("-", " ").title(),
                 "suites": suites,

@@ -434,7 +434,7 @@ class Load(Applicable):
             raise IrreversibleOperationError()
         try:
             with open(f"{operands[0].value}.scm") as file:
-                code = "(begin" + "\n".join(file.readlines()) + "\n)"
+                code = "(begin-noexcept" + "\n".join(file.readlines()) + "\n)"
                 buffer = TokenBuffer([code])
                 expr = get_expression(buffer)
                 # noinspection PyTypeChecker
@@ -443,6 +443,18 @@ class Load(Applicable):
                 return evaluate(expr, frame, gui_holder.expression.children[0], True)
         except OSError as e:
             raise LoadError(e)
+
+
+@special_form("begin-noexcept")
+class BeginNoExcept(Callable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+        out = Undefined
+        for i, (operand, holder) in enumerate(zip(operands, gui_holder.expression.children[1:])):
+            try:
+                out = evaluate(operand, frame, holder, i == len(operands) - 1)
+            except (SchemeError, RecursionError, ValueError, ZeroDivisionError) as e:
+                logger.raw_out("LoadError: " + str(e) + "\n")
+        return out
 
 
 @special_form("delay")

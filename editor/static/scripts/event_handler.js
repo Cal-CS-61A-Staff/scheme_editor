@@ -2,7 +2,7 @@ import {notify_close, notify_open, open_prop} from "./layout";
 import {saveState, states, temp_file} from "./state_handler";
 import {register_cancel_button} from "./canceller";
 
-export {request_update, make, begin_slow, end_slow, init_complete, register}
+export {request_update, request_reset, make, begin_slow, end_slow, init_complete, register}
 
 const type_title = {
     "env_diagram": "Environments",
@@ -20,6 +20,10 @@ function register(inp_layout) {
 
 function request_update() {
     layout.eventHub.emit("update");
+}
+
+function request_reset() {
+    layout.eventHub.emit("reset");
 }
 
 function make(container, type, id) {
