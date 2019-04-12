@@ -41,16 +41,14 @@ class VisualExpression:
             except OperandDeduceError:
                 self.set_entries([base_expr.first, base_expr.rest])
         else:
-            raise NotImplementedError(base_expr)
+            raise NotImplementedError(base_expr, type(base_expr))
 
     def set_entries(self, expressions: List[Expression]):
         self.value = None
         self.children = [Holder(expression, self) for expression in expressions]
         if expressions and isinstance(expressions[0], VisualExpression):
             if self.id in logger.node_cache:
-                if isinstance(logger.node_cache[self.id], StaticNode):
-                    curr_transition = HolderState[logger.node_cache[self.id].transition_type]
-                elif logger.node_cache[self.id].transitions:
+                if logger.node_cache[self.id].transitions:
                     curr_transition = HolderState[logger.node_cache[self.id].transitions[-1][-1]]
                 else:
                     return self
@@ -65,7 +63,7 @@ class VisualExpression:
 
 class Holder:
     def __init__(self, expr: Expression, parent: VisualExpression):
-        self.expression: Union[Expression, VisualExpression] = expr
+        self.expression: VisualExpression = VisualExpression(expr) if isinstance(expr, Expression) else expr
         self.state = HolderState.UNEVALUATED
         self.parent = parent
 
@@ -131,7 +129,7 @@ class Logger:
 
         self.show_thunks = True
 
-        self.node_cache: Dict[str, Union[StaticNode, FatNode]] = {}  # a cache of visual expressions
+        self.node_cache: Dict[str, FatNode] = {}  # a cache of visual expressions
         self.export_states = []  # all the nodes generated in the current evaluation, in exported form
         self.roots = []  # the root node of each expr we are currently evaluating
 
@@ -218,11 +216,7 @@ class Logger:
     def frame_store(self, frame: 'evaluate_apply.Frame', name: str, value: Expression):
         self.frame_lookup[id(frame)].bind(name, value)
 
-    def new_node(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
-        if isinstance(expr, Expression):
-            key = get_id()
-            self.node_cache[key] = StaticNode(expr, transition_type)
-            return key
+    def new_node(self, expr: VisualExpression, transition_type: HolderState):
         if expr.id in self.node_cache:
             return self.node_cache[expr.id].modify(expr, transition_type, force=True)
         node = FatNode(expr, transition_type)
@@ -233,21 +227,6 @@ class Logger:
         self.op_count += 1
         # print(self.op_count)
         return self.op_count < OP_LIMIT
-
-
-class StaticNode:
-    def __init__(self, expr: Expression, transition_type: HolderState):
-        self.expr = expr
-        self.transition_type = transition_type
-
-    def export(self):
-        return {
-            "transitions": [(0, self.transition_type.name)],
-            "strs": [(0, repr(self.expr))],
-            "parent_strs": [(0, repr(self.expr))],
-            "children": [(0, [])],
-            "static": True
-        }
 
 
 class FatNode:
