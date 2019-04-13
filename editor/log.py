@@ -43,7 +43,7 @@ class VisualExpression:
         else:
             raise NotImplementedError(base_expr, type(base_expr))
 
-    def set_entries(self, expressions: List[Expression]):
+    def set_entries(self, expressions: Union[List[Expression], List['VisualExpression']]):
         self.value = None
         self.children = [Holder(expression, self) for expression in expressions]
         if expressions and isinstance(expressions[0], VisualExpression):
@@ -66,12 +66,6 @@ class Holder:
         self.expression: VisualExpression = VisualExpression(expr) if isinstance(expr, Expression) else expr
         self.state = HolderState.UNEVALUATED
         self.parent = parent
-
-    def link_visual(self, expr: VisualExpression):
-        self.expression = expr
-        if self.parent is not None and self.parent.id in logger.node_cache:
-            logger.node_cache[self.parent.id].modify(self.parent, HolderState.EVALUATING)
-        return expr
 
     def evaluate(self):
         self.state = HolderState.EVALUATING
@@ -129,7 +123,7 @@ class Logger:
 
         self.show_thunks = True
 
-        self.node_cache: Dict[str, FatNode] = {}  # a cache of visual expressions
+        self.node_cache: Dict[str, Node] = {}  # a cache of visual expressions
         self.export_states = []  # all the nodes generated in the current evaluation, in exported form
         self.roots = []  # the root node of each expr we are currently evaluating
 
@@ -219,7 +213,7 @@ class Logger:
     def new_node(self, expr: VisualExpression, transition_type: HolderState):
         if expr.id in self.node_cache:
             return self.node_cache[expr.id].modify(expr, transition_type, force=True)
-        node = FatNode(expr, transition_type)
+        node = Node(expr, transition_type)
         self.node_cache[node.id] = node
         return node.id
 
@@ -229,7 +223,7 @@ class Logger:
         return self.op_count < OP_LIMIT
 
 
-class FatNode:
+class Node:
     def __init__(self, expr: VisualExpression, transition_type: HolderState):
         self.transitions = []
         self.str = []
@@ -239,7 +233,7 @@ class FatNode:
         self.modify(expr, transition_type)
 
     @limited
-    def modify(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
+    def modify(self, expr: VisualExpression, transition_type: HolderState):
         if not self.transitions or self.transitions[-1][1] != transition_type.name:
             self.transitions.append((logger.i, transition_type.name))
         if not self.str or self.str[-1][1] != repr(expr):
@@ -248,17 +242,14 @@ class FatNode:
         while self.children and self.children[-1][0] == logger.i:
             self.children.pop()
 
-        if isinstance(expr, VisualExpression) and expr.value is None:
+        if expr.value is None:
             self.children.append(
                 (logger.i,
                  [logger.new_node(child.expression, child.state) for child in expr.children]))
         else:
             self.children.append((logger.i, []))
 
-        if isinstance(expr, VisualExpression):
-            new_base_str = repr(expr.base_expr)
-        else:
-            new_base_str = expr
+        new_base_str = repr(expr.base_expr)
 
         if not self.base_str or self.base_str[-1][1] != new_base_str:
             self.base_str.append((logger.i, new_base_str))
