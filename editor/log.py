@@ -10,7 +10,7 @@ from scheme_exceptions import OperandDeduceError
 if TYPE_CHECKING:
     import graphics
 
-OP_LIMIT = 25000
+TIME_LIMIT = 2  # seconds before debugging stops
 
 
 class HolderState(Enum):
@@ -94,7 +94,7 @@ class Root:
 
 def limited(f):
     def g(*args, **kwargs):
-        if not logger.log_op() and not kwargs.get("force", False):
+        if not logger.logging_active and not kwargs.get("force", False):
             return
         if "force" in kwargs:
             del kwargs["force"]
@@ -134,7 +134,7 @@ class Logger:
         self.graphics_lookup = {}
         self.graphics_open = False
 
-        self.op_count = 0
+        self.logging_active = True
 
     def new_expr(self):
         self._out.append([])
@@ -157,8 +157,8 @@ class Logger:
         self.export_states = []
         self.frame_updates = []
         self.global_frame = global_frame
-        self.op_count = 0
         self.graphics_open = False
+        self.logging_active = True
 
     def get_canvas(self) -> 'graphics.Canvas':
         self.graphics_open = True
@@ -216,11 +216,6 @@ class Logger:
         node = Node(expr, transition_type)
         self.node_cache[node.id] = node
         return node.id
-
-    def log_op(self):
-        self.op_count += 1
-        # print(self.op_count)
-        return self.op_count < OP_LIMIT
 
 
 class Node:

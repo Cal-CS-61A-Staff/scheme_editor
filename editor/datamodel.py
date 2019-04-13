@@ -48,36 +48,19 @@ class Pair(Expression):
                 f"Unable to construct a Pair with a cdr of {rest}, expected a Pair, Nil, or Promise.")
         self.rest = rest
 
-    # def __str__(self):
-    #     if isinstance(self.first, Symbol):
-    #         if isinstance(self.rest, Pair) and self.rest.rest == Nil:
-    #             if self.first.value == "quote":
-    #                 return f"'{str(self.rest.first)}"
-    #             elif self.first.value == "unquote":
-    #                 return f",{str(self.rest.first)}"
-    #             elif self.first.value == "unquote-splicing":
-    #                 return f",@{str(self.rest.first)}"
-    #             elif self.first.value == "quasiquote":
-    #                 return f"`{str(self.rest.first)}"
-    #
-    #     if isinstance(self.rest, Pair):
-    #         rest_str = str(self.rest)
-    #         if rest_str[0] == "(" and rest_str[-1] == ")":
-    #             return f"({self.first} {rest_str[1:-1]})"
-    #         else:
-    #             return f"({self.first} . {rest_str})"
-    #     elif self.rest is Nil:
-    #         return f"({self.first})"
-    #
-    #     return f"({str(self.first)} . {str(self.rest)})"
-
     def __repr__(self):
-        if isinstance(self.rest, Pair):
-            return f"({repr(self.first)} {repr(self.rest)[1:-1]})"
-        elif self.rest is Nil:
-            return f"({repr(self.first)})"
-        else:
-            return f"({repr(self.first)} . {repr(self.rest)})"
+        pos = self
+        out = []
+        while True:
+            if isinstance(pos, Pair):
+                out.append(repr(pos.first))
+                pos = pos.rest
+            elif isinstance(pos, NilType):
+                break
+            else:
+                out.append(f". {repr(pos)}")
+                break
+        return "(" + " ".join(out) + ")"
 
 
 class NilType(Expression):
