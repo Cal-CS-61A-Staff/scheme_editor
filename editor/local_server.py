@@ -69,6 +69,7 @@ class Handler(server.BaseHTTPRequestHandler):
             self.wfile.write(bytes(json.dumps({"result": "success", "stripped": strip_comments(code)}), "utf-8"))
 
         elif path == "/instant":
+            self.cancellation_event.clear()
             code = data["code[]"]
             global_frame_id = int(data["globalFrameID"][0])
             self.wfile.write(bytes(instant(code, global_frame_id), "utf-8"))
