@@ -14,21 +14,15 @@ class Append(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame) -> Expression:
         if len(operands) == 0:
             return Nil
-        out = []
+        exprs = []
         for operand in operands[:-1]:
             if not isinstance(operand, Pair) and operand is not Nil:
                 raise OperandDeduceError(f"Expected operand to be valid list, not {operand}")
-            out.extend(pair_to_list(operand))
-        try:
-            last = operands[-1]
-            if not isinstance(last, Pair):
-                raise OperandDeduceError()
-            last = pair_to_list(last)
-        except OperandDeduceError:
-            return make_list(out, operands[-1])
-        else:
-            out.extend(last)
-            return make_list(out)
+            exprs.extend(pair_to_list(operand))
+        out = operands[-1]
+        for expr in reversed(exprs):
+            out = Pair(expr, out)
+        return out
 
 
 @global_attr("car")

@@ -3,6 +3,7 @@ import json
 from datamodel import Undefined, Pair
 from evaluate_apply import evaluate
 from graphics import Canvas
+from helper import pair_to_list
 from log import Holder, Root
 from execution_parser import get_expression
 from lexer import TokenBuffer
@@ -10,11 +11,11 @@ from runtime_limiter import TimeLimitException
 from scheme_exceptions import SchemeError, ParseError
 
 MAX_TRACEBACK_LENGTH = 20
+MAX_AUTODRAW_LENGTH = 50
 
 
 def string_exec(strings, out, visualize_tail_calls, global_frame=None):
     import log
-
 
     empty = False
 
@@ -50,7 +51,8 @@ def string_exec(strings, out, visualize_tail_calls, global_frame=None):
                 res = evaluate(expr, global_frame, holder)
                 if res is not Undefined:
                     out(res)
-                if not log.logger.fragile and log.logger.autodraw and isinstance(res, Pair):
+                if not log.logger.fragile and log.logger.autodraw \
+                        and isinstance(res, Pair) and len(pair_to_list(res)) < MAX_AUTODRAW_LENGTH:
                     log.logger.raw_out("AUTODRAW" +
                                        json.dumps([log.logger.i, log.logger.heap.record(res)]) + "\n")
         except (SchemeError, ZeroDivisionError, RecursionError, ValueError) as e:
