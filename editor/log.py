@@ -1,4 +1,3 @@
-from collections import defaultdict
 from enum import Enum
 from typing import List, Union, Dict, Tuple, TYPE_CHECKING
 
@@ -11,7 +10,7 @@ from scheme_exceptions import OperandDeduceError
 if TYPE_CHECKING:
     import graphics
 
-TIME_LIMIT = 1  # seconds before debugging stops
+OP_LIMIT = 25000
 
 
 class HolderState(Enum):
@@ -43,8 +42,8 @@ class VisualExpression:
         self.children: List[Holder] = []
         self.id = get_id()
 
-        if not logger.logging_active:
-            self.children = defaultdict(lambda: fake_obj)
+        if logger.op_count >= OP_LIMIT:
+            self.children = fake_obj
             return
 
         if base_expr is None:
@@ -114,7 +113,7 @@ class Root:
 
 def limited(f):
     def g(*args, **kwargs):
-        if not logger.logging_active and not kwargs.get("force", False):
+        if not logger.log_op() and not kwargs.get("force", False):
             return
         if "force" in kwargs:
             del kwargs["force"]
@@ -154,7 +153,7 @@ class Logger:
         self.graphics_lookup = {}
         self.graphics_open = False
 
-        self.logging_active = True
+        self.op_count = 0
 
     def new_expr(self):
         self._out.append([])
@@ -178,7 +177,7 @@ class Logger:
         self.frame_updates = []
         self.global_frame = global_frame
         self.graphics_open = False
-        self.logging_active = True
+        self.op_count = 0
 
     def get_canvas(self) -> 'graphics.Canvas':
         self.graphics_open = True
@@ -236,6 +235,11 @@ class Logger:
         node = Node(expr, transition_type)
         self.node_cache[node.id] = node
         return node.id
+
+    def log_op(self):
+        self.op_count += 1
+        # print(self.op_count)
+        return self.op_count < OP_LIMIT
 
 
 class Node:
@@ -340,6 +344,8 @@ class Heap:
     def record(self, expr: Expression) -> 'Heap.HeapKey':
         if isinstance(expr, evaluate_apply.Thunk):
             return False, "thunk"
+        if expr.id is None:
+            expr.id = get_id()
         if expr.id not in self.prev and expr.id not in self.curr:
             if isinstance(expr, ValueHolder):
                 return False, repr(expr)
