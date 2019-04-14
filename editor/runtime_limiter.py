@@ -19,13 +19,10 @@ def limiter(raise_exception, lim, func, *args):
     lim_is_set = lim.is_set if is_event else None  # For performance
     gettime = time.time  # For performance
     end = (gettime() + lim) if not is_event else None
-    logstop = gettime() + log.TIME_LIMIT
 
     def tracer(*args):
         if lim_is_set() if is_event else gettime() > end:
             raise_exception(OperationCanceledException() if is_event else TimeLimitException())
-        if gettime() > logstop:
-            log.logger.logging_active = False
         return tracer
 
     sys_tracer = sys.gettrace()
