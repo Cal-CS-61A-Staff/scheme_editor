@@ -1,3 +1,4 @@
+from collections import defaultdict
 from enum import Enum
 from typing import List, Union, Dict, Tuple, TYPE_CHECKING
 
@@ -10,7 +11,7 @@ from scheme_exceptions import OperandDeduceError
 if TYPE_CHECKING:
     import graphics
 
-TIME_LIMIT = 2  # seconds before debugging stops
+TIME_LIMIT = 1  # seconds before debugging stops
 
 
 class HolderState(Enum):
@@ -20,6 +21,20 @@ class HolderState(Enum):
     APPLYING = 4
 
 
+class FakeObj:
+    def __getattr__(self, item):
+        return fake_obj
+
+    def __getitem__(self, item):
+        return fake_obj
+
+    def __call__(self, *args, **kwargs):
+        return fake_obj
+
+
+fake_obj = FakeObj()
+
+
 class VisualExpression:
     def __init__(self, base_expr: Expression = None, true_base_expr: Expression = None):
         self.display_value = base_expr
@@ -27,6 +42,11 @@ class VisualExpression:
         self.value: Expression = None
         self.children: List[Holder] = []
         self.id = get_id()
+
+        if not logger.logging_active:
+            self.children = defaultdict(lambda: fake_obj)
+            return
+
         if base_expr is None:
             return
         if isinstance(base_expr, ValueHolder) \

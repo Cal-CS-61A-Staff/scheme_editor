@@ -86,7 +86,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
         visual_expression = gui_holder.expression
 
         if log_stack:
-            log.logger.eval_stack.append(f"{repr(expr)} [frame = {frame.id}]")
+            log.logger.eval_stack.append("cat")  # TODO: f"{repr(expr)} [frame = {frame.id}]")
             depth += 1
 
         holders.append(gui_holder)
