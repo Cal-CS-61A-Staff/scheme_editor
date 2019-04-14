@@ -43,6 +43,7 @@ def verify_min_callable_length(operator: Expression, expected: int, actual: int)
 
 
 def make_list(exprs: List[Expression], last: Expression = Nil) -> Union[Pair, NilType]:
-    if len(exprs) == 0:
-        return last
-    return Pair(exprs[0], make_list(exprs[1:], last))
+    out = last
+    for expr in reversed(exprs):
+        out = Pair(expr, out)
+    return out
