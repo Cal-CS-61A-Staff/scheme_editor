@@ -83,11 +83,7 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
         if depth > RECURSION_LIMIT:
             raise OutOfMemoryError("Debugger ran out of memory due to excessively deep recursion.")
 
-        if isinstance(gui_holder.expression, Expression):
-            visual_expression = log.VisualExpression(expr)
-            gui_holder.link_visual(visual_expression)
-        else:
-            visual_expression = gui_holder.expression
+        visual_expression = gui_holder.expression
 
         if log_stack:
             log.logger.eval_stack.append(f"{repr(expr)} [frame = {frame.id}]")
@@ -122,7 +118,8 @@ def evaluate(expr: Expression, frame: Frame, gui_holder: log.Holder,
                 if isinstance(out, Thunk):
                     expr, frame = out.expr, out.frame
                     thunks.append(out)
-                    out.gui_holder.evaluate()
+                    if out.gui_holder.state != log.HolderState.EVALUATING:
+                        out.gui_holder.evaluate()
                     if log.logger.show_thunks:
                         gui_holder = out.gui_holder
                     else:

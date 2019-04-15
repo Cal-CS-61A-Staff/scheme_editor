@@ -54,7 +54,6 @@ class ProcedureObject(Callable):
             new_frame.assign(self.var_param, make_list(operands[len(self.params):]))
 
         out = None
-        # noinspection PyTypeChecker
         gui_holder.expression.set_entries(
             [VisualExpression(expr, gui_holder.expression.display_value) for expr in body])
 
@@ -70,7 +69,6 @@ class ProcedureObject(Callable):
         new_frame.assign(return_symbol, out)
 
         if not self.evaluates_operands:
-            # noinspection PyTypeChecker
             gui_holder.expression.set_entries([VisualExpression(out, gui_holder.expression.display_value)])
             out = evaluate(out, frame, gui_holder.expression.children[i], True)
 
@@ -266,7 +264,6 @@ class Cond(Callable):
                 raise OperandDeduceError(f"Unable to evaluate clause of cond, as {cond} is not a Pair.")
             expanded = pair_to_list(cond)
             cond_holder = gui_holder.expression.children[cond_i + 1]
-            cond_holder.link_visual(VisualExpression(cond))
             eval_condition = SingletonTrue
             if not isinstance(expanded[0], Symbol) or expanded[0].value != "else":
                 eval_condition = evaluate(expanded[0], frame, cond_holder.expression.children[0])
@@ -311,7 +308,6 @@ class Let(Callable):
 
         new_frame = Frame("anonymous let", frame)
 
-        gui_holder.expression.children[1].link_visual(VisualExpression(bindings))
         bindings_holder = gui_holder.expression.children[1]
 
         bindings = pair_to_list(bindings)
@@ -320,7 +316,6 @@ class Let(Callable):
             if not isinstance(binding, Pair):
                 raise OperandDeduceError(f"Expected binding to be a Pair, not {binding}.")
             binding_holder = bindings_holder.expression.children[i]
-            binding_holder.link_visual(VisualExpression(binding))
             binding = pair_to_list(binding)
             if len(binding) != 2:
                 raise OperandDeduceError(f"Expected binding to be of length 2, not {len(binding)}.")
@@ -375,8 +370,7 @@ class Quasiquote(Callable):
                 is_well_formed = not any(map(
                     lambda x: isinstance(x, Symbol) and x.value in ["unquote", "quasiquote", "unquote-splicing"], lst))
 
-        visual_expression = VisualExpression(expr)
-        gui_holder.link_visual(visual_expression)
+        visual_expression = gui_holder.expression
         if not is_well_formed:
             visual_expression.children[2:] = []
 
@@ -437,7 +431,6 @@ class Load(Applicable):
                 code = "(begin-noexcept" + "\n".join(file.readlines()) + "\n)"
                 buffer = TokenBuffer([code])
                 expr = get_expression(buffer)
-                # noinspection PyTypeChecker
                 gui_holder.expression.set_entries([VisualExpression(expr, gui_holder.expression.display_value)])
                 gui_holder.apply()
                 return evaluate(expr, frame, gui_holder.expression.children[0], True)
@@ -477,7 +470,6 @@ class Force(Applicable):
             return operand.expr
         if logger.fragile:
             raise IrreversibleOperationError()
-        # noinspection PyTypeChecker
         gui_holder.expression.set_entries([VisualExpression(operand.expr, gui_holder.expression.display_value)])
         gui_holder.apply()
         evaluated = evaluate(operand.expr, operand.frame, gui_holder.expression.children[0])

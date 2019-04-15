@@ -20,6 +20,20 @@ class HolderState(Enum):
     APPLYING = 4
 
 
+class FakeObj:
+    def __getattr__(self, item):
+        return fake_obj
+
+    def __getitem__(self, item):
+        return fake_obj
+
+    def __call__(self, *args, **kwargs):
+        return fake_obj
+
+
+fake_obj = FakeObj()
+
+
 class VisualExpression:
     def __init__(self, base_expr: Expression = None, true_base_expr: Expression = None):
         self.display_value = base_expr
@@ -27,6 +41,11 @@ class VisualExpression:
         self.value: Expression = None
         self.children: List[Holder] = []
         self.id = get_id()
+
+        if logger.op_count >= OP_LIMIT:
+            self.children = fake_obj
+            return
+
         if base_expr is None:
             return
         if isinstance(base_expr, ValueHolder) \
@@ -41,16 +60,14 @@ class VisualExpression:
             except OperandDeduceError:
                 self.set_entries([base_expr.first, base_expr.rest])
         else:
-            raise NotImplementedError(base_expr)
+            raise NotImplementedError(base_expr, type(base_expr))
 
-    def set_entries(self, expressions: List[Expression]):
+    def set_entries(self, expressions: Union[List[Expression], List['VisualExpression']]):
         self.value = None
         self.children = [Holder(expression, self) for expression in expressions]
         if expressions and isinstance(expressions[0], VisualExpression):
             if self.id in logger.node_cache:
-                if isinstance(logger.node_cache[self.id], StaticNode):
-                    curr_transition = HolderState[logger.node_cache[self.id].transition_type]
-                elif logger.node_cache[self.id].transitions:
+                if logger.node_cache[self.id].transitions:
                     curr_transition = HolderState[logger.node_cache[self.id].transitions[-1][-1]]
                 else:
                     return self
@@ -65,15 +82,9 @@ class VisualExpression:
 
 class Holder:
     def __init__(self, expr: Expression, parent: VisualExpression):
-        self.expression: Union[Expression, VisualExpression] = expr
+        self.expression: VisualExpression = VisualExpression(expr) if isinstance(expr, Expression) else expr
         self.state = HolderState.UNEVALUATED
         self.parent = parent
-
-    def link_visual(self, expr: VisualExpression):
-        self.expression = expr
-        if self.parent is not None and self.parent.id in logger.node_cache:
-            logger.node_cache[self.parent.id].modify(self.parent, HolderState.EVALUATING)
-        return expr
 
     def evaluate(self):
         self.state = HolderState.EVALUATING
@@ -131,7 +142,7 @@ class Logger:
 
         self.show_thunks = True
 
-        self.node_cache: Dict[str, Union[StaticNode, FatNode]] = {}  # a cache of visual expressions
+        self.node_cache: Dict[str, Node] = {}  # a cache of visual expressions
         self.export_states = []  # all the nodes generated in the current evaluation, in exported form
         self.roots = []  # the root node of each expr we are currently evaluating
 
@@ -165,8 +176,8 @@ class Logger:
         self.export_states = []
         self.frame_updates = []
         self.global_frame = global_frame
-        self.op_count = 0
         self.graphics_open = False
+        self.op_count = 0
 
     def get_canvas(self) -> 'graphics.Canvas':
         self.graphics_open = True
@@ -218,14 +229,10 @@ class Logger:
     def frame_store(self, frame: 'evaluate_apply.Frame', name: str, value: Expression):
         self.frame_lookup[id(frame)].bind(name, value)
 
-    def new_node(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
-        if isinstance(expr, Expression):
-            key = get_id()
-            self.node_cache[key] = StaticNode(expr, transition_type)
-            return key
+    def new_node(self, expr: VisualExpression, transition_type: HolderState):
         if expr.id in self.node_cache:
             return self.node_cache[expr.id].modify(expr, transition_type, force=True)
-        node = FatNode(expr, transition_type)
+        node = Node(expr, transition_type)
         self.node_cache[node.id] = node
         return node.id
 
@@ -235,22 +242,7 @@ class Logger:
         return self.op_count < OP_LIMIT
 
 
-class StaticNode:
-    def __init__(self, expr: Expression, transition_type: HolderState):
-        self.expr = expr
-        self.transition_type = transition_type
-
-    def export(self):
-        return {
-            "transitions": [(0, self.transition_type.name)],
-            "strs": [(0, repr(self.expr))],
-            "parent_strs": [(0, repr(self.expr))],
-            "children": [(0, [])],
-            "static": True
-        }
-
-
-class FatNode:
+class Node:
     def __init__(self, expr: VisualExpression, transition_type: HolderState):
         self.transitions = []
         self.str = []
@@ -260,7 +252,7 @@ class FatNode:
         self.modify(expr, transition_type)
 
     @limited
-    def modify(self, expr: Union[Expression, VisualExpression], transition_type: HolderState):
+    def modify(self, expr: VisualExpression, transition_type: HolderState):
         if not self.transitions or self.transitions[-1][1] != transition_type.name:
             self.transitions.append((logger.i, transition_type.name))
         if not self.str or self.str[-1][1] != repr(expr):
@@ -269,17 +261,14 @@ class FatNode:
         while self.children and self.children[-1][0] == logger.i:
             self.children.pop()
 
-        if isinstance(expr, VisualExpression) and expr.value is None:
+        if expr.value is None:
             self.children.append(
                 (logger.i,
                  [logger.new_node(child.expression, child.state) for child in expr.children]))
         else:
             self.children.append((logger.i, []))
 
-        if isinstance(expr, VisualExpression):
-            new_base_str = repr(expr.base_expr)
-        else:
-            new_base_str = expr
+        new_base_str = repr(expr.base_expr)
 
         if not self.base_str or self.base_str[-1][1] != new_base_str:
             self.base_str.append((logger.i, new_base_str))
@@ -355,6 +344,8 @@ class Heap:
     def record(self, expr: Expression) -> 'Heap.HeapKey':
         if isinstance(expr, evaluate_apply.Thunk):
             return False, "thunk"
+        if expr.id is None:
+            expr.id = get_id()
         if expr.id not in self.prev and expr.id not in self.curr:
             if isinstance(expr, ValueHolder):
                 return False, repr(expr)

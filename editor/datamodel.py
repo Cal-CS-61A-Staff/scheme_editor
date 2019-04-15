@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 class Expression:
     def __init__(self):
-        self.id = get_id()
+        self.id = None
 
 
 class ValueHolder(Expression):
@@ -36,6 +36,7 @@ class Number(ValueHolder):
 
     def __repr__(self):
         return super().__repr__()
+
 
 
 class Pair(Expression):
@@ -100,6 +101,7 @@ class Promise(Expression):
         self.expr = expr
         self.frame = frame
         self.targets = []
+        self.id = get_id()
 
     def __repr__(self):
         return "#[promise]"
