@@ -25,6 +25,7 @@ class Append(BuiltIn):
         return out
 
 
+
 @global_attr("car")
 class Car(SingleOperandPrimitive):
     def execute_simple(self, operand: Expression) -> Expression:

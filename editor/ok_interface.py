@@ -15,14 +15,17 @@ FAILURE_SETUP_HEADER = '''; There was an error in running the setup code (probab
 
 FAILURE_SETUP_FOOTER = "; Raw ok output over"
 
+BEGIN_OUTPUT = b"sdfghjkjhgfdfghjklkjhgfdxcfghj"
+
 
 class PrintCapture:
-    def __init__(self):
+    def __init__(self, old_stdout):
         self.log = []
+        self.old_stdout = old_stdout
 
     def write(self, message):
         self.log.append(message)
-        sys.__stdout__.write(message)
+        self.old_stdout.write(message)
 
     def flush(self):
         sys.__stdout__.flush()
@@ -30,7 +33,7 @@ class PrintCapture:
 
 def capture_output(console, lines):
     old_stdout = sys.stdout
-    sys.stdout = out = PrintCapture()
+    sys.stdout = out = PrintCapture(old_stdout)
     result = console._interpret_lines(lines)
     sys.stdout = old_stdout
     if str(TerminatedError()) in "".join(out.log):
@@ -173,8 +176,8 @@ def process(output, success):
             return Locked()
         else:
             return AreDifferent("\n".join(prompt), expected, actual)
-    elif "Traceback" in result or "# Error:" in result:
-        return Error("\n".join(prompt).strip("\n"), result)
+    # elif "Traceback" in result or "# Error:" in result:
+    #     return Error("\n".join(prompt).strip("\n"), result)
     else:
         return Same("\n".join(prompt), result.strip())
 
@@ -259,14 +262,14 @@ def run_tests():
     except TerminatedError:
         return [{'problem': "Tests Terminated by User", 'suites': [], 'passed': False}]
 
+
 if __name__ == '__main__':
     output = None
-    with open(os.devnull, 'wb') as null:
-        with redirect_descriptor(sys.stdout, null):
-            sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ok"))
-            try:
-                output = run_tests()
-            finally:
-                sys.path.pop(0)
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ok"))
+    try:
+        output = run_tests()
+    finally:
+        sys.path.pop(0)
     import json
+    print(BEGIN_OUTPUT.decode("ascii"))
     json.dump(output, sys.stdout)
