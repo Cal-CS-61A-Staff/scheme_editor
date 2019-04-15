@@ -51,10 +51,12 @@ def string_exec(strings, out, visualize_tail_calls, global_frame=None):
                 res = evaluate(expr, global_frame, holder)
                 if res is not Undefined:
                     out(res)
-                if not log.logger.fragile and log.logger.autodraw \
-                        and isinstance(res, Pair) and len(pair_to_list(res)) < MAX_AUTODRAW_LENGTH:
-                    log.logger.raw_out("AUTODRAW" +
-                                       json.dumps([log.logger.i, log.logger.heap.record(res)]) + "\n")
+                if not log.logger.fragile and log.logger.autodraw:
+                    try:
+                        log.logger.raw_out("AUTODRAW" +
+                                           json.dumps([log.logger.i, log.logger.heap.record(res)]) + "\n")
+                    except RecursionError:
+                        pass
         except (SchemeError, ZeroDivisionError, RecursionError, ValueError) as e:
             if isinstance(e, ParseError):
                 log.logger.new_expr()
