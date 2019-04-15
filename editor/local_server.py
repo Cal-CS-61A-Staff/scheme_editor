@@ -81,7 +81,7 @@ class Handler(server.BaseHTTPRequestHandler):
         elif path == "/test":
             self.cancellation_event.clear()  # Make sure we don't have lingering cancellation requests from before
             output = cancelable_subprocess_call(self.cancellation_event, (sys.argv[0], os.path.splitext(ok_interface.__file__)[0] + ".py"), -1, sys.executable, subprocess.PIPE, subprocess.PIPE, None)
-            self.wfile.write(output)
+            self.wfile.write(output.split(ok_interface.BEGIN_OUTPUT)[1])
 
         elif path == "/list_files":
             self.wfile.write(bytes(json.dumps(get_scm_files()), "utf-8"))
