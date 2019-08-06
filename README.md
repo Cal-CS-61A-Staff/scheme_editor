@@ -1,6 +1,8 @@
 # Scheme-o-matic
 This tool is a web-based, locally-hosted editor and debugger for the variant of the programming language Scheme taught in CS 61A.
 
+To try a limited web demo of some of the features, go to <http://scheme.pythonanywhere.com>!
+
 To run with a homework or lab, download the entire folder and run the command `python3 editor`.
 
 To run without okpy, run the command `python3 editor -f`. (note that there may be some initial layout glitches before a file is opened).
