@@ -1,6 +1,6 @@
 from typing import List, Optional, Type
 
-from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise, NilType
+from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise, NilType, String
 from environment import global_attr
 from environment import special_form
 from evaluate_apply import Frame, evaluate, Callable, evaluate_all, Applicable
@@ -436,6 +436,31 @@ class Load(Applicable):
                 return evaluate(expr, frame, gui_holder.expression.children[0], True)
         except OSError as e:
             raise LoadError(e)
+
+
+@global_attr("load-all")
+class LoadAll(Applicable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder, eval_operands=True):
+        verify_exact_callable_length(self, 1, len(operands))
+        if eval_operands:
+            operands = evaluate_all(operands, frame, gui_holder.expression.children[1:])
+        if not isinstance(operands[0], String):
+            raise OperandDeduceError(f"Load expected a String, received {operands[0]}.")
+        if logger.fragile:
+            raise IrreversibleOperationError()
+        from os import listdir
+        from os.path import join
+        directory = operands[0].value
+        try:
+            targets = sorted(listdir(directory))
+            targets = [join(directory, target) for target in targets if target.endswith(".scm")]
+            exprs = [make_list([Symbol("load"), make_list([Symbol("quote"), Symbol(x[:-4])])]) for x in targets]
+            equiv = make_list([Symbol("begin-noexcept")] + exprs)
+            gui_holder.expression.set_entries([equiv])
+            gui_holder.apply()
+            return evaluate(equiv, frame, gui_holder.expression.children[0], True)
+        except Exception as e:
+            raise SchemeError(e)
 
 
 @special_form("begin-noexcept")
