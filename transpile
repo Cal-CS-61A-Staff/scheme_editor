@@ -1,0 +1,8 @@
+#!/bin/bash
+mkdir -p ./compiled
+cp -r ./editor ./compiled/editor
+for file in editor/*.py
+do
+  py-backwards -i "$file" -t 3.5 -o compiled/editor
+done
+zip -r editor.zip editor
