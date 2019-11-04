@@ -66,7 +66,7 @@ class Pair(Expression):
 
 class NilType(Expression):
     def __repr__(self):
-        return "nil"
+        return "()"
 
 
 class UndefinedType(Expression):
