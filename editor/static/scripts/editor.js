@@ -176,7 +176,7 @@ function register(layout) {
             }
         });
 
-        container.getElement().find(".run-btn").on("click", run);
+        container.getElement().find(".run-btn").on("click", () => run());
 
         container.getElement().find(".save-btn").on("click", () => save());
 
