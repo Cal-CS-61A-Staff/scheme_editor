@@ -1,4 +1,6 @@
 import os
+import time
+from _socket import timeout
 from http import server
 import io
 import json
@@ -9,6 +11,8 @@ import urllib.parse
 import webbrowser
 import threading
 from http import HTTPStatus
+from urllib.error import URLError
+from urllib.request import Request, urlopen
 
 import execution
 import ok_interface
@@ -26,6 +30,7 @@ PORT = 8012
 main_files = []
 
 state = {}
+
 
 class Handler(server.BaseHTTPRequestHandler):
     cancellation_event = threading.Event()  # Shared across all instances, because the threading mixin creates a new instance every time...
@@ -257,25 +262,39 @@ def start(file_args, port, open_browser):
     main_files = file_args
     global PORT
     PORT = port
-    url = f"http://localhost:{PORT}"
     socketserver.TCPServer.allow_reuse_address = True
-    try:
-        httpd = ThreadedHTTPServer(("localhost", PORT), Handler)
-    except OSError:
+
+    e = None
+    for port in range(PORT, PORT + 10):
+        request = Request(f"http://127.0.0.1:{port}/kill", method='POST')
+        try:
+            urlopen(request, timeout=2)
+            print("Killing existing editor process...")
+            time.sleep(1)
+        except (URLError, timeout):
+            pass
+
+        try:
+            httpd = ThreadedHTTPServer(("127.0.0.1", port), Handler)
+        except OSError as e:
+            print(f"Port {port} is currently in use, trying a different port...")
+        else:
+            PORT = port
+            url = f"http://127.0.0.1:{PORT}"
+            break
+    else:
         if supports_color():
             print("\033[91m", end="")
-        print(f"Port {PORT} is already in use, likely for another instance of the editor.")
-        print("To open a second instance of the editor, specify a different port using --port.")
-        print(f"To replace the previous editor instance with a new one:\n"
-              f"    1. Go to {url}\n"
-              f"    2. Press \"Stop Editor\" at the top\n"
-              f"    3. Run `python3 editor` again")
+        print(f"Unable to connect to any candidate ports, printing debug information:")
+        print(e)
         if supports_color():
             print("\033[0m", end="")
         return
+
     print(url)
+
     if open_browser:
-        webbrowser.open(f"http://localhost:{PORT}", new=0, autoraise=True)
+        webbrowser.open(f"http://127.0.0.1:{PORT}", new=0, autoraise=True)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
