@@ -257,10 +257,10 @@ def start(file_args, port, open_browser):
     main_files = file_args
     global PORT
     PORT = port
-    url = f"http://localhost:{PORT}"
+    url = f"http://127.0.0.1:{PORT}"
     socketserver.TCPServer.allow_reuse_address = True
     try:
-        httpd = ThreadedHTTPServer(("localhost", PORT), Handler)
+        httpd = ThreadedHTTPServer(("127.0.0.1", PORT), Handler)
     except OSError:
         if supports_color():
             print("\033[91m", end="")
@@ -275,7 +275,7 @@ def start(file_args, port, open_browser):
         return
     print(url)
     if open_browser:
-        webbrowser.open(f"http://localhost:{PORT}", new=0, autoraise=True)
+        webbrowser.open(f"http://127.0.0.1:{PORT}", new=0, autoraise=True)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
