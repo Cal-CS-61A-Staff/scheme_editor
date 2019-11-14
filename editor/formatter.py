@@ -225,9 +225,9 @@ class AlignedCondFormatter(SpecialFormFormatter):
             if isinstance(expr, FormatComment):
                 return CommentFormatter.format(expr)
             else:
-                out = Token(expr.open_paren)
+                out = Token(expr.prefix) + Token(expr.open_paren)
                 inlined_pred = InlineFormatter.format(expr.contents[0])
-                pred_len = inlined_pred.max_line_len
+                pred_len = len(expr.prefix) + inlined_pred.max_line_len
                 out += inlined_pred
                 out += Token(" " * (max_pred_len - pred_len)) + Space()
                 out += InlineFormatter.format(expr.contents[1])
