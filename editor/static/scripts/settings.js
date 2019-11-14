@@ -9,11 +9,6 @@ function init() {
     $('#settingsModal').on('hide.bs.modal', function (e) {
         saveState();
     });
-    $("#stop-editor-btn").on("click", () => {
-        $.post("/kill");
-        $("#disconnectedModal").modal("show");
-        $("#reconnect-button").hide();
-    });
 
     $.post("./load_settings").done((data) => {
         if (data === "fail") {
