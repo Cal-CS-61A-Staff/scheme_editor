@@ -176,7 +176,7 @@ function register(layout) {
             }
         });
 
-        container.getElement().find(".run-btn").on("click", run);
+        container.getElement().find(".run-btn").on("click", () => run());
 
         container.getElement().find(".save-btn").on("click", () => save());
 
@@ -184,11 +184,13 @@ function register(layout) {
 
         container.getElement().find(".sub-btn").on("click", async function () {
             await save();
+            await run(true);
             open("substitution_tree", componentState.id);
         });
 
         container.getElement().find(".env-btn").on("click", async function () {
             await save();
+            await run(true);
             open("env_diagram", componentState.id);
         });
 
@@ -235,7 +237,7 @@ function register(layout) {
             })
         }
 
-        async function run() {
+        async function run(noOutput) {
             let code = [editor.getValue()];
 
             async function run_done(data) {
@@ -263,9 +265,11 @@ function register(layout) {
 
                 await save(true);
 
-                open("output", componentState.id);
-                if (data.graphics_open) {
-                    open("turtle_graphics", componentState.id);
+                if (!noOutput) {
+                    open("output", componentState.id);
+                    if (data.graphics_open) {
+                        open("turtle_graphics", componentState.id);
+                    }
                 }
                 // noinspection JSIgnoredPromiseFromCall
                 saveState(true);
