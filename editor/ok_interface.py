@@ -233,6 +233,8 @@ def run_tests():
     from client.sources.ok_test.scheme import SchemeSuite
     # noinspection PyUnresolvedReferences
     from client.sources.doctest.models import Doctest
+    # noinspection PyUnresolvedReferences
+    from client.sources.scheme_test.models import SchemeTest
     log.setLevel(logging.ERROR)
 
     args = parse_input(["--all", "--verbose"])
