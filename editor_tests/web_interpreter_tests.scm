@@ -257,15 +257,15 @@ circumference
   (= (* (numer x) (denom y))
      (* (numer y) (denom x))))
 
-(define x (cons 1 2))
+(define x (list 1 2))
 (car x)
 ; expect 1
 
 (cdr x)
 ; expect 2
 
-(define x (cons 1 2))
-(define y (cons 3 4))
+(define x (list 1 2))
+(define y (list 3 4))
 (define z (cons x y))
 (car (car z))
 ; expect 1
@@ -276,9 +276,9 @@ circumference
 z
 ; expect ((1 . 2) 3 . 4)
 
-(define (make-rat n d) (cons n d))
+(define (make-rat n d) (list n d))
 (define (numer x) (car x))
-(define (denom x) (cdr x))
+(define (denom x) (car (cdr x)))
 (define (print-rat x)
   (display (numer x))
   (display '/)
@@ -304,7 +304,7 @@ z
       (gcd b (remainder a b))))
 (define (make-rat n d)
   (let ((g (gcd n d)))
-    (cons (/ n g) (/ d g))))
+    (list (/ n g) (/ d g))))
 (print-rat (add-rat one-third one-third))
 ; expect 2/3
 
