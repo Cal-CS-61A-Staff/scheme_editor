@@ -189,5 +189,5 @@ class IsEqual(BuiltIn):
             return bools[IsEqual().execute_evaluated([operands[0].first, operands[1].first], frame) is SingletonTrue and \
                          IsEqual().execute_evaluated([operands[0].rest, operands[1].rest], frame) is SingletonTrue]
         else:
-            return IsEq().execute_evaluated(operands, frame)
+            return IsEqv().execute_evaluated(operands, frame)
 
