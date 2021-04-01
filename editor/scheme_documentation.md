@@ -135,19 +135,21 @@ Pairs are a built-in data structure consisting of two fields, a `car` and a
 value can contain any scheme datatype. However, the second value must contain
 nil, a pair, or a stream promise.
 
-`nil` is a special value in Scheme which represents the empty list. It can be
+`nil` is a special value in Scheme that represents the empty list. It can be
 inputted by typing `nil` or `()` into the interpreter.
 
 A **list** is defined as either `nil` or a pair whose `cdr` is another list.
 Pairs are displayed as a parenthesized, space separated, sequence of the elements
-in the sequence they represent. For example, `(cons (cons 1 nil) (cons 1 nil))`
-is displayed as `((1) 2)`. Note that this means that `cons` is asymmetric.
+in the sequence they represent. For example, `(cons (cons 1 nil) (cons 2 nil))`
+is displayed as `((1) 2)`. This means that `cons` is asymmetric.
 
 > There is one exception to the above rule in the case of streams. Streams are
 > represented as the `car` of the stream, followed by a dot, followed by the
 > promise that makes up its cdr. For example
-    scm> (cons-stream 1 nil)
-    (1 . #[promise (not forced)])
+```scheme
+scm> (cons-stream 1 nil)
+(1 . #[promise (not forced)])
+```
 
 List literals can be constructed through the quote special form, so
 `(cons 1 (cons 'a nil))` and `'(1 a)` are equivalent.
@@ -211,33 +213,37 @@ errors for any reason, the promise remains unforced.
 
 For example
 
-    scm> (define p (delay (begin (print "hi") (/ 1 0))))
-    p
-    scm> p
-    #[promise (unforced)]
-    scm> (force p)
-    hi
-    Error
-    scm> p
-    #[promise (unforced)]
-    scm> (force p)
-    hi
-    Error
+```scheme
+scm> (define p (delay (begin (print "hi") (/ 1 0))))
+p
+scm> p
+#[promise (unforced)]
+scm> (force p)
+hi
+Error
+scm> p
+#[promise (unforced)]
+scm> (force p)
+hi
+Error
+```
 
 Or, for an example with type errors:
 
-    scm> (define p (delay (begin (print "hi") 2)))
-    p
-    scm> p
-    #[promise (unforced)]
-    scm> (force p)
-    hi
-    Error
-    scm> p
-    #[promise (unforced)]
-    scm> (force p)
-    hi
-    Error
+```scheme
+scm> (define p (delay (begin (print "hi") 2)))
+p
+scm> p
+#[promise (unforced)]
+scm> (force p)
+hi
+Error
+scm> p
+#[promise (unforced)]
+scm> (force p)
+hi
+Error
+```
 
 Promises are used to define **streams**, which are to lists what promises are to
 regular values. A stream is defined as a pair where the cdr is a promise that
@@ -285,45 +291,53 @@ intrinsic name of `name` for the purpose of visualization or debugging.
 
 In either case, the return value is the symbol `<name>`.
 
-    scm> (define x 2)
-    x
-    scm> (define (f x) x)
-    f
+```scheme
+scm> (define x 2)
+x
+scm> (define (f x) x)
+f
+```
 
 #### Variadic functions
 
 In staff implementations of the scheme language, you can define a function that takes a variable number of arguments by using the `variadic` special form. The construct `variadic` constructs a "variadic symbol" that is bound to multiple rather than a single variable. This is only allowed at the end of an arguments list
 
-    scm> (define (f x (variadic y)) (append y (list x)))
-    f
-    scm> (f 1 2 3)
-    (2 3 1)
-    scm> (define (f (variadic y) x) (append y (list x)))
-    Error
+```scheme
+scm> (define (f x (variadic y)) (append y (list x)))
+f
+scm> (f 1 2 3)
+(2 3 1)
+scm> (define (f (variadic y) x) (append y (list x)))
+Error
+```
 
 This is also possible in lambdas:
 
-    scm> (define f (lambda (x (variadic y)) (append y (list x))))
-    f
-    scm> (f 1 2 3)
-    (2 3 1)
-    scm> (define my-list (lambda ((variadic x)) x))
-    my-list
-    scm> (my-list 2 3 4)
-    (2 3 4)
+```scheme
+scm> (define f (lambda (x (variadic y)) (append y (list x))))
+f
+scm> (f 1 2 3)
+(2 3 1)
+scm> (define my-list (lambda ((variadic x)) x))
+my-list
+scm> (my-list 2 3 4)
+(2 3 4)
+```
 
 You can use the special symbol `.` to construct the `variadic` special form:
 
-    scm> (define (f x . y) (append y (list x)))
-    f
-    scm> (f 1 2 3)
-    (2 3 1)
-    scm> '. x
-    (variadic x)
+```scheme
+scm> (define (f x . y) (append y (list x)))
+f
+scm> (f 1 2 3)
+(2 3 1)
+scm> '. x
+(variadic x)
+```
 
 This is analogous to `,` for `unquote`.
 
-> Note: this is pretty much the same as `*args` in python, except that you can't call a function using `variadic`, you instead have to use the `#[apply]` built-in function.
+> This is pretty much the same as `*args` in python, except that you can't call a function using `variadic`, you instead have to use the `#[apply]` built-in function.
 
 ### **`if`**
 
@@ -453,7 +467,7 @@ See above. `,<expr2>` is equivalent to the form mentioned above.
 
     (unquote-splicing <expr2>)
 
-> Note: This special form is included in the staff interpreter and the web
+> This special form is included in the staff interpreter and the web
 > interpreter, but it is not in scope for the course and is not included in the
 > project.
 
@@ -466,7 +480,7 @@ then spliced into the structure containing it in `expression`.
 
     (define-macro (<name> [param] ...) <body> ...)
 
-> Note: This special form is implemented as part of an extra credit problem.
+> This special form is implemented as part of an extra credit problem.
 
 Constructs a new macro procedure with `param`s as its parameters and the `body`
 expressions as its body and binds it to `name` in the current environment.
@@ -479,46 +493,73 @@ Macro procedures should be lexically scoped, like lambda procedures.
 
 <a class='builtin-header' id='apply'>**`apply`**</a>
 
-    (apply <procedure> <args>)
+```scheme
+(apply <procedure> <args>)
+```
 
 Calls `procedure` with the given list of `args`.
 
-    scm> (apply + '(1 2 3))
-    6
+```scheme
+scm> (apply + '(1 2 3))
+6
+```
+
+On macros, this has the effect of calling the macro without the initial quoting
+or final evaluation. Thus, `apply` treats a macro as if it were a function.
 
 <a class='builtin-header' id='display'>**`display`**</a>
 
-    (display <val>)
+```scheme
+(display <val>)
+```
 
 Prints `val`. If `val` is a Scheme string, it will be output without quotes.
 
 A new line will not be automatically included.
 
+<a class='builtin-header' id='displayln'>**`displayln`**</a>
+
+```scheme
+(displayln <val>)
+```
+
+Like `display`, but includes a newline at the end.
+
 <a class='builtin-header' id='error'>**`error`**</a>
 
-    (error <msg>)
+```scheme
+(error <msg>)
+```
 
 Raises an `SchemeError` with `msg` as it's message. If there is no `msg`,
 the error's message will be empty.
 
 <a class='builtin-header' id='eval'>**`eval`**</a>
 
-    (eval <expression>)
+```scheme
+(eval <expression>)
+```
 
 Evaluates `expression` in the current environment.
 
-    scm> (eval '(cons 1 (cons 2 nil)))
-    (1 2)
+```scheme
+scm> (eval '(cons 1 (cons 2 nil)))
+(1 2)
+```
 
 <a class='builtin-header' id='exit'>**`exit`**</a>
 
-    (exit)
+```scheme
+(exit)
+```
 
 Exits the interpreter. In the web interpreter, this does nothing.
 
 <a class='builtin-header' id='load'>**`load`**</a>
 
-    (load <filename>)
+```scheme
+(load <filename>)
+```
 
 Loads the contents of the file with `filename` and evaluates the code within.
 `filename` must be a symbol. If that file is not found, `filename`.scm will
@@ -530,90 +571,118 @@ environment.
 
 <a class='builtin-header' id='newline'>**`newline`**</a>
 
-    (newline)
+```scheme
+(newline)
+```
 
 Prints a new line.
 
 <a class='builtin-header' id='print'>**`print`**</a>
 
-    (print <val>)
+```scheme
+(print <val>...)
+```
 
-Prints the Scheme representation of `val`. Unlike `display`, this will include
-the outer quotes on a Scheme string and will print a new line.
+Prints the Scheme representation of each `val`, separated by spaces. Unlike `display`, this will include
+the outer quotes on a Scheme string, and a newline.
 
 ## Type Checking
 
 <a class='builtin-header' id='atom?'>**`atom?`**</a>
 
-    (atom? <arg>)
+```scheme
+(atom? <arg>)
+```
 
 Returns true if `arg` is a boolean, number, symbol, string, or nil;
 false otherwise.
 
 <a class='builtin-header' id='boolean?'>**`boolean?`**</a>
 
-    (boolean? <arg>)
+```scheme
+(boolean? <arg>)
+```
 
 Returns true if `arg` is a boolean; false otherwise.
 
 <a class='builtin-header' id='integer?'>**`integer?`**</a>
 
-    (integer? <arg>)
+```scheme
+(integer? <arg>)
+```
 
 Returns true if `arg` is a integer; false otherwise.
 
 <a class='builtin-header' id='list?'>**`list?`**</a>
 
-    (list? <arg>)
+```scheme
+(list? <arg>)
+```
 
 Returns true if `arg` is a well-formed list (i.e., it doesn't contain
 a stream); false otherwise. If the list has a cycle, this may cause an
 error or infinite loop.
 
-    scm> (list? '(1 2 3))
-    True
-    scm> (list? (cons-stream 1 nil))
-    False
+```scheme
+scm> (list? '(1 2 3))
+#t
+scm> (list? (cons-stream 1 nil))
+#f
+```
 
 <a class='builtin-header' id='number?'>**`number?`**</a>
 
-    (number? <arg>)
+```scheme
+(number? <arg>)
+```
 
 Returns true if `arg` is a number; false otherwise.
 
 <a class='builtin-header' id='null?'>**`null?`**</a>
 
-    (null? <arg>)
+```scheme
+(null? <arg>)
+```
 
 Returns true if `arg` is `nil` (the empty list); false otherwise.
 
 <a class='builtin-header' id='pair?'>**`pair?`**</a>
 
-    (pair? <arg>)
+```scheme
+(pair? <arg>)
+```
 
 Returns true if `arg` is a pair; false otherwise.
 
 <a class='builtin-header' id='procedure?'>**`procedure?`**</a>
 
-    (procedure? <arg>)
+```scheme
+(procedure? <arg>)
+```
 
 Returns true if `arg` is a procedure; false otherwise.
 
 <a class='builtin-header' id='promise?'>**`promise?`**</a>
 
-    (promise? <arg>)
+```scheme
+(promise? <arg>)
+```
 
 Returns true if `arg` is a promise; false otherwise.
 
 <a class='builtin-header' id='string?'>**`string?`**</a>
 
-    (string? <arg>)
+```scheme
+(string? <arg>)
+```
 
 Returns true if `arg` is a string; false otherwise.
 
 <a class='builtin-header' id='symbol?'>**`symbol?`**</a>
 
-    (symbol? <arg>)
+```scheme
+(symbol? <arg>)
+```
 
 Returns true if `arg` is a symbol; false otherwise.
 
@@ -621,61 +690,79 @@ Returns true if `arg` is a symbol; false otherwise.
 
 <a class='builtin-header' id='append'>**`append`**</a>
 
-    (append [lst] ...)
+```scheme
+(append [lst] ...)
+```
 
 Returns the result of appending the items of all `lst`s in order into a single
 list. Returns `nil` if no `lst`s.
 
-    scm> (append '(1 2 3) '(4 5 6))
-    (1 2 3 4 5 6)
-    scm> (append)
-    ()
-    scm> (append '(1 2 3) '(a b c) '(foo bar baz))
-    (1 2 3 a b c foo bar baz)
-    scm> (append '(1 2 3) 4)
-    Error
+```scheme
+scm> (append '(1 2 3) '(4 5 6))
+(1 2 3 4 5 6)
+scm> (append)
+()
+scm> (append '(1 2 3) '(a b c) '(foo bar baz))
+(1 2 3 a b c foo bar baz)
+scm> (append '(1 2 3) 4)
+Error
+```
 
 <a class='builtin-header' id='car'>**`car`**</a>
 
-    (car <pair>)
+```scheme
+(car <pair>)
+```
 
 Returns the `car` of `pair`. Errors if `pair` is not a pair.
 
 <a class='builtin-header' id='cdr'>**`cdr`**</a>
 
-    (cdr <pair>)
+```scheme
+(cdr <pair>)
+```
 
 Returns the `cdr` of `pair`. Errors if `pair` is not a pair.
 
 <a class='builtin-header' id='cons'>**`cons`**</a>
 
-    (cons <first> <rest>)
+```scheme
+(cons <first> <rest>)
+```
 
 Returns a new pair with `first` as the `car` and `rest` as the `cdr`
 
 <a class='builtin-header' id='length'>**`length`**</a>
 
-    (length <arg>)
+```scheme
+(length <arg>)
+```
 
 Returns the length of `arg`. If `arg` is not a list, this
 will cause an error.
 
 <a class='builtin-header' id='list'>**`list`**</a>
 
-    (list <item> ...)
+```scheme
+(list <item> ...)
+```
 
 Returns a list with the `item`s in order as its elements.
 
 <a class='builtin-header' id='map'>**`map`**</a>
 
-    (map <proc> <lst>)
+```scheme
+(map <proc> <lst>)
+```
 
 Returns a list constructed by calling `proc` (a one-argument
 procedure) on each item in `lst`.
 
 <a class='builtin-header' id='filter'>**`filter`**</a>
 
-    (filter <pred> <lst>)
+```scheme
+(filter <pred> <lst>)
+```
 
 Returns a list consisting of only the elements of `lst` that
 return true when called on `pred` (a one-argument
@@ -683,7 +770,9 @@ procedure).
 
 <a class='builtin-header' id='reduce'>**`reduce`**</a>
 
-    (reduce <combiner> <lst>)
+```scheme
+(reduce <combiner> <lst>)
+```
 
 Returns the result of sequentially combining each element in `lst`
 using `combiner` (a two-argument procedure). `reduce` works
@@ -695,13 +784,17 @@ one item.
 
 <a class='builtin-header' id='set-car!'>**`set-car!`**</a>
 
-    (set-car! <pair> <value>)
+```scheme
+(set-car! <pair> <value>)
+```
 
 Sets the `car` of `pair` to `value`. `pair` must be a pair.
 
 <a class='builtin-header' id='set-cdr!'>**`set-cdr!`**</a>
 
-    (set-cdr! <pair> <value>)
+```scheme
+(set-cdr! <pair> <value>)
+```
 
 Sets the `cdr` of `pair` to `value`. `pair` must be a pair.
 
@@ -709,14 +802,18 @@ Sets the `cdr` of `pair` to `value`. `pair` must be a pair.
 
 <a class='builtin-header' id='+'>**`+`**</a>
 
-    (+ [num] ...)
+```scheme
+(+ [num] ...)
+```
 
 Returns the sum of all `num`s. Returns 0 if there are none. If any `num` is not
 a number, this will error.
 
 <a class='builtin-header' id='-'>**`-`**</a>
 
-    (- <num> ...)
+```scheme
+(- <num> ...)
+```
 
 If there is only one `num`, return its negation. Otherwise, return the first
 `num` minus the sum of the remaining `num`s. If any `num` is not a number, this
@@ -724,70 +821,92 @@ will error.
 
 <a class='builtin-header' id='*'>**`*`**</a>
 
-    (* [num] ...)
+```scheme
+(* [num] ...)
+```
 
 Returns the product of all `num`s. Returns 1 if there are none. If any `num` is
 not a number, this will error.
 
 <a class='builtin-header' id='/'>**`/`**</a>
 
-    (/ <dividend> [divisor] ...)
+```scheme
+(/ <dividend> [divisor] ...)
+```
 
 If there are no `divisor`s, return 1 divided by `dividend`. Otherwise, return
 `dividend` divided by the product of the `divisors`. This built-in does true
 division, not floor division. `dividend` and all `divisor`s must be numbers.
 
-    scm> (/ 4)
-    0.25
-    scm> (/ 7 2)
-    3.5
-    scm> (/ 16 2 2 2)
-    2
+```scheme
+scm> (/ 4)
+0.25
+scm> (/ 7 2)
+3.5
+scm> (/ 16 2 2 2)
+2
+```
 
 <a class='builtin-header' id='abs'>**`abs`**</a>
 
-    (abs <num>)
+```scheme
+(abs <num>)
+```
 
 Returns the absolute value of `num`, which must be a number.
 
 <a class='builtin-header' id='expt'>**`expt`**</a>
 
-    (expt <base> <power>)
+```scheme
+(expt <base> <power>)
+```
 
 Returns the `base` raised to the `power` power. Both must be numbers.
 
 <a class='builtin-header' id='modulo'>**`modulo`**</a>
 
-    (modulo <a> <b>)
+```scheme
+(modulo <a> <b>)
+```
 
 Returns `a` modulo `b`. Both must be numbers.
 
-    scm> (modulo 7 3)
-    1
-    scm> (modulo -7 3)
-    2
+```scheme
+scm> (modulo 7 3)
+1
+scm> (modulo -7 3)
+2
+```
 
 <a class='builtin-header' id='quotient'>**`quotient`**</a>
 
-    (quotient <dividend> <divisor>)
+```scheme
+(quotient <dividend> <divisor>)
+```
 
 Returns `dividend` integer divided by `divisor`. Both must be numbers.
 
-    scm> (quotient 7 3)
-    2
+```scheme
+scm> (quotient 7 3)
+2
+```
 
 <a class='builtin-header' id='remainder'>**`remainder`**</a>
 
-    (remainder <dividend> <divisor>)
+```scheme
+(remainder <dividend> <divisor>)
+```
 
 Returns the remainder that results when `dividend` is integer divided by
 `divisor`. Both must be numbers. Differs from `modulo` in behavior when
 negative numbers are involved.
 
-    scm> (remainder 7 3)
-    1
-    scm> (remainder -7 3)
-    -1
+```scheme
+scm> (remainder 7 3)
+1
+scm> (remainder -7 3)
+-1
+```
 
 ### Additional Math Procedures
 
@@ -824,35 +943,70 @@ behavior exactly match the corresponding Python functions in the
 
 ### General
 
-<a class='builtin-header' id='eq?'>**`eq?`**</a>
+<a class='builtin-header' id='eqv?'>**`eqv?`**</a>
 
-    (eq? <a> <b>)
+```scheme
+(eqv? <a> <b>)
+```
 
-If `a` and `b` are both numbers, booleans, symbols, or strings, return true if
+If `a` and `b` are both numbers, booleans, or symbols, return true if
 they are equivalent; false otherwise.
 
 Otherwise, return true if `a` and `b` both refer to the same object in memory;
 false otherwise.
 
-    scm> (eq? '(1 2 3) '(1 2 3))
-    False
-    scm> (define x '(1 2 3))
-    scm> (eq? x x)
-    True
+```scheme
+scm> (eqv? '(1 2 3) '(1 2 3))
+#f
+scm> (define x '(1 2 3))
+scm> (eqv? x x)
+#t
+```
+
+<a class='builtin-header' id='eq?'>**`eq?`**</a>
+
+```scheme
+(eq? <a> <b>)
+```
+
+If `a` and `b` are both booleans or symbols, return true if
+they are equivalent; false otherwise.
+
+Otherwise, return true if `a` and `b` both refer to the same object in memory;
+false otherwise.
+
+This function is essentially equivalent to Python's `is` operator.  Generally,
+we will not be using `eq?` in this course, since `eqv?` is usually the
+operator we want.
+
+```scheme
+scm> (eq? '(1 2 3) '(1 2 3))
+#f
+scm> (define x '(1 2 3))
+scm> (eq? x x)
+#t
+>scm ; (eq? 1000000 1000000)  ; #t or #f: not well-defined.
+```
 
 <a class='builtin-header' id='equal?'>**`equal?`**</a>
 
-    (equal? <a> <b>)
+```scheme
+(equal? <a> <b>)
+```
 
 Returns true if `a` and `b` are equivalent. For two pairs, they are equivalent
 if their `car`s are equivalent and their `cdr`s are equivalent.
 
-    scm> (equal? '(1 2 3) '(1 2 3))
-    True
+```scheme
+scm> (equal? '(1 2 3) '(1 2 3))
+#t
+```
 
 <a class='builtin-header' id='not'>**`not`**</a>
 
-    (not <arg>)
+```scheme
+(not <arg>)
+```
 
 Returns true if `arg` is false-y or false if `arg` is truthy.
 
@@ -860,49 +1014,65 @@ Returns true if `arg` is false-y or false if `arg` is truthy.
 
 <a class='builtin-header' id='='>**`=`**</a>
 
-    (= <a> <b>)
+```scheme
+(= <a> <b>)
+```
 
 Returns true if `a` equals `b`. Both must be numbers.
 
 <a class='builtin-header' id='<'>**`<`**</a>
 
-    (< <a> <b>)
+```scheme
+(< <a> <b>)
+```
 
 Returns true if `a` is less than `b`. Both must be numbers.
 
 <a class='builtin-header' id='>'>**`>`**</a>
 
-    (> <a> <b>)
+```scheme
+(> <a> <b>)
+```
 
 Returns true if `a` is greater than `b`. Both must be numbers.
 
 <a class='builtin-header' id='<='>**`<=`**</a>
 
-    (<= <a> <b>)
+```scheme
+(<= <a> <b>)
+```
 
 Returns true if `a` is less than or equal to `b`. Both must be numbers.
 
 <a class='builtin-header' id='>='>**`>=`**</a>
 
-    (>= <a> <b>)
+```scheme
+(>= <a> <b>)
+```
 
 Returns true if `a` is greater than or equal to `b`. Both must be numbers.
 
 <a class='builtin-header' id='even?'>**`even?`**</a>
 
-    (even? <num>)
+```scheme
+(even? <num>)
+```
 
 Returns true if `num` is even. `num` must be a number.
 
 <a class='builtin-header' id='odd?'>**`odd?`**</a>
 
-    (odd? <num>)
+```scheme
+(odd? <num>)
+```
 
 Returns true if `num` is odd. `num` must be a number.
 
 <a class='builtin-header' id='zero?'>**`zero?`**</a>
 
-    (zero? <num>)
+```scheme
+(zero? <num>)
+```
 
 Returns true if `num` is zero. `num` must be a number.
 
@@ -910,7 +1080,9 @@ Returns true if `num` is zero. `num` must be a number.
 
 <a class='builtin-header' id='force'>**`force`**</a>
 
-    (force <promise>)
+```scheme
+(force <promise>)
+```
 
 Returns the evaluated result of `promise`. If `promise` has already been
 forced, its expression will not be evaluated again. Instead, the result from
@@ -918,7 +1090,9 @@ the previous evaluation will be returned. `promise` must be a promise.
 
 <a class='builtin-header' id='cdr-stream'>**`cdr-stream`**</a>
 
-    (cdr-stream <stream>)
+```scheme
+(cdr-stream <stream>)
+```
 
 Shorthand for `(force (cdr <stream>))`.
 
@@ -926,7 +1100,9 @@ Shorthand for `(force (cdr <stream>))`.
 
 <a class='builtin-header' id='backward'>**`backward`**</a>
 
-    (backward <n>)
+```scheme
+(backward <n>)
+```
 
 Moves the turtle backward `n` units in its current direction from its current
 position.
@@ -935,21 +1111,27 @@ position.
 
 <a class='builtin-header' id='begin_fill'>**`begin_fill`**</a>
 
-    (begin_fill)
+```scheme
+(begin_fill)
+```
 
 Starts a sequence of moves that outline a shape to be filled.
 Call `end_fill` to complete the fill.
 
 <a class='builtin-header' id='bgcolor'>**`bgcolor`**</a>
 
-    (bgcolor <c>)
+```scheme
+(bgcolor <c>)
+```
 
 Sets the background color of the turtle window to a color `c` (same rules as
 when calling `color`).
 
 <a class='builtin-header' id='circle'>**`circle`**</a>
 
-    (circle <r> [extent])
+```scheme
+(circle <r> [extent])
+```
 
 Draws a circle of radius `r`, centered `r` units to the turtle's left.
 If `extent` exists, draw only the first `extent` degrees of the circle.
@@ -960,13 +1142,17 @@ The web interpreter has trouble accurately drawing partial circles.
 
 <a class='builtin-header' id='clear'>**`clear`**</a>
 
-    (clear)
+```scheme
+(clear)
+```
 
 Clears the drawing, leaving the turtle unchanged.
 
 <a class='builtin-header' id='color'>**`color`**</a>
 
-    (color <c>)
+```scheme
+(color <c>)
+```
 
 Sets the pen color to `c`, which is a Scheme string such as "red" or "#ffc0c0".
 
@@ -975,21 +1161,29 @@ vary depending on the interpreter.
 
 <a class='builtin-header' id='end_fill'>**`end_fill`**</a>
 
-    (end_fill)
+```scheme
+(end_fill)
+```
 
 Fill in shape drawn since last call to `begin_fill`.
 
 <a class='builtin-header' id='exitonclick'>**`exitonclick`**</a>
 
-    (exitonclick)
+```scheme
+(exitonclick)
+```
 
-Sets the turtle window to close when it is clicked. This has no effect on the
-web interpreter. Call `(exit_turtle)` or `(exitturtle)` to close the turtle
-canvas on the web.
+In pillow-turtle mode, this exits the current program. In tk-turtle mode, it exits the current program
+when the window is clicked. In the web interpreter, it closes the canvas.
+
+In the local interpreter, you can pass `--turtle-save-path PATH` to also effectively call
+`(save-to-file PATH)` right before exit.
 
 <a class='builtin-header' id='forward'>**`forward`**</a>
 
-    (forward <n>)
+```scheme
+(forward <n>)
+```
 
 Moves the turtle forward `n` units in its current direction from its current
 position.
@@ -998,7 +1192,9 @@ position.
 
 <a class='builtin-header' id='hideturtle'>**`hideturtle`**</a>
 
-    (hideturtle)
+```scheme
+(hideturtle)
+```
 
 Makes the turtle invisible.
 
@@ -1009,7 +1205,9 @@ invisible.
 
 <a class='builtin-header' id='left'>**`left`**</a>
 
-    (left <n>)
+```scheme
+(left <n>)
+```
 
 Rotates the turtle's heading `n` degrees counterclockwise.
 
@@ -1017,7 +1215,9 @@ Rotates the turtle's heading `n` degrees counterclockwise.
 
 <a class='builtin-header' id='pendown'>**`pendown`**</a>
 
-    (pendown)
+```scheme
+(pendown)
+```
 
 Lowers the pen so that the turtle starts drawing.
 
@@ -1025,7 +1225,9 @@ Lowers the pen so that the turtle starts drawing.
 
 <a class='builtin-header' id='penup'>**`penup`**</a>
 
-    (penup)
+```scheme
+(penup)
+```
 
 Raises the pen so that the turtle does not draw.
 
@@ -1033,7 +1235,9 @@ Raises the pen so that the turtle does not draw.
 
 <a class='builtin-header' id='pixel'>**`pixel`**</a>
 
-    (pixel <x> <y> <c>)
+```scheme
+(pixel <x> <y> <c>)
+```
 
 Draws a box filled with pixels starting at (`x`, `y`) in color `c` (same rules
 as in `color`). By default the box is one pixel, though this can be changed
@@ -1041,39 +1245,63 @@ with `pixelsize`.
 
 <a class='builtin-header' id='pixelsize'>**`pixelsize`**</a>
 
-    (pixelsize <size>)
+```scheme
+(pixelsize <size>)
+```
 
 Changes the size of the box drawn by `pixel` to be `size`x`size`.
 
 <a class='builtin-header' id='rgb'>**`rgb`**</a>
 
-    (rgb <r> <g> <b>)
+```scheme
+(rgb <r> <g> <b>)
+```
 
 Returns a color string formed from `r`, `g`, and `b` values between 0 and 1.
 
 <a class='builtin-header' id='right'>**`right`**</a>
 
-    (right <n>)
+```scheme
+(right <n>)
+```
 
 Rotates the turtle's heading `n` degrees clockwise.
 
 *Alias: `rt`*
 
+<a class='builtin-header' id='save-to-file'>**`save-to-file`**</a>
+
+    (save-to-file <f>)
+
+Saves the current canvas to a file specified by `f`, with an added file extension.
+
+For example, `(save-to-file "hi")`
+
+- saves to `./hi.png` in the local interpreter using the pillow-turtle
+- saves to `./hi.ps` in the local interpreter using the tk-turtle  (default)
+- has no effect in the web interpreter
+
 <a class='builtin-header' id='screen_width'>**`screen_width`**</a>
 
-    (screen_width)
+```scheme
+(screen_width)
+```
 
 Returns the width of the turtle screen in pixels of the current size.
 
 <a class='builtin-header' id='screen_height'>**`screen_height`**</a>
 
-    (screen_height)
+```scheme
+(screen_height)
+```
 
 Returns the height of the turtle screen in pixels of the current size.
 
 <a class='builtin-header' id='setheading'>**`setheading`**</a>
 
-    (setheading <h>)
+```scheme
+(setheading <h>)
+```
 
 Sets the turtle's heading `h` degrees clockwise from the north.
 
@@ -1081,7 +1309,9 @@ Sets the turtle's heading `h` degrees clockwise from the north.
 
 <a class='builtin-header' id='setposition'>**`setposition`**</a>
 
-    (setposition <x> <y>)
+```scheme
+(setposition <x> <y>)
+```
 
 Moves the turtle to position (`x`, `y`) without changing its heading.
 
@@ -1089,7 +1319,9 @@ Moves the turtle to position (`x`, `y`) without changing its heading.
 
 <a class='builtin-header' id='showturtle'>**`showturtle`**</a>
 
-    (showturtle)
+```scheme
+(showturtle)
+```
 
 Makes the turtle visible.
 
@@ -1100,9 +1332,13 @@ invisible.
 
 <a class='builtin-header' id='speed'>**`speed`**</a>
 
-    (speed <s>)
+```scheme
+(speed <s>)
+```
 
 Sets the turtle's animation speed to some value between 0 and 10 with 0
 indicating no animation and 1-10 indicating faster and faster movement.
 
-This has no effect on the web interpreter, as everything is drawn immediately.
+> On the local interpreter in tk-turtle mode, this changes the animation speed.
+> This feature has no effect on the web interpreter and
+> on the gui-less pillow-turtle mode.

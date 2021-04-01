@@ -172,7 +172,7 @@ class IsEq(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame):
         verify_exact_callable_length(self, 2, len(operands))
         if all(isinstance(x, ValueHolder) for x in operands):
-            if isinstance(operands[0].value, Number):
+            if isinstance(operands[0], Number):
                 return bools[operands[0] is operands[1]]
             else:
                 return bools[operands[0].value == operands[1].value]
