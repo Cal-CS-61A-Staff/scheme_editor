@@ -1,5 +1,7 @@
 from typing import List, Optional, Type
 
+import log
+from arithmetic import IsEqual
 from datamodel import Expression, Symbol, Pair, SingletonTrue, SingletonFalse, Nil, Undefined, Promise, NilType, String
 from environment import global_attr
 from environment import special_form
@@ -512,6 +514,19 @@ class ConsStream(Callable):
         verify_exact_callable_length(self, 2, len(operands))
         operands[0] = evaluate(operands[0], frame, gui_holder.expression.children[1])
         return Pair(operands[0], Promise(operands[1], frame))
+
+
+@special_form("expect")
+class Expect(Callable):
+    def execute(self, operands: List[Expression], frame: Frame, gui_holder: Holder):
+        verify_exact_callable_length(self, 2, len(operands))
+        case = operands[0]
+        operands[0] = evaluate(operands[0], frame, gui_holder.expression.children[1])
+        if not IsEqual().execute_evaluated(operands, frame).value:
+            log.logger.raw_out(f"Evaluated {case}, expected {operands[1]}, got {operands[0]}.\n")
+        else:
+            log.logger.raw_out(f"Evaluated {case}, got {operands[0]}, as expected.\n")
+        return Undefined
 
 
 @global_attr("error")
