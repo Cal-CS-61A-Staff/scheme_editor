@@ -23,7 +23,7 @@ def reformat_files(src, dest=None, check=False):
     exit()
 
 
-parser = argparse.ArgumentParser(description="CS61A Scheme Editor - Spring 2019")
+parser = argparse.ArgumentParser(description="CS61A Scheme Editor - Spring 2021")
 
 parser.add_argument("-f", "--files",
                     type=argparse.FileType('r+'),
@@ -33,8 +33,8 @@ parser.add_argument("-f", "--files",
 parser.add_argument("-nb", "--nobrowser",
                     help="Do not open a new browser window.",
                     action="store_true")
-parser.add_argument("-d", "--dotted",
-                    help="Enable dotted lists",
+parser.add_argument("-n", "--no-dotted",
+                    help="Disable dotted lists",
                     action="store_true")
 parser.add_argument("-p", "--port",
                     type=int,
@@ -54,7 +54,7 @@ if args.reformat is not None:
     reformat_files(*args.reformat, check=args.check)
 
 
-log.logger.dotted = args.dotted
+log.logger.dotted = not args.no_dotted
 
 configs = [f for f in os.listdir(os.curdir) if f.endswith(".ok")]
 
