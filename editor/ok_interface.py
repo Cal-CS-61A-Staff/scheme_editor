@@ -207,7 +207,7 @@ def reload_tests():
 @contextmanager
 def redirect_descriptor(from_, to):  # https://stackoverflow.com/a/22434262
     fd = from_.fileno()
-    with os.fdopen(os.dup(fd), 'wb') as copied: 
+    with os.fdopen(os.dup(fd), 'wb') as copied:
         from_.flush()
         os.dup2(to.fileno(), fd)
         try: yield from_
@@ -244,7 +244,7 @@ def run_tests():
     try:
         result = []
         for test in assign.specified_tests:
-            if isinstance(test, Doctest):
+            if isinstance(test, (Doctest, SchemeTest)):
                 # doctests are python
                 continue
             suites = []
