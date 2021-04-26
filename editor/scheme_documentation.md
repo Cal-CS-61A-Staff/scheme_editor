@@ -122,12 +122,6 @@ These differences in how strings behave are due to the status of strings in the
 host languages: Python and Dart both have immutable strings with no concept of
 individual characters.
 
-Because the Python-based interpreter has little use for strings, it lacks proper
-support for their manipulation. The web interpreter, which requires strings for
-JS interop (among other things), it supports a `string-append` built-in, which
-takes in an arbitrary number of values or any type and combines them into a
-string. Additional string manipulation can be done through JS interop.
-
 ### Pairs and Lists
 
 Pairs are a built-in data structure consisting of two fields, a `car` and a
@@ -257,8 +251,7 @@ Scheme promises and JS-style promises originate from the
 [same general concept][promise wiki], JS promises are best described as a
 placeholder for a value that is computed asynchronously. The Python-based 61A
 Scheme interpreter has no concept of asynchrony, so its promises only represent
-delayed evaluation. The web interpreter continues to use promises in this way,
-but adds a "future" type to stand in place for JS promises.
+delayed evaluation.
 
   [promise wiki]: https://en.wikipedia.org/wiki/Futures_and_promises
 
@@ -565,9 +558,7 @@ Loads the contents of the file with `filename` and evaluates the code within.
 `filename` must be a symbol. If that file is not found, `filename`.scm will
 be attempted.
 
-The web interpreter's does not currently support `load`. The closest analog is
-`import-inline`, which takes a URL and evaluates the Scheme code in the current
-environment.
+The web interpreter does not currently support `load`.
 
 <a class='builtin-header' id='newline'>**`newline`**</a>
 
@@ -1138,8 +1129,6 @@ If `extent` exists, draw only the first `extent` degrees of the circle.
 If `r` is positive, draw in the counterclockwise direction. Otherwise, draw
 in the clockwise direction.
 
-The web interpreter has trouble accurately drawing partial circles.
-
 <a class='builtin-header' id='clear'>**`clear`**</a>
 
 ```scheme
@@ -1156,9 +1145,6 @@ Clears the drawing, leaving the turtle unchanged.
 
 Sets the pen color to `c`, which is a Scheme string such as "red" or "#ffc0c0".
 
-The web interpreter also allows `c` to be a symbol. Available named colors may
-vary depending on the interpreter.
-
 <a class='builtin-header' id='end_fill'>**`end_fill`**</a>
 
 ```scheme
@@ -1174,7 +1160,7 @@ Fill in shape drawn since last call to `begin_fill`.
 ```
 
 In pillow-turtle mode, this exits the current program. In tk-turtle mode, it exits the current program
-when the window is clicked. In the web interpreter, it closes the canvas.
+when the window is clicked. In the web interpreter, it does nothing.
 
 In the local interpreter, you can pass `--turtle-save-path PATH` to also effectively call
 `(save-to-file PATH)` right before exit.
@@ -1197,9 +1183,6 @@ position.
 ```
 
 Makes the turtle invisible.
-
-This procedure has no effect on the web interpreter, as the turtle is always
-invisible.
 
 *Alias: `ht`*
 
@@ -1324,9 +1307,6 @@ Moves the turtle to position (`x`, `y`) without changing its heading.
 ```
 
 Makes the turtle visible.
-
-This procedure has no effect on the web interpreter, as the turtle is always
-invisible.
 
 *Alias: `st`*
 
