@@ -259,6 +259,7 @@ class Circle(BuiltIn):
             raise OperandDeduceError(f"Expected angle to be Number, not {operands[1]}")
         degs = 360 if len(operands) == 1 else operands[1].value
         log.logger.get_canvas().arc(operands[0].value, degs)
+        log.logger.get_canvas().rotate(degs)
         return Undefined
 
 
