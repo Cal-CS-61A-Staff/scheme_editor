@@ -158,12 +158,24 @@ class Not(SingleOperandPrimitive):
         return bools[operand is SingletonFalse]
 
 
+@global_attr("eqv?")
+class IsEqv(BuiltIn):
+    def execute_evaluated(self, operands: List[Expression], frame: Frame):
+        verify_exact_callable_length(self, 2, len(operands))
+        if all(isinstance(x, ValueHolder) for x in operands):
+            return bools[operands[0].value == operands[1].value]
+        return bools[operands[0] is operands[1]]
+
+
 @global_attr("eq?")
 class IsEq(BuiltIn):
     def execute_evaluated(self, operands: List[Expression], frame: Frame):
         verify_exact_callable_length(self, 2, len(operands))
         if all(isinstance(x, ValueHolder) for x in operands):
-            return bools[operands[0].value == operands[1].value]
+            if isinstance(operands[0], Number):
+                return bools[operands[0] is operands[1]]
+            else:
+                return bools[operands[0].value == operands[1].value]
         return bools[operands[0] is operands[1]]
 
 
@@ -177,5 +189,5 @@ class IsEqual(BuiltIn):
             return bools[IsEqual().execute_evaluated([operands[0].first, operands[1].first], frame) is SingletonTrue and \
                          IsEqual().execute_evaluated([operands[0].rest, operands[1].rest], frame) is SingletonTrue]
         else:
-            return IsEq().execute_evaluated(operands, frame)
+            return IsEqv().execute_evaluated(operands, frame)
 

@@ -257,15 +257,15 @@ circumference
   (= (* (numer x) (denom y))
      (* (numer y) (denom x))))
 
-(define x (cons 1 2))
+(define x (list 1 2))
 (car x)
 ; expect 1
 
 (cdr x)
 ; expect 2
 
-(define x (cons 1 2))
-(define y (cons 3 4))
+(define x (list 1 2))
+(define y (list 3 4))
 (define z (cons x y))
 (car (car z))
 ; expect 1
@@ -276,9 +276,9 @@ circumference
 z
 ; expect ((1 . 2) 3 . 4)
 
-(define (make-rat n d) (cons n d))
+(define (make-rat n d) (list n d))
 (define (numer x) (car x))
-(define (denom x) (cdr x))
+(define (denom x) (car (cdr x)))
 (define (print-rat x)
   (display (numer x))
   (display '/)
@@ -304,7 +304,7 @@ z
       (gcd b (remainder a b))))
 (define (make-rat n d)
   (let ((g (gcd n d)))
-    (cons (/ n g) (/ d g))))
+    (list (/ n g) (/ d g))))
 (print-rat (add-rat one-third one-third))
 ; expect 2/3
 
@@ -434,7 +434,7 @@ one-through-four
                         (equal? (car x) (car y))
                         (equal? (cdr x) (cdr y))))
         ((null? x) (null? y))
-        (else (eq? x y))))
+        (else (eqv? x y))))
 (equal? '(1 2 (three)) '(1 2 (three)))
 ; expect #t
 
@@ -887,3 +887,22 @@ b
 
 (prefix primes 10)
 ; expect (2 3 5 7 11 13 17 19 23 29)
+
+;;; group> Eqv
+
+(eq? 1.0 1.0)
+; expect #f
+
+(eqv? 1.0 1.0)
+; expect #t
+
+;;; group> Expect
+
+(expect 1 2)
+; expect Evaluated 1, expected 2, got 1.
+
+(expect (+ 1 1) 2)
+; expect Evaluated (+ 1 1), got 2, as expected.
+
+(expect (+ 1 1) (+ 1 1))
+; expect Evaluated (+ 1 1), expected (+ 1 1), got 2.
